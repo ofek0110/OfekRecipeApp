@@ -1,15 +1,16 @@
 {
   "project_info": {
     "project_number": "272146920679",
+    "firebase_url": "https://ofek-project-80e00-default-rtdb.europe-west1.firebasedatabase.app",
     "project_id": "ofek-project-80e00",
     "storage_bucket": "ofek-project-80e00.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:272146920679:android:cf4a78619bbc8153de5e42",
+        "mobilesdk_app_id": "1:272146920679:android:b7bcfe5f8ca029ecde5e42",
         "android_client_info": {
-          "package_name": "com.example.OfekRecipeApp"
+          "package_name": "com.example.ofek"
         }
       },
       "oauth_client": [],

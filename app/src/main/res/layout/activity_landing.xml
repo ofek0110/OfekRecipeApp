@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="?attr/android:colorBackground"
+    tools:context=".screens.LandingActivity">
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <ImageView
+            android:id="@+id/backgroundImage"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:src="@drawable/landingbg"
+            android:scaleType="centerCrop" />
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:padding="32dp">
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1" />
+
+
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="TastyChoice"
+            android:textSize="40sp"
+            android:textStyle="bold"
+            android:textColor="@color/white"
+            android:layout_marginBottom="8dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="CHOSE,COOK,EAT"
+            android:textSize="16sp"
+            android:textColor="@color/white"
+            android:gravity="center"
+            android:layout_marginBottom="48dp" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/Btn_landing_go_to_sign_in"
+            android:layout_width="match_parent"
+            android:layout_height="60dp"
+            android:text="Sign In"
+            android:textAllCaps="false"
+            android:textSize="16sp"
+            android:layout_marginBottom="16dp"
+            app:cornerRadius="30dp"
+            style="@style/Widget.MaterialComponents.Button.UnelevatedButton" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_landing_register"
+            android:layout_width="match_parent"
+            android:layout_height="60dp"
+            android:text="Create Account"
+            android:textAllCaps="false"
+            android:textSize="16sp"
+            android:textColor="@color/white"
+            app:cornerRadius="30dp"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            app:strokeColor="?attr/colorPrimary"
+            app:strokeWidth="2dp" />
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1.5" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="By continuing, you agree to our"
+            android:textSize="12sp"
+            android:textColor="?attr/colorOnSurfaceVariant"
+            android:layout_marginBottom="4dp" />
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Terms of Service"
+                android:textSize="12sp"
+                android:textColor="?attr/colorPrimary"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text=" and "
+                android:textSize="12sp"
+                android:textColor="?attr/colorOnSurfaceVariant" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Privacy Policy"
+                android:textSize="12sp"
+                android:textColor="?attr/colorPrimary"
+                android:textStyle="bold" />
+
+        </LinearLayout>
+
+     </LinearLayout>
+    </FrameLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>
