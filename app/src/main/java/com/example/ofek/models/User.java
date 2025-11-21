@@ -1,20 +1,22 @@
 package com.example.ofek.models;
 
 public class User {
-    public String id, email,firstname,lastname,password;
+    public String id, email,firstname,lastname,password,phone;
 
     public boolean isAdmin;
 
     public User() {
     }
 
-    public User(String id, String email, String firstname, String lastname, String password, boolean isadmin) {
+    public User(String id, String email, String firstname, String lastname, String password,String phone, boolean isadmin) {
         this.id = id;
         this.email = email;
         this.firstname = firstname;
         this.lastname = lastname;
         this.password = password;
+        this.phone = phone;
         this.isAdmin = isadmin;
+
     }
 
     public String getId() {
@@ -57,6 +59,14 @@ public class User {
         this.password = password;
     }
 
+    public String getPhone() {
+        return phone;
+    }
+
+    public void setPhone(String phone) {
+        this.phone = phone;
+    }
+
     public boolean isAdmin() {
         return isAdmin;
     }
@@ -73,6 +83,7 @@ public class User {
                 ", firstname='" + firstname + '\'' +
                 ", lastname='" + lastname + '\'' +
                 ", password='" + password + '\'' +
+                ", phone='" + phone + '\'' +
                 ", isAdmin=" + isAdmin +
                 '}';
     }
