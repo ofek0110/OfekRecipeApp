@@ -127,7 +127,7 @@
             android:layout_marginBottom="8dp" />
 
         <TextView
-            android:id="@+id/tv_login_register"
+            android:id="@+id/Btn_landing_go_to_create"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Create Account"
@@ -138,6 +138,9 @@
             android:clickable="true"
             android:focusable="true"
             android:background="?attr/selectableItemBackgroundBorderless" />
+
+
+
 
         <View
             android:layout_width="match_parent"

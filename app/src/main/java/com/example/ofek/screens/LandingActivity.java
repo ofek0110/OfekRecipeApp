@@ -13,7 +13,7 @@ import androidx.core.view.WindowInsetsCompat;
 import com.example.ofek.R;
 
 public class LandingActivity extends AppCompatActivity {
-    Button Btn_landing_go_to_signin;
+    Button Btn_landing_go_to_signin , Btn_landing_go_to_create;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -25,10 +25,21 @@ public class LandingActivity extends AppCompatActivity {
             return insets;
         });
 
+
         Btn_landing_go_to_signin = findViewById(R.id.Btn_landing_go_to_sign_in);
+        Btn_landing_go_to_create = findViewById(R.id.btn_landing_go_to_create_account);
+
+
         Btn_landing_go_to_signin.setOnClickListener(v -> {
             Intent intentlog = new Intent(LandingActivity.this , LogIn.class);
             startActivity(intentlog);
         });
+
+        Btn_landing_go_to_create.setOnClickListener(v -> {
+            Intent intentlog = new Intent(LandingActivity.this , Register.class);
+            startActivity(intentlog);
+        });
+
     }
+
 }

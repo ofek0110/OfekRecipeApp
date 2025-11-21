@@ -62,7 +62,7 @@
             style="@style/Widget.MaterialComponents.Button.UnelevatedButton" />
 
         <com.google.android.material.button.MaterialButton
-            android:id="@+id/btn_landing_register"
+            android:id="@+id/btn_landing_go_to_create_account"
             android:layout_width="match_parent"
             android:layout_height="60dp"
             android:text="Create Account"

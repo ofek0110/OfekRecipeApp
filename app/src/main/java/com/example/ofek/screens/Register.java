@@ -1,6 +1,9 @@
 package com.example.ofek.screens;
 
+import android.content.Intent;
 import android.os.Bundle;
+import android.widget.Button;
+import android.widget.TextView;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
@@ -11,7 +14,7 @@ import androidx.core.view.WindowInsetsCompat;
 import com.example.ofek.R;
 
 public class Register extends AppCompatActivity {
-
+    TextView tvRegisterLogin;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -22,5 +25,14 @@ public class Register extends AppCompatActivity {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
+
+        TextView tvRegisterLogin = findViewById(R.id.tv_register_login);
+
+        tvRegisterLogin.setOnClickListener(v -> {
+                Intent intent = new Intent(Register.this, LogIn.class);
+            startActivity(intent);
+        });
+
+
     }
 }
