@@ -11,6 +11,7 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
 import com.example.ofek.R;
+import com.example.ofek.utils.SharedPreferencesUtil;
 
 public class LandingActivity extends AppCompatActivity {
     Button Btn_landing_go_to_signin , Btn_landing_go_to_create;
@@ -24,7 +25,14 @@ public class LandingActivity extends AppCompatActivity {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
-
+        if(SharedPreferencesUtil.isUserLoggedIn(this)) {
+            Intent mainIntent = new Intent(LandingActivity.this, MainActivity.class);
+            /// clear the back stack (clear history) and start the MainActivity
+            mainIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+            startActivity(mainIntent);
+            finish();
+            return;
+        }
 
         Btn_landing_go_to_signin = findViewById(R.id.Btn_landing_go_to_sign_in);
         Btn_landing_go_to_create = findViewById(R.id.btn_landing_go_to_create_account);
@@ -41,5 +49,6 @@ public class LandingActivity extends AppCompatActivity {
         });
 
     }
+
 
 }

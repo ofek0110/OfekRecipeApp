@@ -12,6 +12,15 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.OfekRecipeApp">
         <activity
+            android:name=".screens.MainPage"
+            android:exported="false" />
+        <activity
+            android:name=".screens.IngredientsAdapter"
+            android:exported="false" />
+        <activity
+            android:name=".screens.FirstScreen"
+            android:exported="false" />
+        <activity
             android:name=".screens.MainActivity"
             android:exported="false" />
         <activity

@@ -160,7 +160,7 @@ public class Register extends AppCompatActivity implements View.OnClickListener 
         String uid = databaseService.generateUserId();
 
         /// create a new user object
-        User user = new User(uid, email, password, fName,lName, phone, false);
+        User user = new User(uid, email, fName, fName,password, phone, false);
 
         databaseService.checkIfEmailExists(email, new DatabaseService.DatabaseCallback<>() {
             @Override
