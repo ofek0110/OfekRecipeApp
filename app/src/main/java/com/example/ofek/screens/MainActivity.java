@@ -2,7 +2,10 @@ package com.example.ofek.screens;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.view.View;
 import android.widget.Button;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.activity.EdgeToEdge;
@@ -20,7 +23,8 @@ public class MainActivity extends AppCompatActivity {
     Button btnLogout;
     User user;
     TextView Name;
-    String FName,LName;
+    String FName, LName;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -37,13 +41,10 @@ public class MainActivity extends AppCompatActivity {
         Name.setText(FName);
 
         // מציאת הכפתור מהתצוגה
-         btnLogout = findViewById(R.id.LogOutBtn);
+        btnLogout = findViewById(R.id.LogOutBtn);
 
 // הקשבה ללחיצה על הכפתור
         btnLogout.setOnClickListener(v -> {
-
-
-
             // מחיקת פרטי המשתמש מהטלפון (SharedPreferences)
             SharedPreferencesUtil.signOutUser(this);
 
@@ -52,11 +53,27 @@ public class MainActivity extends AppCompatActivity {
 
             // סגירת מסך הבית כך שלא יחזור אליו בלחיצה אחורה
             finish();
-
         });
 
+        TextView TvName = findViewById(R.id.TvName);
+        ImageView ivArrow = findViewById(R.id.ivArrow);
+        Button LogOutBtn = findViewById(R.id.LogOutBtn);
+        LinearLayout userHeader = findViewById(R.id.userHeader);
 
+        boolean[] isOpen = {false};
 
+        userHeader.setOnClickListener(v -> {
+            if (isOpen[0]) {
+                LogOutBtn.setVisibility(View.GONE);
+                ivArrow.setRotation(0); // חץ למטה
+            } else {
+                LogOutBtn.setVisibility(View.VISIBLE);
+                ivArrow.setRotation(180); // חץ למעלה
+            }
+            isOpen[0] = !isOpen[0];
+        });
+
+        //});
 
 
     }
