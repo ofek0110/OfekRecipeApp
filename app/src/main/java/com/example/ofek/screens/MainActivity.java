@@ -20,7 +20,7 @@ import com.example.ofek.utils.SharedPreferencesUtil;
 
 
 public class MainActivity extends AppCompatActivity {
-    Button btnLogout;
+    Button btnLogout,btnEditProfile;
     User user;
     TextView Name;
     String FName, LName;
@@ -58,6 +58,7 @@ public class MainActivity extends AppCompatActivity {
         TextView TvName = findViewById(R.id.TvName);
         ImageView ivArrow = findViewById(R.id.ivArrow);
         Button LogOutBtn = findViewById(R.id.LogOutBtn);
+        Button EditProfileBtn = findViewById(R.id.EditProfileBtn);
         LinearLayout userHeader = findViewById(R.id.userHeader);
 
         boolean[] isOpen = {false};
@@ -65,13 +66,20 @@ public class MainActivity extends AppCompatActivity {
         userHeader.setOnClickListener(v -> {
             if (isOpen[0]) {
                 LogOutBtn.setVisibility(View.GONE);
+                EditProfileBtn.setVisibility(View.GONE);
                 ivArrow.setRotation(0); // חץ למטה
             } else {
                 LogOutBtn.setVisibility(View.VISIBLE);
+                EditProfileBtn.setVisibility(View.VISIBLE);
                 ivArrow.setRotation(180); // חץ למעלה
             }
             isOpen[0] = !isOpen[0];
         });
+
+        EditProfileBtn.setOnClickListener(v -> {
+            startActivity(new Intent(this, EditProfile.class));
+        });
+
 
         //});
 
