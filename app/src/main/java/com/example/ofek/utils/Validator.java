@@ -39,4 +39,10 @@ public class Validator {
     public static boolean isNameValid(@Nullable String name) {
         return name != null && name.length() >= 3;
     }
+
+    public static boolean isLastNameValid(String lname) {
+        return lname != null;
+    }
+
+
 }

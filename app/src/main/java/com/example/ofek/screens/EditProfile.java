@@ -1,7 +1,7 @@
 package com.example.ofek.screens;
 
 import android.content.Intent;
-import android.content.SharedPreferences;
+
 import android.os.Bundle;
 import android.widget.Button;
 import android.widget.EditText;
@@ -21,7 +21,7 @@ import com.example.ofek.utils.Validator;
 
 public class EditProfile extends AppCompatActivity {
     EditText Password, Email,Fname,Lname,Phone;
-    Button Submit, Back;
+    Button Submit;
     User user;
     String id;
     DatabaseService databaseService;
@@ -39,24 +39,43 @@ public class EditProfile extends AppCompatActivity {
 
 
 
-        Password = findViewById(R.id.etPassword);
+        Fname = findViewById(R.id.etFname);
+        Lname = findViewById(R.id.etLname);
+        Phone = findViewById(R.id.etPhone);
         Email = findViewById(R.id.etEmail);
-        user = SharedPreferencesUtil.getUser(EditProfile.this);
+        Password = findViewById(R.id.etPassword);
+
+        user = SharedPreferencesUtil.getUser(this);
+        if (user == null) {
+            Toast.makeText(this, "User not loaded", Toast.LENGTH_LONG).show();
+            finish();
+            return;
+        }
+
         databaseService = DatabaseService.getInstance();
         Submit = findViewById(R.id.btnSave);
+
+        Fname.setText(user.getFirstname());
+        Lname.setText(user.getLastname());
+        Phone.setText(user.getPhone());
         Password.setText(user.getPassword());
         Email.setText(user.getEmail());
         id = user.getId();
+
         Submit.setOnClickListener(v -> {
-            if(!checkInputUpdate(Password.getText().toString(),Email.getText().toString())) {
+            if(!checkInputUpdate(Fname.getText().toString(),Lname.getText().toString(),Phone.getText().toString(),Email.getText().toString(),Password.getText().toString())) {
                 return;
             }
             databaseService.getUser(id, new DatabaseService.DatabaseCallback<User>() {
                 @Override
                 public void onCompleted(User user) {
+                    user.setFirstname(Fname.getText().toString().trim()+"");
+                    user.setLastname(Lname.getText().toString().trim()+"");
+                    user.setPhone(Phone.getText().toString().trim()+"");
                     user.setEmail(Email.getText().toString().trim()+"");
                     user.setPassword(Password.getText().toString().trim()+"");
-                    databaseService.createNewUser(user, new DatabaseService.DatabaseCallback<Void>() {
+
+                    databaseService.updateUser(user, new DatabaseService.DatabaseCallback<Void>() {
                         @Override
                         public void onCompleted(Void object) {
 
@@ -67,6 +86,7 @@ public class EditProfile extends AppCompatActivity {
 
                         }
                     });
+                    SharedPreferencesUtil.saveUser(EditProfile.this, user);
                     Intent from_update_to_main = new Intent(EditProfile.this, MainActivity.class);
                     startActivity(from_update_to_main);
                 }
@@ -78,7 +98,25 @@ public class EditProfile extends AppCompatActivity {
             });
         });
     }
-    private boolean checkInputUpdate(String password, String email){
+    private boolean checkInputUpdate(String fname,String lname, String phone,String email,String password){
+        if (!Validator.isNameValid(fname)) {
+            Fname.setError("Invalid first name");
+            /// set focus to fname field
+            Fname.requestFocus();
+            return false;
+        }
+        if (!Validator.isLastNameValid(lname)) {
+            Lname.setError("Invalid last name");
+            /// set focus to lname field
+            Lname.requestFocus();
+            return false;
+        }
+        if (!Validator.isPhoneValid(phone)) {
+            Phone.setError("Invalid phone number");
+            /// set focus to number field
+            Phone.requestFocus();
+            return false;
+        }
         if (!Validator.isEmailValid(email)) {
             Email.setError("Invalid email address");
             /// set focus to email field
