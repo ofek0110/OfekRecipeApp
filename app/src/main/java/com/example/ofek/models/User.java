@@ -3,7 +3,7 @@ package com.example.ofek.models;
 public class User {
     public String id, email,firstname,lastname,password,phone;
 
-    public boolean isAdmin;
+    public boolean isAdmin, isSupporter;
 
     public User() {
     }
@@ -75,6 +75,15 @@ public class User {
         isAdmin = admin;
     }
 
+    public boolean isSupporter() {
+        return isSupporter;
+    }
+
+    public void setSupporter(boolean supporter) {
+
+        isSupporter = supporter;
+    }
+
     @Override
     public String toString() {
         return "User{" +
@@ -85,6 +94,7 @@ public class User {
                 ", password='" + password + '\'' +
                 ", phone='" + phone + '\'' +
                 ", isAdmin=" + isAdmin +
+                ", isSupporter=" + isSupporter +
                 '}';
     }
 }
