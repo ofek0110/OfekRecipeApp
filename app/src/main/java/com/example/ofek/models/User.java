@@ -1,22 +1,22 @@
 package com.example.ofek.models;
 
 public class User {
-    public String id, email,firstname,lastname,password,phone;
-
-    public boolean isAdmin, isSupporter;
+    private String id, email, firstname, lastname, password, phone;
+    private boolean isAdmin, isSupporter;
 
     public User() {
+        // Required for Firebase
     }
 
-    public User(String id, String email, String firstname, String lastname, String password,String phone, boolean isadmin) {
+    public User(String id, String email, String firstname, String lastname, String password, String phone, boolean isAdmin) {
         this.id = id;
         this.email = email;
         this.firstname = firstname;
         this.lastname = lastname;
         this.password = password;
         this.phone = phone;
-        this.isAdmin = isadmin;
-
+        this.isAdmin = isAdmin;
+        this.isSupporter = false; // Default value
     }
 
     public String getId() {
@@ -67,6 +67,7 @@ public class User {
         this.phone = phone;
     }
 
+    // Firebase will serialize this as a property named "admin"
     public boolean isAdmin() {
         return isAdmin;
     }
@@ -75,25 +76,25 @@ public class User {
         isAdmin = admin;
     }
 
+    // Firebase will serialize this as a property named "supporter"
     public boolean isSupporter() {
         return isSupporter;
     }
 
     public void setSupporter(boolean supporter) {
-
         isSupporter = supporter;
     }
 
     @Override
     public String toString() {
         return "User{" +
-                "id='" + id + '\'' +
-                ", email='" + email + '\'' +
-                ", firstname='" + firstname + '\'' +
-                ", lastname='" + lastname + '\'' +
-                ", password='" + password + '\'' +
-                ", phone='" + phone + '\'' +
-                ", isAdmin=" + isAdmin +
+                "id='" + id +
+                ", email='" + email +
+                ", firstname='" + firstname +
+                ", lastname='" + lastname +
+                ", password='" + password +
+                ", phone='" + phone +
+                 ", isAdmin=" + isAdmin +
                 ", isSupporter=" + isSupporter +
                 '}';
     }

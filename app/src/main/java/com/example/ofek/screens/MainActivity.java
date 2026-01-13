@@ -10,6 +10,7 @@ import android.widget.TextView;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.cardview.widget.CardView;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
@@ -18,12 +19,15 @@ import com.example.ofek.R;
 import com.example.ofek.models.User;
 import com.example.ofek.utils.SharedPreferencesUtil;
 
-
 public class MainActivity extends AppCompatActivity {
-    Button btnLogout,btnEditProfile;
-    User user;
-    TextView Name;
-    String FName, LName;
+
+    // שלב 1: הגדר את כל משתני הממשק כחברים במחלקה (Class Members)
+    private User user;
+    private TextView tvName;
+    private Button btnLogout, btnShowProfile, btnAdminManageUsers, btnAdminAddRecipe;
+    private ImageView ivArrow;
+    private LinearLayout userHeader, menuOptions;
+    private CardView adminPanelContainer;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -35,56 +39,84 @@ public class MainActivity extends AppCompatActivity {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
-        user = SharedPreferencesUtil.getUser(MainActivity.this);
-        Name = findViewById(R.id.TvName);
-        FName = user.getFirstname();
-        Name.setText(FName);
 
-        // מציאת הכפתור מהתצוגה
+        // שלב 2: קשר את המשתנים לרכיבים מה-XML במקום אחד
+        initializeViews();
+
+        // שלב 3: הפעל את הלוגיקה והגדר את המאזינים (Listeners)
+        setupUserDetails();
+        setupClickListeners();
+    }
+
+    /**
+     * מתודה המאתחלת את כל רכיבי הממשק ומקשרת אותם למשתנים.
+     */
+    private void initializeViews() {
+        tvName = findViewById(R.id.TvName);
         btnLogout = findViewById(R.id.LogOutBtn);
+        btnShowProfile = findViewById(R.id.ShowProfileBtn);
+        ivArrow = findViewById(R.id.ivArrow);
+        userHeader = findViewById(R.id.userHeader); 
+        menuOptions = findViewById(R.id.menuOptions);
+        adminPanelContainer = findViewById(R.id.adminPanelContainer);
+        btnAdminManageUsers = findViewById(R.id.btnAdminManageUsers);
+        btnAdminAddRecipe = findViewById(R.id.btnAdminAddRecipe);
+    }
 
-// הקשבה ללחיצה על הכפתור
+    /**
+     * מתודה המאחזרת את פרטי המשתמש, מציגה את שמו, וכן מציגה את פאנל הניהול אם המשתמש הוא מנהל.
+     */
+    private void setupUserDetails() {
+        user = SharedPreferencesUtil.getUser(MainActivity.this);
+        if (user != null) {
+            tvName.setText(user.getFirstname());
+            if (user.isAdmin()) {
+                adminPanelContainer.setVisibility(View.VISIBLE);
+            } else {
+                adminPanelContainer.setVisibility(View.GONE);
+            }
+        }
+    }
+
+    /**
+     * מתודה המגדירה את כל מאזיני הלחיצה (Click Listeners).
+     */
+    private void setupClickListeners() {
+        if (userHeader == null) {
+            return; 
+        }
+
         btnLogout.setOnClickListener(v -> {
-            // מחיקת פרטי המשתמש מהטלפון (SharedPreferences)
             SharedPreferencesUtil.signOutUser(this);
-
-            // מעבר חזרה למסך ההתחברות
-            startActivity(new Intent(MainActivity.this, LandingActivity.class));
-
-            // סגירת מסך הבית כך שלא יחזור אליו בלחיצה אחורה
+            Intent intent = new Intent(MainActivity.this, LandingActivity.class);
+            startActivity(intent);
             finish();
         });
 
-        TextView TvName = findViewById(R.id.TvName);
-        ImageView ivArrow = findViewById(R.id.ivArrow);
-        Button LogOutBtn = findViewById(R.id.LogOutBtn);
-        Button EditProfileBtn = findViewById(R.id.EditProfileBtn);
-        LinearLayout userHeader = findViewById(R.id.userHeader);
+        btnShowProfile.setOnClickListener(v -> {
+            startActivity(new Intent(this, UserProfile.class));
+        });
 
-        boolean[] isOpen = {false};
+        btnAdminManageUsers.setOnClickListener(v -> {
+            startActivity(new Intent(this, UsersList.class));
+        });
+
+        btnAdminAddRecipe.setOnClickListener(v -> {
+            // Add your logic for recipe requests here
+        });
+
+        final boolean[] isOpen = {false};
+        menuOptions.setVisibility(View.GONE);
 
         userHeader.setOnClickListener(v -> {
             if (isOpen[0]) {
-                LogOutBtn.setVisibility(View.GONE);
-                EditProfileBtn.setVisibility(View.GONE);
-                ivArrow.setRotation(0); // חץ למטה
+                menuOptions.setVisibility(View.GONE);
+                ivArrow.setRotation(0); 
             } else {
-                LogOutBtn.setVisibility(View.VISIBLE);
-                EditProfileBtn.setVisibility(View.VISIBLE);
-                ivArrow.setRotation(180); // חץ למעלה
+                menuOptions.setVisibility(View.VISIBLE);
+                ivArrow.setRotation(180); 
             }
             isOpen[0] = !isOpen[0];
         });
-
-        EditProfileBtn.setOnClickListener(v -> {
-            startActivity(new Intent(this, EditProfile.class));
-        });
-
-
-        //});
-
-
     }
-
-
 }

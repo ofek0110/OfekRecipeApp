@@ -17,9 +17,9 @@
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
-            android:background="?attr/colorPrimary"
+            android:background="#2C3E50"
             app:popupTheme="@style/ThemeOverlay.AppCompat.Light"
-            app:title="Edit Profile"
+            app:title="User Profile"
             app:navigationIcon="?attr/homeAsUpIndicator" />
 
     </com.google.android.material.appbar.AppBarLayout>
@@ -192,7 +192,7 @@
                         app:boxCornerRadiusTopEnd="12dp"
                         app:boxCornerRadiusBottomStart="12dp"
                         app:boxCornerRadiusBottomEnd="12dp"
-                        app:startIconDrawable="@android:drawable/ic_dialog_email">
+                        app:startIconDrawable="@android:drawable/ic_dialog_email"/>
 
                         <com.google.android.material.textfield.TextInputEditText
                             android:id="@+id/et_user_email"
@@ -201,7 +201,7 @@
                             android:hint="Email"
                             android:inputType="textEmailAddress" />
 
-                    </com.google.android.material.textfield.TextInputLayout>
+
 
                     <com.google.android.material.textfield.TextInputLayout
                         android:layout_width="match_parent"

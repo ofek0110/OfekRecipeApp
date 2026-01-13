@@ -43,7 +43,7 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.ViewHolder> {
         User user = userList.get(position);
         if (user == null) return;
 
-        
+        holder.tvName.setText(user.getFirstname() + " " + user.getLastname());
         holder.tvEmail.setText(user.getEmail());
         holder.tvPhone.setText(user.getPhone());
 
