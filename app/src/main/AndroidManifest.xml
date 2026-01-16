@@ -11,10 +11,21 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.OfekRecipeApp">
+        
+        <!-- מסכים חדשים - חובה לרשום אותם כאן -->
         <activity
             android:name=".screens.AddRecipeActivity"
             android:exported="false"
             android:label="Add New Recipe" />
+        <activity
+            android:name=".screens.RecipeRequestsActivity"
+            android:exported="false"
+            android:label="Recipe Requests" />
+        <activity
+            android:name=".screens.RecipeReviewActivity"
+            android:exported="false"
+            android:label="Review Recipe" />
+            
         <activity
             android:name=".screens.UserProfile"
             android:exported="false" />
