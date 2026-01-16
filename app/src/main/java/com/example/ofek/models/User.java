@@ -16,7 +16,7 @@ public class User {
         this.password = password;
         this.phone = phone;
         this.isAdmin = isAdmin;
-        this.isSupporter = false; // Default value
+
     }
 
     public String getId() {
@@ -76,14 +76,7 @@ public class User {
         isAdmin = admin;
     }
 
-    // Firebase will serialize this as a property named "supporter"
-    public boolean isSupporter() {
-        return isSupporter;
-    }
 
-    public void setSupporter(boolean supporter) {
-        isSupporter = supporter;
-    }
 
     @Override
     public String toString() {
@@ -95,7 +88,6 @@ public class User {
                 ", password='" + password +
                 ", phone='" + phone +
                  ", isAdmin=" + isAdmin +
-                ", isSupporter=" + isSupporter +
                 '}';
     }
 }

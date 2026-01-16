@@ -36,9 +36,11 @@
         android:layout_height="wrap_content"
         android:layout_marginHorizontal="16dp"
         android:layout_marginTop="-20dp"
+        app:cardBackgroundColor="#FFFFFF"
         app:cardCornerRadius="8dp"
         app:cardElevation="6dp"
-        app:cardBackgroundColor="#FFFFFF"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/headerBackground">
 
         <LinearLayout
@@ -51,11 +53,11 @@
                 android:id="@+id/userHeader"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:gravity="center_vertical"
-                android:orientation="horizontal"
+                android:background="?attr/selectableItemBackground"
                 android:clickable="true"
                 android:focusable="true"
-                android:background="?attr/selectableItemBackground">
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
 
                 <ImageView
                     android:id="@+id/ivUserIcon"
@@ -68,20 +70,19 @@
                     android:id="@+id/TvName"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
                     android:layout_marginStart="12dp"
+                    android:layout_weight="1"
+                    android:fontFamily="serif"
                     android:text="Welcome, USER"
                     android:textColor="#333333"
                     android:textSize="18sp"
-                    android:fontFamily="serif"
                     android:textStyle="bold" />
 
                 <ImageView
                     android:id="@+id/ivArrow"
                     android:layout_width="24dp"
                     android:layout_height="24dp"
-                    android:src="@drawable/arrow"
-                     />
+                    android:src="@drawable/arrow" />
             </LinearLayout>
 
             <LinearLayout
@@ -89,119 +90,127 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:visibility="gone"
                 android:paddingTop="8dp"
-                tools:visibility="visible">
+                android:visibility="gone">
 
                 <View
                     android:layout_width="match_parent"
                     android:layout_height="1dp"
-                    android:background="#E0E0E0"
-                    android:layout_marginBottom="8dp"/>
+                    android:layout_marginBottom="8dp"
+                    android:background="#E0E0E0" />
 
                 <Button
                     android:id="@+id/ShowProfileBtn"
+                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
                     android:text="Show Profile"
-                    android:textColor="#2C3E50"/>
+                    android:textColor="#2C3E50" />
 
                 <Button
                     android:id="@+id/LogOutBtn"
+                    style="@style/Widget.MaterialComponents.Button.TextButton"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    style="@style/Widget.MaterialComponents.Button.TextButton"
                     android:text="Log Out"
-                    android:textColor="#B71C1C"/>
+                    android:textColor="#B71C1C" />
             </LinearLayout>
         </LinearLayout>
     </androidx.cardview.widget.CardView>
 
-    <androidx.cardview.widget.CardView
-        android:id="@+id/adminPanelContainer"
+    <LinearLayout
+        android:id="@+id/panelContainer"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginHorizontal="16dp"
-        android:layout_marginTop="12dp"
-        app:cardCornerRadius="8dp"
-        app:cardElevation="4dp"
-        app:cardBackgroundColor="#E3F2FD"
-        android:visibility="gone"
-        tools:visibility="visible"
+        android:layout_marginTop="8dp"
+        android:orientation="vertical"
         app:layout_constraintTop_toBottomOf="@id/userCard">
 
-        <LinearLayout
-            android:id="@+id/adminPanel"
+        <androidx.cardview.widget.CardView
+            android:id="@+id/adminPanelContainer"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:padding="12dp">
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Admin Dashboard"
-                android:textAllCaps="true"
-                android:letterSpacing="0.1"
-                android:textSize="12sp"
-                android:textStyle="bold"
-                android:textColor="#1565C0"/>
+            android:layout_marginHorizontal="16dp"
+            android:layout_marginTop="12dp"
+            android:visibility="visible"
+            app:cardBackgroundColor="#E3F2FD"
+            app:cardCornerRadius="8dp"
+            app:cardElevation="4dp">
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:layout_marginTop="8dp">
+                android:orientation="vertical"
+                android:padding="12dp">
 
-                <Button
-                    android:id="@+id/btnAdminManageUsers"
-                    android:layout_width="0dp"
+                <TextView
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="Users"
-                    android:layout_marginEnd="4dp"
-                    android:backgroundTint="#1976D2"
-                    android:textColor="#FFF"/>
+                    android:text="Admin Dashboard"
+                    android:textColor="#1565C0"
+                    android:textSize="12sp"
+                    android:textStyle="bold" />
 
-                <Button
-                    android:id="@+id/btnAdminAddRecipe"
-                    android:layout_width="0dp"
+                <LinearLayout
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="Recipe Request"
-                    android:layout_marginStart="4dp"
-                    android:backgroundTint="#1976D2"
-                    android:textColor="#FFF"/>
+                    android:layout_marginTop="8dp"
+                    android:orientation="horizontal">
+
+                    <Button
+                        android:id="@+id/btnAdminManageUsers"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginEnd="4dp"
+                        android:layout_weight="1"
+                        android:text="Users" />
+
+                    <Button
+                        android:id="@+id/btnAdminAddRecipe"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="4dp"
+                        android:layout_weight="1"
+                        android:text="Requests" />
+                </LinearLayout>
             </LinearLayout>
-        </LinearLayout>
-    </androidx.cardview.widget.CardView>
+        </androidx.cardview.widget.CardView>
+    </LinearLayout>
 
     <TextView
         android:id="@+id/tvListTitle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Latest Recipes"
-        android:fontFamily="serif"
-        android:textSize="20sp"
-        android:textColor="#333333"
         android:layout_marginStart="20dp"
-        android:layout_marginTop="24dp"
+        android:layout_marginTop="16dp"
+        android:text="Latest Recipes"
+        android:textColor="#333333"
+        android:textSize="20sp"
+        android:textStyle="bold"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/adminPanelContainer" />
+        app:layout_constraintTop_toBottomOf="@id/panelContainer" />
 
-    <ListView
-        android:id="@+id/listViewRecipes"
-        android:layout_width="0dp"
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recyclerViewRecipes"
+        android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_marginTop="8dp"
-        android:divider="@android:color/transparent"
-        android:dividerHeight="10dp"
-        android:paddingHorizontal="16dp"
         android:clipToPadding="false"
-        app:layout_constraintTop_toBottomOf="@id/tvListTitle"
+        android:paddingBottom="80dp"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/tvListTitle" />
+
+    <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
+        android:id="@+id/fabCreateRecipe"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="24dp"
+        android:text="Create Recipe"
+        android:textColor="#FFFFFF"
+        app:backgroundTint="#2C3E50"
+        app:icon="@android:drawable/ic_input_add"
+        app:iconTint="#FFFFFF"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

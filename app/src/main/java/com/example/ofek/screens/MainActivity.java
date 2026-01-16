@@ -7,27 +7,47 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.cardview.widget.CardView;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.ofek.R;
+import com.example.ofek.adapters.RecipeAdapter;
+import com.example.ofek.models.Recipe;
 import com.example.ofek.models.User;
 import com.example.ofek.utils.SharedPreferencesUtil;
+import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
 
-    // שלב 1: הגדר את כל משתני הממשק כחברים במחלקה (Class Members)
     private User user;
     private TextView tvName;
     private Button btnLogout, btnShowProfile, btnAdminManageUsers, btnAdminAddRecipe;
     private ImageView ivArrow;
     private LinearLayout userHeader, menuOptions;
     private CardView adminPanelContainer;
+    
+    // רכיבים חדשים עבור הרשימה והכפתור
+    private RecyclerView recyclerViewRecipes;
+    private RecipeAdapter recipeAdapter;
+    private List<Recipe> recipeList;
+    private ExtendedFloatingActionButton fabCreateRecipe;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -40,17 +60,13 @@ public class MainActivity extends AppCompatActivity {
             return insets;
         });
 
-        // שלב 2: קשר את המשתנים לרכיבים מה-XML במקום אחד
         initializeViews();
-
-        // שלב 3: הפעל את הלוגיקה והגדר את המאזינים (Listeners)
         setupUserDetails();
+        setupRecipeList();
         setupClickListeners();
+        loadRecipes();
     }
 
-    /**
-     * מתודה המאתחלת את כל רכיבי הממשק ומקשרת אותם למשתנים.
-     */
     private void initializeViews() {
         tvName = findViewById(R.id.TvName);
         btnLogout = findViewById(R.id.LogOutBtn);
@@ -61,11 +77,53 @@ public class MainActivity extends AppCompatActivity {
         adminPanelContainer = findViewById(R.id.adminPanelContainer);
         btnAdminManageUsers = findViewById(R.id.btnAdminManageUsers);
         btnAdminAddRecipe = findViewById(R.id.btnAdminAddRecipe);
+        
+        // אתחול רכיבים חדשים
+        recyclerViewRecipes = findViewById(R.id.recyclerViewRecipes);
+        fabCreateRecipe = findViewById(R.id.fabCreateRecipe);
     }
 
-    /**
-     * מתודה המאחזרת את פרטי המשתמש, מציגה את שמו, וכן מציגה את פאנל הניהול אם המשתמש הוא מנהל.
-     */
+    private void setupRecipeList() {
+        recipeList = new ArrayList<>();
+        recipeAdapter = new RecipeAdapter(new RecipeAdapter.OnRecipeClickListener() {
+            @Override
+            public void onRecipeClick(Recipe recipe) {
+                // Logic for clicking a recipe
+            }
+
+            @Override
+            public void onLongRecipeClick(Recipe recipe) {
+                // Logic for long click
+            }
+        });
+        
+        recyclerViewRecipes.setLayoutManager(new LinearLayoutManager(this));
+        recyclerViewRecipes.setAdapter(recipeAdapter);
+    }
+
+    private void loadRecipes() {
+        DatabaseReference recipesRef = FirebaseDatabase.getInstance().getReference("recipes");
+        recipesRef.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                recipeList.clear();
+                for (DataSnapshot data : snapshot.getChildren()) {
+                    Recipe recipe = data.getValue(Recipe.class);
+                    // מציגים רק מתכונים מאושרים למשתמש רגיל
+                    if (recipe != null && (recipe.isApproved() || user.isAdmin())) {
+                        recipeList.add(recipe);
+                    }
+                }
+                recipeAdapter.setRecipeList(recipeList);
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                Toast.makeText(MainActivity.this, "Error loading recipes", Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
     private void setupUserDetails() {
         user = SharedPreferencesUtil.getUser(MainActivity.this);
         if (user != null) {
@@ -78,14 +136,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    /**
-     * מתודה המגדירה את כל מאזיני הלחיצה (Click Listeners).
-     */
     private void setupClickListeners() {
-        if (userHeader == null) {
-            return; 
-        }
-
         btnLogout.setOnClickListener(v -> {
             SharedPreferencesUtil.signOutUser(this);
             Intent intent = new Intent(MainActivity.this, LandingActivity.class);
@@ -101,8 +152,15 @@ public class MainActivity extends AppCompatActivity {
             startActivity(new Intent(this, UsersList.class));
         });
 
+        // כפתור פתיחת מסך בקשות (Requests)
         btnAdminAddRecipe.setOnClickListener(v -> {
-            // Add your logic for recipe requests here
+            startActivity(new Intent(MainActivity.this, RecipeRequestsActivity.class));
+        });
+
+        // כפתור פתיחת מסך הוספת מתכון
+        fabCreateRecipe.setOnClickListener(v -> {
+            Intent intent = new Intent(MainActivity.this, AddRecipeActivity.class);
+            startActivity(intent);
         });
 
         final boolean[] isOpen = {false};

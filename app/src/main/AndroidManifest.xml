@@ -12,6 +12,10 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.OfekRecipeApp">
         <activity
+            android:name=".screens.AddRecipeActivity"
+            android:exported="false"
+            android:label="Add New Recipe" />
+        <activity
             android:name=".screens.UserProfile"
             android:exported="false" />
         <activity
@@ -36,7 +40,6 @@
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
