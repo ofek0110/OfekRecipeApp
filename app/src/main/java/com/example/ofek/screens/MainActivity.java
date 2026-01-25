@@ -1,9 +1,11 @@
 package com.example.ofek.screens;
 
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -11,7 +13,9 @@ import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.SearchView;
 import androidx.cardview.widget.CardView;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
@@ -24,6 +28,8 @@ import com.example.ofek.adapters.RecipeAdapter;
 import com.example.ofek.models.Recipe;
 import com.example.ofek.models.User;
 import com.example.ofek.utils.SharedPreferencesUtil;
+import com.google.android.material.chip.Chip;
+import com.google.android.material.chip.ChipGroup;
 import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -32,6 +38,7 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
@@ -43,11 +50,15 @@ public class MainActivity extends AppCompatActivity {
     private LinearLayout userHeader, menuOptions;
     private CardView adminPanelContainer;
     
-    // רכיבים חדשים עבור הרשימה והכפתור
     private RecyclerView recyclerViewRecipes;
     private RecipeAdapter recipeAdapter;
     private List<Recipe> recipeList;
     private ExtendedFloatingActionButton fabCreateRecipe;
+    private SearchView searchView;
+    private ChipGroup chipGroupFilters;
+
+    private String currentCategoryFilter = "All";
+    private final List<String> categories = Arrays.asList("All", "Meat", "Dairy", "Vegan", "Dessert", "Salad", "Pasta");
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -64,6 +75,8 @@ public class MainActivity extends AppCompatActivity {
         setupUserDetails();
         setupRecipeList();
         setupClickListeners();
+        setupSearch();
+        setupCategoryFilters();
         loadRecipes();
     }
 
@@ -78,9 +91,63 @@ public class MainActivity extends AppCompatActivity {
         btnAdminManageUsers = findViewById(R.id.btnAdminManageUsers);
         btnAdminAddRecipe = findViewById(R.id.btnAdminAddRecipe);
         
-        // אתחול רכיבים חדשים
         recyclerViewRecipes = findViewById(R.id.recyclerViewRecipes);
         fabCreateRecipe = findViewById(R.id.fabCreateRecipe);
+        searchView = findViewById(R.id.searchView);
+        chipGroupFilters = findViewById(R.id.chipGroupFilters);
+    }
+
+    private void setupCategoryFilters() {
+        for (String category : categories) {
+            Chip chip = new Chip(this);
+            chip.setText(category);
+            chip.setCheckable(true);
+            chip.setClickable(true);
+            
+            if (category.equals("All")) {
+                chip.setChecked(true);
+            }
+
+            chip.setOnCheckedChangeListener((buttonView, isChecked) -> {
+                if (isChecked) {
+                    currentCategoryFilter = category;
+                    applyFilters();
+                }
+            });
+            chipGroupFilters.addView(chip);
+        }
+    }
+
+    private void setupSearch() {
+        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String query) {
+                applyFilters();
+                return true;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String newText) {
+                applyFilters();
+                return true;
+            }
+        });
+    }
+
+    private void applyFilters() {
+        String query = searchView.getQuery().toString().toLowerCase();
+        List<Recipe> filteredList = new ArrayList<>();
+
+        for (Recipe recipe : recipeList) {
+            boolean matchesSearch = recipe.getTitle().toLowerCase().contains(query);
+            boolean matchesCategory = currentCategoryFilter.equals("All") || 
+                                     (recipe.getCategory() != null && recipe.getCategory().equalsIgnoreCase(currentCategoryFilter));
+
+            if (matchesSearch && matchesCategory) {
+                filteredList.add(recipe);
+            }
+        }
+        recipeAdapter.setRecipeList(filteredList);
     }
 
     private void setupRecipeList() {
@@ -88,17 +155,74 @@ public class MainActivity extends AppCompatActivity {
         recipeAdapter = new RecipeAdapter(new RecipeAdapter.OnRecipeClickListener() {
             @Override
             public void onRecipeClick(Recipe recipe) {
-                // Logic for clicking a recipe
+                Intent intent = new Intent(MainActivity.this, RecipeReviewActivity.class);
+                intent.putExtra("recipe", recipe);
+                startActivity(intent);
             }
 
             @Override
             public void onLongRecipeClick(Recipe recipe) {
-                // Logic for long click
+                if (user != null && user.isAdmin()) {
+                    showAdminRecipeDialog(recipe);
+                }
             }
         });
         
         recyclerViewRecipes.setLayoutManager(new LinearLayoutManager(this));
         recyclerViewRecipes.setAdapter(recipeAdapter);
+    }
+
+    private void showAdminRecipeDialog(Recipe recipe) {
+        String[] options = {"Send for Correction", "Delete Recipe"};
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Manage Recipe: " + recipe.getTitle());
+        builder.setItems(options, (dialog, which) -> {
+            if (which == 0) {
+                showCorrectionDialog(recipe);
+            } else if (which == 1) {
+                deleteRecipe(recipe);
+            }
+        });
+        builder.show();
+    }
+
+    private void showCorrectionDialog(Recipe recipe) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Admin Notes for Correction");
+        
+        final EditText input = new EditText(this);
+        input.setHint("What needs to be fixed?");
+        builder.setView(input);
+
+        builder.setPositiveButton("Send", (dialog, which) -> {
+            String notes = input.getText().toString();
+            recipe.setApproved(false);
+            recipe.setAdminNotes(notes);
+            updateRecipeInFirebase(recipe, "Recipe sent back for correction");
+        });
+        builder.setNegativeButton("Cancel", null);
+        builder.show();
+    }
+
+    private void deleteRecipe(Recipe recipe) {
+        new AlertDialog.Builder(this)
+                .setTitle("Delete Recipe")
+                .setMessage("Are you sure you want to delete this recipe?")
+                .setPositiveButton("Yes", (dialog, which) -> {
+                    FirebaseDatabase.getInstance().getReference("recipes")
+                            .child(recipe.getId())
+                            .removeValue()
+                            .addOnSuccessListener(aVoid -> Toast.makeText(MainActivity.this, "Recipe deleted", Toast.LENGTH_SHORT).show());
+                })
+                .setNegativeButton("No", null)
+                .show();
+    }
+
+    private void updateRecipeInFirebase(Recipe recipe, String message) {
+        FirebaseDatabase.getInstance().getReference("recipes")
+                .child(recipe.getId())
+                .setValue(recipe)
+                .addOnSuccessListener(aVoid -> Toast.makeText(MainActivity.this, message, Toast.LENGTH_SHORT).show());
     }
 
     private void loadRecipes() {
@@ -109,12 +233,11 @@ public class MainActivity extends AppCompatActivity {
                 recipeList.clear();
                 for (DataSnapshot data : snapshot.getChildren()) {
                     Recipe recipe = data.getValue(Recipe.class);
-                    // מציגים רק מתכונים מאושרים למשתמש רגיל
-                    if (recipe != null && (recipe.isApproved() || user.isAdmin())) {
+                    if (recipe != null && recipe.isApproved()) {
                         recipeList.add(recipe);
                     }
                 }
-                recipeAdapter.setRecipeList(recipeList);
+                applyFilters();
             }
 
             @Override
@@ -152,12 +275,10 @@ public class MainActivity extends AppCompatActivity {
             startActivity(new Intent(this, UsersList.class));
         });
 
-        // כפתור פתיחת מסך בקשות (Requests)
         btnAdminAddRecipe.setOnClickListener(v -> {
             startActivity(new Intent(MainActivity.this, RecipeRequestsActivity.class));
         });
 
-        // כפתור פתיחת מסך הוספת מתכון
         fabCreateRecipe.setOnClickListener(v -> {
             Intent intent = new Intent(MainActivity.this, AddRecipeActivity.class);
             startActivity(intent);
