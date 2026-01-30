@@ -57,13 +57,20 @@ public class UserProfile extends AppCompatActivity implements View.OnClickListen
             selectedUid = currentUser.getId();
         }
         isCurrentUser = selectedUid.equals(currentUser.getId());
-        if (!currentUser.isAdmin()) {
+
+        // --- התחלת התיקון ---
+        // הבדיקה כעת מוודאת שהמשתמש ייחסם רק אם הוא:
+        // 1. לא אדמין
+        // וגם
+        // 2. לא המשתמש של עצמו (כלומר מנסה לראות מישהו אחר)
+        if (!currentUser.isAdmin() && !isCurrentUser) {
             // If the user is not an admin and the selected user is not the current user
             // then finish the activity
             Toast.makeText(this, "You are not authorized to view this profile", Toast.LENGTH_SHORT).show();
             finish();
             return;
         }
+        // --- סוף התיקון ---
 
         Log.d(TAG, "Selected user: " + selectedUid);
 
@@ -251,5 +258,3 @@ public class UserProfile extends AppCompatActivity implements View.OnClickListen
         startActivity(landingIntent);
     }
 }
-
-

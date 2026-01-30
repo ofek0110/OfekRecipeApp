@@ -42,7 +42,7 @@ public class MainActivity extends AppCompatActivity {
     private ImageView ivArrow;
     private LinearLayout userHeader, menuOptions;
     private CardView adminPanelContainer;
-    
+
     // רכיבים חדשים עבור הרשימה והכפתור
     private RecyclerView recyclerViewRecipes;
     private RecipeAdapter recipeAdapter;
@@ -72,12 +72,12 @@ public class MainActivity extends AppCompatActivity {
         btnLogout = findViewById(R.id.LogOutBtn);
         btnShowProfile = findViewById(R.id.ShowProfileBtn);
         ivArrow = findViewById(R.id.ivArrow);
-        userHeader = findViewById(R.id.userHeader); 
+        userHeader = findViewById(R.id.userHeader);
         menuOptions = findViewById(R.id.menuOptions);
         adminPanelContainer = findViewById(R.id.adminPanelContainer);
         btnAdminManageUsers = findViewById(R.id.btnAdminManageUsers);
         btnAdminAddRecipe = findViewById(R.id.btnAdminAddRecipe);
-        
+
         // אתחול רכיבים חדשים
         recyclerViewRecipes = findViewById(R.id.recyclerViewRecipes);
         fabCreateRecipe = findViewById(R.id.fabCreateRecipe);
@@ -88,15 +88,18 @@ public class MainActivity extends AppCompatActivity {
         recipeAdapter = new RecipeAdapter(new RecipeAdapter.OnRecipeClickListener() {
             @Override
             public void onRecipeClick(Recipe recipe) {
-                // Logic for clicking a recipe
+                // --- תיקון: העברת האובייקט המלא עם המפתח "recipe" ---
+                Intent intent = new Intent(MainActivity.this, RecipeReviewActivity.class);
+                intent.putExtra("recipe", recipe); // שים לב: המפתח הוא "recipe"
+                startActivity(intent);
             }
 
             @Override
             public void onLongRecipeClick(Recipe recipe) {
-                // Logic for long click
+                // אופציונלי: לוגיקה ללחיצה ארוכה
             }
         });
-        
+
         recyclerViewRecipes.setLayoutManager(new LinearLayoutManager(this));
         recyclerViewRecipes.setAdapter(recipeAdapter);
     }
@@ -169,10 +172,10 @@ public class MainActivity extends AppCompatActivity {
         userHeader.setOnClickListener(v -> {
             if (isOpen[0]) {
                 menuOptions.setVisibility(View.GONE);
-                ivArrow.setRotation(0); 
+                ivArrow.setRotation(0);
             } else {
                 menuOptions.setVisibility(View.VISIBLE);
-                ivArrow.setRotation(180); 
+                ivArrow.setRotation(180);
             }
             isOpen[0] = !isOpen[0];
         });
