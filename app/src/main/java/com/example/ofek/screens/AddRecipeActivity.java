@@ -25,12 +25,12 @@ import com.google.firebase.database.FirebaseDatabase;
 
 public class AddRecipeActivity extends AppCompatActivity {
 
-    private TextInputEditText etTitle, etDescription, etIngredients, etInstructions;
+    private TextInputEditText etTitle, etDescription, etIngredients, etInstructions, etPrepTime, etDifficulty;
     private Button btnSubmit;
     private ImageView ivRecipePreview;
     private TextView tvAddImageHint;
     private MaterialCardView cardSelectImage;
-    
+
     private DatabaseReference recipesRef;
     private User currentUser;
     private Uri selectedImageUri;
@@ -66,6 +66,10 @@ public class AddRecipeActivity extends AppCompatActivity {
         etDescription = findViewById(R.id.etRecipeDescription);
         etIngredients = findViewById(R.id.etRecipeIngredients);
         etInstructions = findViewById(R.id.etRecipeInstructions);
+        // חיבור השדות החדשים
+        etPrepTime = findViewById(R.id.etPrepTime);
+        etDifficulty = findViewById(R.id.etDifficulty);
+
         btnSubmit = findViewById(R.id.btnSubmitRecipe);
         ivRecipePreview = findViewById(R.id.ivRecipePreview);
         tvAddImageHint = findViewById(R.id.tvAddImageHint);
@@ -87,6 +91,9 @@ public class AddRecipeActivity extends AppCompatActivity {
         String description = etDescription.getText().toString().trim();
         String ingredients = etIngredients.getText().toString().trim();
         String instructions = etInstructions.getText().toString().trim();
+        // קליטת הערכים החדשים
+        String prepTime = etPrepTime.getText().toString().trim();
+        String difficulty = etDifficulty.getText().toString().trim();
 
         if (title.isEmpty() || description.isEmpty() || ingredients.isEmpty() || instructions.isEmpty()) {
             Toast.makeText(this, "Please fill all fields", Toast.LENGTH_SHORT).show();
@@ -94,32 +101,33 @@ public class AddRecipeActivity extends AppCompatActivity {
         }
 
         String recipeId = recipesRef.push().getKey();
-        
-        // Note: In a real app, you would upload the image to Firebase Storage first 
-        // and get a download URL. For now, we save the URI as a string placeholder.
         String imageUrl = (selectedImageUri != null) ? selectedImageUri.toString() : "";
 
+        // שימוש בבנאי החדש (ללא imageUrl וללא boolean בסוף)
         Recipe newRecipe = new Recipe(
                 recipeId,
                 title,
                 description,
                 ingredients,
                 instructions,
-                imageUrl,
-                "General",
                 currentUser.getId(),
-                false // isApproved = false (Waiting for admin)
+                "General", // Default category
+                prepTime,  // שדה חדש
+                difficulty // שדה חדש
         );
+
+        // הגדרת התמונה בנפרד (כי הסרנו אותה מהבנאי בטעות בקובץ הקודם, או פשוט כסטנדרט)
+        newRecipe.setImageUrl(imageUrl);
 
         if (recipeId != null) {
             recipesRef.child(recipeId).setValue(newRecipe)
-                .addOnSuccessListener(aVoid -> {
-                    Toast.makeText(this, "Recipe submitted for approval!", Toast.LENGTH_LONG).show();
-                    finish();
-                })
-                .addOnFailureListener(e -> {
-                    Toast.makeText(this, "Failed to submit recipe", Toast.LENGTH_SHORT).show();
-                });
+                    .addOnSuccessListener(aVoid -> {
+                        Toast.makeText(this, "Recipe submitted for approval!", Toast.LENGTH_LONG).show();
+                        finish();
+                    })
+                    .addOnFailureListener(e -> {
+                        Toast.makeText(this, "Failed to submit recipe", Toast.LENGTH_SHORT).show();
+                    });
         }
     }
 }
