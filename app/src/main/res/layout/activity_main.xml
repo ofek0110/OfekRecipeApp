@@ -23,7 +23,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="220dp"
                 android:background="@drawable/bg_header_rounded"
-                app:layout_constraintTop_toTopOf="parent"/>
+                android:backgroundTint="#304255"
+                app:layout_constraintTop_toTopOf="parent" />
 
             <TextView
                 android:id="@+id/tvAppTitle"
@@ -112,10 +113,10 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|end"
-        android:layout_marginBottom="80dp"
         android:layout_marginEnd="24dp"
+        android:layout_marginBottom="80dp"
         android:src="@android:drawable/ic_input_add"
-        app:backgroundTint="@color/primary"
-        app:tint="@color/white"/>
+        app:backgroundTint="#2C3C4E"
+        app:tint="@color/white" />
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

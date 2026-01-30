@@ -46,14 +46,20 @@ public class MainActivity extends AppCompatActivity {
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_main);
 
-        // הגדרת Padding למסך מלא למניעת הסתרה ע"י ה-Status Bar
+        // וידוא שהמשתמש מחובר
+        currentUser = SharedPreferencesUtil.getUser(this);
+        if (currentUser == null) {
+            startActivity(new Intent(this, LogIn.class));
+            finish();
+            return;
+        }
+
+        // הגדרת Padding למניעת הסתרה ע"י ה-Status Bar
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main_coordinator), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
-
-        currentUser = SharedPreferencesUtil.getUser(this);
 
         initializeViews();
         setupRecipeList();
@@ -65,6 +71,9 @@ public class MainActivity extends AppCompatActivity {
         recyclerViewRecipes = findViewById(R.id.recyclerViewRecipes);
         fabAddRecipe = findViewById(R.id.fabAddRecipe);
         bottomNavigationView = findViewById(R.id.bottomNavigation);
+
+        // מסמן את כפתור הבית כנבחר
+        bottomNavigationView.setSelectedItemId(R.id.nav_home);
     }
 
     private void setupRecipeList() {
@@ -72,7 +81,6 @@ public class MainActivity extends AppCompatActivity {
         recipeAdapter = new RecipeAdapter(new RecipeAdapter.OnRecipeClickListener() {
             @Override
             public void onRecipeClick(Recipe recipe) {
-                // מעבר למסך הצפייה במתכון עם העברת האובייקט
                 Intent intent = new Intent(MainActivity.this, RecipeReviewActivity.class);
                 intent.putExtra("recipe", recipe);
                 startActivity(intent);
@@ -80,7 +88,7 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onLongRecipeClick(Recipe recipe) {
-                // אופציונלי: כאן אפשר להוסיף לוגיקה למחיקה ע"י אדמין
+                // אופציונלי לשימוש עתידי
             }
         });
 
@@ -89,32 +97,28 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void setupClickListeners() {
-        // לחיצה על כפתור הפלוס - הוספת מתכון
         fabAddRecipe.setOnClickListener(v -> {
             startActivity(new Intent(MainActivity.this, AddRecipeActivity.class));
         });
 
-        // לחיצה על התפריט התחתון
         bottomNavigationView.setOnItemSelectedListener(new NavigationBarView.OnItemSelectedListener() {
             @Override
             public boolean onNavigationItemSelected(@NonNull MenuItem item) {
                 int itemId = item.getItemId();
 
                 if (itemId == R.id.nav_home) {
-                    // גלילה לראש הרשימה
                     recyclerViewRecipes.smoothScrollToPosition(0);
                     return true;
                 }
                 else if (itemId == R.id.nav_profile) {
-                    // מעבר למסך הפרופיל
+                    // מעבר ל-Activity של הפרופיל
                     startActivity(new Intent(MainActivity.this, UserProfile.class));
                     return true;
                 }
                 else if (itemId == R.id.nav_explore || itemId == R.id.nav_saved) {
-                    Toast.makeText(MainActivity.this, "Coming Soon!", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(MainActivity.this, "בקרוב!", Toast.LENGTH_SHORT).show();
                     return true;
                 }
-
                 return false;
             }
         });
@@ -128,7 +132,6 @@ public class MainActivity extends AppCompatActivity {
                 recipeList.clear();
                 for (DataSnapshot data : snapshot.getChildren()) {
                     Recipe recipe = data.getValue(Recipe.class);
-                    // הצגת מתכונים: רק מאושרים, אלא אם המשתמש הוא מנהל
                     if (recipe != null) {
                         if (recipe.isApproved() || (currentUser != null && currentUser.isAdmin())) {
                             recipeList.add(recipe);

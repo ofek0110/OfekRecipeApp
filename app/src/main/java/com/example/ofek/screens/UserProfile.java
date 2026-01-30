@@ -3,6 +3,7 @@ package com.example.ofek.screens;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -10,6 +11,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
@@ -20,17 +22,18 @@ import com.example.ofek.models.User;
 import com.example.ofek.services.DatabaseService;
 import com.example.ofek.utils.SharedPreferencesUtil;
 import com.example.ofek.utils.Validator;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.google.android.material.navigation.NavigationBarView;
 
-
-public class UserProfile extends AppCompatActivity implements View.OnClickListener{
-
+public class UserProfile extends AppCompatActivity implements View.OnClickListener {
 
     private static final String TAG = "UserProfileActivity";
-
     private EditText etUserFirstName, etUserLastName, etUserEmail, etUserPhone, etUserPassword;
     private TextView tvUserDisplayName, tvUserDisplayEmail;
     private Button btnUpdateProfile, btnSignOut;
     private View adminBadge;
+    private BottomNavigationView bottomNavigationView;
+
     String selectedUid;
     User selectedUser;
     boolean isCurrentUser = false;
@@ -41,6 +44,8 @@ public class UserProfile extends AppCompatActivity implements View.OnClickListen
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_user_profile);
+
+        // תיקון Padding
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
@@ -48,33 +53,31 @@ public class UserProfile extends AppCompatActivity implements View.OnClickListen
         });
 
         databaseService = DatabaseService.getInstance();
+        User currentUser = SharedPreferencesUtil.getUser(this);
+
+        if (currentUser == null) {
+            finish();
+            return;
+        }
 
         selectedUid = getIntent().getStringExtra("USER_UID");
-        User currentUser = SharedPreferencesUtil.getUser(this);
-        assert currentUser != null;
-
         if (selectedUid == null) {
             selectedUid = currentUser.getId();
         }
         isCurrentUser = selectedUid.equals(currentUser.getId());
 
-        // --- התחלת התיקון ---
-        // הבדיקה כעת מוודאת שהמשתמש ייחסם רק אם הוא:
-        // 1. לא אדמין
-        // וגם
-        // 2. לא המשתמש של עצמו (כלומר מנסה לראות מישהו אחר)
+        // בדיקת הרשאות
         if (!currentUser.isAdmin() && !isCurrentUser) {
-            // If the user is not an admin and the selected user is not the current user
-            // then finish the activity
             Toast.makeText(this, "You are not authorized to view this profile", Toast.LENGTH_SHORT).show();
             finish();
             return;
         }
-        // --- סוף התיקון ---
 
-        Log.d(TAG, "Selected user: " + selectedUid);
+        initializeViews();
+        showUserProfile();
+    }
 
-        // Initialize the EditText fields
+    private void initializeViews() {
         etUserFirstName = findViewById(R.id.et_user_first_name);
         etUserLastName = findViewById(R.id.et_user_last_name);
         etUserEmail = findViewById(R.id.et_user_email);
@@ -85,55 +88,52 @@ public class UserProfile extends AppCompatActivity implements View.OnClickListen
         btnUpdateProfile = findViewById(R.id.btn_edit_profile);
         btnSignOut = findViewById(R.id.btn_sign_out);
         adminBadge = findViewById(R.id.admin_badge);
+        bottomNavigationView = findViewById(R.id.bottomNavigation);
 
-        btnUpdateProfile.setOnClickListener( this);
-        btnSignOut.setOnClickListener( this);
+        btnUpdateProfile.setOnClickListener(this);
+        btnSignOut.setOnClickListener(this);
 
-        // if the user is not the current user, hide the sign out button
         if (!isCurrentUser) {
             btnSignOut.setVisibility(View.GONE);
         }
 
-        showUserProfile();
+        // הגדרת ניווט תחתון
+        bottomNavigationView.setSelectedItemId(R.id.nav_profile);
+        bottomNavigationView.setOnItemSelectedListener(item -> {
+            int itemId = item.getItemId();
+            if (itemId == R.id.nav_home) {
+                startActivity(new Intent(UserProfile.this, MainActivity.class));
+                finish();
+                return true;
+            }
+            return true;
+        });
     }
 
     @Override
     public void onClick(View v) {
-        if(v.getId() == R.id.btn_edit_profile) {
+        if (v.getId() == R.id.btn_edit_profile) {
             updateUserProfile();
-            return;
-        }
-        if(v.getId() == R.id.btn_sign_out) {
+        } else if (v.getId() == R.id.btn_sign_out) {
             signOut();
         }
     }
 
     private void showUserProfile() {
-        // Get the user data from database
         databaseService.getUser(selectedUid, new DatabaseService.DatabaseCallback<User>() {
             @Override
             public void onCompleted(User user) {
                 selectedUser = user;
-                // Set the user data to the EditText fields
                 etUserFirstName.setText(user.getFirstname());
                 etUserLastName.setText(user.getLastname());
                 etUserEmail.setText(user.getEmail());
                 etUserPhone.setText(user.getPhone());
                 etUserPassword.setText(user.getPassword());
 
-                // Update display fields
-                String displayName = user.getFirstname()+ " " + user.getLastname();
-                tvUserDisplayName.setText(displayName);
+                tvUserDisplayName.setText(user.getFirstname() + " " + user.getLastname());
                 tvUserDisplayEmail.setText(user.getEmail());
 
-                // Show/hide admin badge based on user's admin status
-                if (user.isAdmin()) {
-                    adminBadge.setVisibility(View.VISIBLE);
-                    Log.d(TAG, "User is admin, showing admin badge");
-                } else {
-                    adminBadge.setVisibility(View.GONE);
-                    Log.d(TAG, "User is not admin, hiding admin badge");
-                }
+                adminBadge.setVisibility(user.isAdmin() ? View.VISIBLE : View.GONE);
             }
 
             @Override
@@ -142,118 +142,55 @@ public class UserProfile extends AppCompatActivity implements View.OnClickListen
             }
         });
 
-        // disable the EditText fields if the user is not the current user
         if (!isCurrentUser) {
             etUserEmail.setEnabled(false);
             etUserPassword.setEnabled(false);
-        } else {
-            etUserEmail.setEnabled(true);
-            etUserPassword.setEnabled(true);
-            btnUpdateProfile.setVisibility(View.VISIBLE);
         }
     }
 
     private void updateUserProfile() {
-        if (selectedUser == null) {
-            Log.e(TAG, "User not found");
-            Toast.makeText(this, "User not found", Toast.LENGTH_SHORT).show();
-            return;
-        }
-        // Get the updated user data from the EditText fields
+        if (selectedUser == null) return;
+
         String firstName = etUserFirstName.getText().toString();
         String lastName = etUserLastName.getText().toString();
         String phone = etUserPhone.getText().toString();
         String email = etUserEmail.getText().toString();
         String password = etUserPassword.getText().toString();
 
-        if (!isValid(firstName, lastName, phone, email, password)) {
-            Log.e(TAG, "Invalid input");
-            return;
-        }
+        if (!isValid(firstName, lastName, phone, email, password)) return;
 
-        // Update the user object
         selectedUser.setFirstname(firstName);
         selectedUser.setLastname(lastName);
         selectedUser.setPhone(phone);
         selectedUser.setEmail(email);
         selectedUser.setPassword(password);
 
-        // Update the user data in the authentication
-        Log.d(TAG, "Updating user profile");
-        Log.d(TAG, "Selected user UID: " + selectedUser.getId());
-        Log.d(TAG, "Is current user: " + isCurrentUser);
-        Log.d(TAG, "User email: " + selectedUser.getEmail());
-        Log.d(TAG, "User password: " + selectedUser.getPassword());
-
-
-
-        if (!isCurrentUser && !selectedUser.isAdmin()) {
-            Log.e(TAG, "Only the current user can update their profile");
-            Toast.makeText(this, "You can only update your own profile", Toast.LENGTH_SHORT).show();
-            return;
-        }
-        else if (isCurrentUser) {
-            updateUserInDatabase(selectedUser);
-        }
-        else if (selectedUser.isAdmin()) {
-            // update the user in the database
-            updateUserInDatabase(selectedUser);
-        }
-    }
-
-    private void updateUserInDatabase(User user) {
-        Log.d(TAG, "Updating user in database: " + user.getId());
-        databaseService.updateUser(user, new DatabaseService.DatabaseCallback<Void>() {
+        databaseService.updateUser(selectedUser, new DatabaseService.DatabaseCallback<Void>() {
             @Override
             public void onCompleted(Void result) {
-                Log.d(TAG, "User profile updated successfully");
                 Toast.makeText(UserProfile.this, "Profile updated successfully", Toast.LENGTH_SHORT).show();
-                showUserProfile(); // Refresh the profile view
+                showUserProfile();
             }
 
             @Override
             public void onFailed(Exception e) {
-                Log.e(TAG, "Error updating user profile", e);
                 Toast.makeText(UserProfile.this, "Failed to update profile", Toast.LENGTH_SHORT).show();
             }
         });
     }
 
     private boolean isValid(String firstName, String lastName, String phone, String email, String password) {
-        if (!Validator.isNameValid(firstName)) {
-            etUserFirstName.setError("First name is required");
-            etUserFirstName.requestFocus();
-            return false;
-        }
-        if (!Validator.isNameValid(lastName)) {
-            etUserLastName.setError("Last name is required");
-            etUserLastName.requestFocus();
-            return false;
-        }
-        if (!Validator.isPhoneValid(phone)) {
-            etUserPhone.setError("Phone number is required");
-            etUserPhone.requestFocus();
-            return false;
-        }
-        if (!Validator.isEmailValid(email)) {
-            etUserEmail.setError("Email is required");
-            etUserEmail.requestFocus();
-            return false;
-        }
-        if (!Validator.isPasswordValid(password)) {
-            etUserPassword.setError("Password is required");
-            etUserPassword.requestFocus();
-            return false;
-        }
+        if (!Validator.isNameValid(firstName)) { etUserFirstName.setError("Required"); return false; }
+        if (!Validator.isNameValid(lastName)) { etUserLastName.setError("Required"); return false; }
+        if (!Validator.isPhoneValid(phone)) { etUserPhone.setError("Required"); return false; }
+        if (!Validator.isEmailValid(email)) { etUserEmail.setError("Required"); return false; }
+        if (!Validator.isPasswordValid(password)) { etUserPassword.setError("Required"); return false; }
         return true;
     }
 
     private void signOut() {
-        Log.d(TAG, "Sign out button clicked");
-        SharedPreferencesUtil.signOutUser(UserProfile.this);
-
-        Log.d(TAG, "User signed out, redirecting to LandingActivity");
-        Intent landingIntent = new Intent(UserProfile.this, LandingActivity.class);
+        SharedPreferencesUtil.signOutUser(this);
+        Intent landingIntent = new Intent(this, LandingActivity.class);
         landingIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         startActivity(landingIntent);
     }

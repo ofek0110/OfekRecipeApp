@@ -1,11 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="primary">#2D3E50</color> <color name="background_light">#F8FAFC</color>
-    <color name="accent">#F472B6</color> <color name="text_dark">#0F172A</color>
-    <color name="text_grey">#64748B</color>
-    <color name="white">#FFFFFF</color>
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
 
+    <color name="primary">#7C3AED</color>
+    <color name="accent">#F472B6</color>
     <color name="tag_pink_bg">#FFF1F2</color>
     <color name="tag_pink_text">#DB2777</color>
     <color name="tag_green_bg">#F0FDF4</color>
     <color name="tag_green_text">#16A34A</color>
+
+    <color name="purple_primary">#7C3AED</color>
+    <color name="purple_light_bg">#F3E8FF</color>
+    <color name="field_background">#F5F3FF</color>
+    <color name="background_light">#F9FAFB</color>
+    <color name="text_dark">#0F172A</color>
+    <color name="text_grey">#64748B</color>
+    <color name="red_error">#EF4444</color>
 </resources>
