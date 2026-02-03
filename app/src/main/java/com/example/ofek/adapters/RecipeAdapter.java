@@ -4,6 +4,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -12,7 +13,6 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.ofek.R;
 import com.example.ofek.models.Recipe;
-import com.google.android.material.chip.Chip;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -44,19 +44,27 @@ public class RecipeAdapter extends RecyclerView.Adapter<RecipeAdapter.ViewHolder
         Recipe recipe = recipeList.get(position);
         if (recipe == null) return;
 
+        // עדכון הכותרת
         holder.tvTitle.setText(recipe.getTitle());
-        holder.tvDescription.setText(recipe.getDescription());
-        
+
+        // עדכון קטגוריות
+        // בעיצוב החדש יש לנו LinearLayout של תגיות.
+        // כאן אנחנו מנקים תגיות ישנות ומוסיפים את הקטגוריה הנוכחית
+        holder.llTags.removeAllViews();
+
         if (recipe.getCategory() != null && !recipe.getCategory().isEmpty()) {
-            holder.chipCategory.setVisibility(View.VISIBLE);
-            holder.chipCategory.setText(recipe.getCategory());
-        } else {
-            holder.chipCategory.setVisibility(View.GONE);
+            addTagToLayout(holder.llTags, recipe.getCategory(), R.color.tag_pink_bg, R.color.tag_pink_text);
         }
 
-        // Note: You might want to use a library like Glide or Picasso to load the imageUrl
-        // if (recipe.getImageUrl() != null) { ... }
+        // אופציונלי: הוספת רמת קושי כתגית שנייה
+        if (recipe.getDifficulty() != null && !recipe.getDifficulty().isEmpty()) {
+            addTagToLayout(holder.llTags, recipe.getDifficulty(), R.color.tag_green_bg, R.color.tag_green_text);
+        }
 
+        // עדכון זמן הכנה (אם הוספת ID לטקסט הזמן ב-XML, כרגע זה מוסתר כי לא היה ID)
+        // holder.tvTime.setText(recipe.getPreparationTime());
+
+        // טיפול בלחיצות
         holder.itemView.setOnClickListener(v -> {
             if (onRecipeClickListener != null) {
                 onRecipeClickListener.onRecipeClick(recipe);
@@ -71,6 +79,35 @@ public class RecipeAdapter extends RecyclerView.Adapter<RecipeAdapter.ViewHolder
         });
     }
 
+    // פונקציה ליצירת תגית מעוצבת דינמית
+    private void addTagToLayout(LinearLayout layout, String text, int bgColorRes, int textColorRes) {
+        TextView tag = new TextView(layout.getContext());
+        tag.setText(text);
+        tag.setTextSize(10);
+        tag.setTypeface(null, android.graphics.Typeface.BOLD);
+        tag.setTextColor(layout.getContext().getColor(textColorRes));
+        tag.setBackgroundResource(R.drawable.bg_tag_rounded);
+        tag.setBackgroundTintList(layout.getContext().getColorStateList(bgColorRes));
+
+        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+        );
+        params.setMargins(0, 0, 16, 0); // מרווח בין תגיות
+        tag.setLayoutParams(params);
+
+        // ריפוד פנימי (Padding)
+        int paddingHorz = dpToPx(layout, 12);
+        int paddingVert = dpToPx(layout, 4);
+        tag.setPadding(paddingHorz, paddingVert, paddingHorz, paddingVert);
+
+        layout.addView(tag);
+    }
+
+    private int dpToPx(View view, int dp) {
+        return (int) (dp * view.getResources().getDisplayMetrics().density);
+    }
+
     @Override
     public int getItemCount() {
         return recipeList.size();
@@ -82,42 +119,17 @@ public class RecipeAdapter extends RecyclerView.Adapter<RecipeAdapter.ViewHolder
         notifyDataSetChanged();
     }
 
-    public void addRecipe(Recipe recipe) {
-        recipeList.add(recipe);
-        notifyItemInserted(recipeList.size() - 1);
-    }
-
-    public void updateRecipe(Recipe recipe) {
-        for (int i = 0; i < recipeList.size(); i++) {
-            if (recipeList.get(i).getId().equals(recipe.getId())) {
-                recipeList.set(i, recipe);
-                notifyItemChanged(i);
-                break;
-            }
-        }
-    }
-
-    public void removeRecipe(Recipe recipe) {
-        for (int i = 0; i < recipeList.size(); i++) {
-            if (recipeList.get(i).getId().equals(recipe.getId())) {
-                recipeList.remove(i);
-                notifyItemRemoved(i);
-                break;
-            }
-        }
-    }
-
     public static class ViewHolder extends RecyclerView.ViewHolder {
-        TextView tvTitle, tvDescription;
+        TextView tvTitle;
         ImageView ivImage;
-        Chip chipCategory;
+        LinearLayout llTags;
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
-            tvTitle = itemView.findViewById(R.id.tv_recipe_title);
-            tvDescription = itemView.findViewById(R.id.tv_recipe_description);
-            ivImage = itemView.findViewById(R.id.iv_recipe_image);
-            chipCategory = itemView.findViewById(R.id.chip_recipe_category);
+            // התאמה ל-IDs החדשים ב-item_recipe.xml
+            tvTitle = itemView.findViewById(R.id.tvRecipeTitle);
+            ivImage = itemView.findViewById(R.id.ivRecipeImage);
+            llTags = itemView.findViewById(R.id.llTags);
         }
     }
 }
