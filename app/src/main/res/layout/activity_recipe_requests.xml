@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.coordinatorlayout.widget.CoordinatorLayout 
+<androidx.coordinatorlayout.widget.CoordinatorLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
@@ -7,7 +7,6 @@
     android:layout_height="match_parent"
     android:background="#F8F9FA">
 
-    <!-- AppBar קלאסי תואם למסך ההוספה -->
     <com.google.android.material.appbar.AppBarLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -19,6 +18,7 @@
             android:layout_height="?attr/actionBarSize">
 
             <TextView
+                android:id="@+id/tvPageTitle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Pending Approvals"
@@ -29,7 +29,6 @@
         </androidx.appcompat.widget.Toolbar>
     </com.google.android.material.appbar.AppBarLayout>
 
-    <!-- רשימת הבקשות -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rvRecipeRequests"
         android:layout_width="match_parent"
@@ -39,7 +38,6 @@
         app:layout_behavior="@string/appbar_scrolling_view_behavior"
         tools:listitem="@layout/item_recipe" />
 
-    <!-- תצוגה למקרה שאין בקשות (Empty State) -->
     <LinearLayout
         android:id="@+id/layoutEmptyState"
         android:layout_width="wrap_content"

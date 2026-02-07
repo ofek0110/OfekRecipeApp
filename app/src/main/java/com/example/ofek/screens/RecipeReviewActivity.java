@@ -12,19 +12,22 @@ import com.example.ofek.R;
 import com.example.ofek.models.Recipe;
 import com.example.ofek.models.User;
 import com.example.ofek.utils.SharedPreferencesUtil;
+import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.textfield.TextInputEditText;
-import com.google.android.material.textfield.TextInputLayout;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
 public class RecipeReviewActivity extends AppCompatActivity {
 
     private Recipe recipe;
-    private TextView tvTitle, tvDescription, tvIngredients, tvInstructions, tvPageTitle;
-    private TextInputLayout tilAdminNotes;
+    // משתנים חדשים לזמן וקושי
+    private TextView tvTitle, tvDescription, tvIngredients, tvInstructions, tvTime, tvDifficulty;
     private TextInputEditText etAdminNotes;
     private Button btnApprove, btnReject;
+    private MaterialCardView adminPanel; // שים לב: זה עכשיו CardView בקוד
+
     private DatabaseReference recipeRef;
+    private User currentUser;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -33,56 +36,47 @@ public class RecipeReviewActivity extends AppCompatActivity {
 
         recipe = (Recipe) getIntent().getSerializableExtra("recipe");
         if (recipe == null) {
+            Toast.makeText(this, "Error: Recipe not found", Toast.LENGTH_SHORT).show();
             finish();
             return;
         }
 
         recipeRef = FirebaseDatabase.getInstance().getReference("recipes").child(recipe.getId());
+        currentUser = SharedPreferencesUtil.getUser(this);
 
         initializeViews();
         displayRecipeData();
-        setupVisibility();
+        setupViewForUserRole();
 
         btnApprove.setOnClickListener(v -> updateRecipeStatus(true));
         btnReject.setOnClickListener(v -> updateRecipeStatus(false));
+
+        // כפתור חזרה בסרגל העליון
+        androidx.appcompat.widget.Toolbar toolbar = findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+            getSupportActionBar().setDisplayShowTitleEnabled(false);
+        }
+        toolbar.setNavigationOnClickListener(v -> finish());
     }
 
     private void initializeViews() {
-        tvPageTitle = findViewById(R.id.tvPageTitle);
         tvTitle = findViewById(R.id.tvReviewTitle);
         tvDescription = findViewById(R.id.tvReviewDescription);
         tvIngredients = findViewById(R.id.tvReviewIngredients);
         tvInstructions = findViewById(R.id.tvReviewInstructions);
-        tilAdminNotes = findViewById(R.id.tilAdminNotes);
+
+        // שדות חדשים
+        tvTime = findViewById(R.id.tvReviewTime);
+        tvDifficulty = findViewById(R.id.tvReviewDifficulty);
+
         etAdminNotes = findViewById(R.id.etAdminNotes);
         btnApprove = findViewById(R.id.btnApprove);
         btnReject = findViewById(R.id.btnReject);
-    }
 
-    private void setupVisibility() {
-        User user = SharedPreferencesUtil.getUser(this);
-        boolean isAdmin = (user != null && user.isAdmin());
-
-        // אם המתכון כבר מאושר, לא מציגים את הערות האדמין ואת כפתורי האישור/דחייה
-        if (recipe.isApproved()) {
-            tilAdminNotes.setVisibility(View.GONE);
-            btnApprove.setVisibility(View.GONE);
-            btnReject.setVisibility(View.GONE);
-            if (tvPageTitle != null) tvPageTitle.setText("Recipe Details");
-        } else {
-            // אם המתכון לא מאושר, רק אדמין יכול לראות/לערוך את ההערות וללחוץ על הכפתורים
-            if (!isAdmin) {
-                tilAdminNotes.setVisibility(View.GONE);
-                btnApprove.setVisibility(View.GONE);
-                btnReject.setVisibility(View.GONE);
-            } else {
-                tilAdminNotes.setVisibility(View.VISIBLE);
-                btnApprove.setVisibility(View.VISIBLE);
-                btnReject.setVisibility(View.VISIBLE);
-                etAdminNotes.setEnabled(true);
-            }
-            if (tvPageTitle != null) tvPageTitle.setText("Review Recipe Request");
-        }
+        // הפאנל הוא כעת MaterialCardView
+        adminPanel = findViewById(R.id.adminPanel);
     }
 
     private void displayRecipeData() {
@@ -90,18 +84,49 @@ public class RecipeReviewActivity extends AppCompatActivity {
         tvDescription.setText(recipe.getDescription());
         tvIngredients.setText(recipe.getIngredients());
         tvInstructions.setText(recipe.getInstructions());
-        etAdminNotes.setText(recipe.getAdminNotes());
+
+        // הצגת זמן ורמת קושי אם קיימים
+        if (recipe.getPreparationTime() != null && !recipe.getPreparationTime().isEmpty()) {
+            tvTime.setText("🕒 " + recipe.getPreparationTime());
+        } else {
+            tvTime.setVisibility(View.GONE);
+        }
+
+        if (recipe.getDifficulty() != null && !recipe.getDifficulty().isEmpty()) {
+            tvDifficulty.setText("🔥 " + recipe.getDifficulty());
+        } else {
+            tvDifficulty.setVisibility(View.GONE);
+        }
+
+        if (recipe.getAdminNotes() != null) {
+            etAdminNotes.setText(recipe.getAdminNotes());
+        }
+    }
+
+    private void setupViewForUserRole() {
+        if (currentUser == null || !currentUser.isAdmin()) {
+            // הסתרת כל הפאנל של המנהל
+            adminPanel.setVisibility(View.GONE);
+        } else {
+            // הצגת הפאנל
+            adminPanel.setVisibility(View.VISIBLE);
+        }
     }
 
     private void updateRecipeStatus(boolean approve) {
+        if (currentUser == null || !currentUser.isAdmin()) return;
+
         String notes = etAdminNotes.getText().toString().trim();
-        
+
         recipeRef.child("approved").setValue(approve);
         recipeRef.child("adminNotes").setValue(notes)
-            .addOnSuccessListener(aVoid -> {
-                String msg = approve ? "Recipe Approved!" : "Recipe Rejected";
-                Toast.makeText(this, msg, Toast.LENGTH_SHORT).show();
-                finish();
-            });
+                .addOnSuccessListener(aVoid -> {
+                    String msg = approve ? "Recipe Approved!" : "Recipe Rejected";
+                    Toast.makeText(this, msg, Toast.LENGTH_SHORT).show();
+                    finish();
+                })
+                .addOnFailureListener(e -> {
+                    Toast.makeText(this, "Error updating status", Toast.LENGTH_SHORT).show();
+                });
     }
 }

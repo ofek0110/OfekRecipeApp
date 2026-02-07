@@ -5,6 +5,8 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.view.View;
+import android.widget.ArrayAdapter; // ייבוא חדש
+import android.widget.AutoCompleteTextView; // ייבוא חדש
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -25,7 +27,9 @@ import com.google.firebase.database.FirebaseDatabase;
 
 public class AddRecipeActivity extends AppCompatActivity {
 
-    private TextInputEditText etTitle, etDescription, etIngredients, etInstructions, etPrepTime, etDifficulty;
+    private TextInputEditText etTitle, etDescription, etIngredients, etInstructions, etPrepTime;
+    private AutoCompleteTextView actvDifficulty; // משתנה חדש לרשימה
+
     private Button btnSubmit;
     private ImageView ivRecipePreview;
     private TextView tvAddImageHint;
@@ -58,6 +62,7 @@ public class AddRecipeActivity extends AppCompatActivity {
         recipesRef = FirebaseDatabase.getInstance().getReference("recipes");
 
         initializeViews();
+        setupDifficultyDropdown(); // אתחול הרשימה
         setupClickListeners();
     }
 
@@ -66,14 +71,26 @@ public class AddRecipeActivity extends AppCompatActivity {
         etDescription = findViewById(R.id.etRecipeDescription);
         etIngredients = findViewById(R.id.etRecipeIngredients);
         etInstructions = findViewById(R.id.etRecipeInstructions);
-        // חיבור השדות החדשים
         etPrepTime = findViewById(R.id.etPrepTime);
-        etDifficulty = findViewById(R.id.etDifficulty);
+
+        // חיבור לרכיב החדש
+        actvDifficulty = findViewById(R.id.actvDifficulty);
 
         btnSubmit = findViewById(R.id.btnSubmitRecipe);
         ivRecipePreview = findViewById(R.id.ivRecipePreview);
         tvAddImageHint = findViewById(R.id.tvAddImageHint);
         cardSelectImage = findViewById(R.id.cardSelectImage);
+    }
+
+    private void setupDifficultyDropdown() {
+        String[] difficulties = new String[] {"Easy", "Medium", "Hard"};
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(
+                this,
+                android.R.layout.simple_dropdown_item_1line,
+                difficulties
+        );
+        actvDifficulty.setAdapter(adapter);
+        actvDifficulty.setText(difficulties[1], false); // ברירת מחדל: Medium
     }
 
     private void setupClickListeners() {
@@ -91,19 +108,23 @@ public class AddRecipeActivity extends AppCompatActivity {
         String description = etDescription.getText().toString().trim();
         String ingredients = etIngredients.getText().toString().trim();
         String instructions = etInstructions.getText().toString().trim();
-        // קליטת הערכים החדשים
         String prepTime = etPrepTime.getText().toString().trim();
-        String difficulty = etDifficulty.getText().toString().trim();
+        // קריאת הערך הנבחר מהרשימה
+        String difficulty = actvDifficulty.getText().toString().trim();
 
         if (title.isEmpty() || description.isEmpty() || ingredients.isEmpty() || instructions.isEmpty()) {
             Toast.makeText(this, "Please fill all fields", Toast.LENGTH_SHORT).show();
             return;
         }
 
+        if (difficulty.isEmpty()) {
+            Toast.makeText(this, "Please select difficulty", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
         String recipeId = recipesRef.push().getKey();
         String imageUrl = (selectedImageUri != null) ? selectedImageUri.toString() : "";
 
-        // שימוש בבנאי החדש (ללא imageUrl וללא boolean בסוף)
         Recipe newRecipe = new Recipe(
                 recipeId,
                 title,
@@ -112,11 +133,10 @@ public class AddRecipeActivity extends AppCompatActivity {
                 instructions,
                 currentUser.getId(),
                 "General", // Default category
-                prepTime,  // שדה חדש
-                difficulty // שדה חדש
+                prepTime,
+                difficulty
         );
 
-        // הגדרת התמונה בנפרד (כי הסרנו אותה מהבנאי בטעות בקובץ הקודם, או פשוט כסטנדרט)
         newRecipe.setImageUrl(imageUrl);
 
         if (recipeId != null) {
