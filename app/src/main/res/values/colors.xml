@@ -4,11 +4,12 @@
     <color name="white">#FFFFFFFF</color>
     <color name="blue">#FF3700B3</color>
     <color name="gray">#808080</color>
-
+    <color name="purple_primary">#9C47E0</color>
     <color name="primary">#F97316</color>
     <color name="primary_dark">#C2410C</color>
     <color name="background_light">#FFFBF7</color>
     <color name="accent_green">#065F46</color>
     <color name="text_dark">#1E293B</color>
     <color name="text_grey">#64748B</color>
+    <color name="field_background">#F57F17</color>
 </resources>

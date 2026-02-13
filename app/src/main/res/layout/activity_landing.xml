@@ -49,34 +49,34 @@
             android:gravity="center"
             android:layout_marginBottom="48dp" />
 
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/Btn_landing_go_to_sign_in"
-            android:layout_width="match_parent"
-            android:layout_height="60dp"
-            android:text="Sign In"
-            android:textAllCaps="false"
-            android:textSize="16sp"
-            android:layout_marginBottom="16dp"
-            app:cornerRadius="30dp"
-            style="@style/Widget.MaterialComponents.Button.UnelevatedButton" />
-
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btn_landing_go_to_create_account"
-            android:layout_width="match_parent"
-            android:layout_height="60dp"
-            android:text="Create Account"
-            android:textAllCaps="false"
-            android:textSize="16sp"
-            android:textColor="@color/white"
-            app:cornerRadius="30dp"
-            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-            app:strokeColor="?attr/colorPrimary"
-            app:strokeWidth="2dp" />
-
         <View
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:layout_weight="1.5" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/Btn_landing_go_to_sign_in"
+            style="@style/Widget.MaterialComponents.Button.UnelevatedButton"
+            android:layout_width="match_parent"
+            android:layout_height="60dp"
+            android:layout_marginBottom="16dp"
+            android:text="Sign In"
+            android:textAllCaps="false"
+            android:textSize="16sp"
+            app:cornerRadius="30dp" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_landing_go_to_create_account"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            android:layout_width="match_parent"
+            android:layout_height="60dp"
+            android:text="Create Account"
+            android:textAllCaps="false"
+            android:textColor="@color/white"
+            android:textSize="16sp"
+            app:cornerRadius="30dp"
+            app:strokeColor="?attr/colorPrimary"
+            app:strokeWidth="2dp" />
 
         <TextView
             android:layout_width="wrap_content"
