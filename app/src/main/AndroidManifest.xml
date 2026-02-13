@@ -11,7 +11,9 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.OfekRecipeApp">
-        
+        <activity
+            android:name=".screens.MyRecipesActivity"
+            android:exported="false" />
         <!-- מסכים חדשים - חובה לרשום אותם כאן -->
         <activity
             android:name=".screens.AddRecipeActivity"
@@ -25,7 +27,6 @@
             android:name=".screens.RecipeReviewActivity"
             android:exported="false"
             android:label="Review Recipe" />
-            
         <activity
             android:name=".screens.UserProfile"
             android:exported="false" />
@@ -51,6 +52,7 @@
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>

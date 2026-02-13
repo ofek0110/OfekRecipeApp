@@ -5,8 +5,8 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.view.View;
-import android.widget.ArrayAdapter; // ייבוא חדש
-import android.widget.AutoCompleteTextView; // ייבוא חדש
+import android.widget.ArrayAdapter;
+import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -28,7 +28,7 @@ import com.google.firebase.database.FirebaseDatabase;
 public class AddRecipeActivity extends AppCompatActivity {
 
     private TextInputEditText etTitle, etDescription, etIngredients, etInstructions, etPrepTime;
-    private AutoCompleteTextView actvDifficulty; // משתנה חדש לרשימה
+    private AutoCompleteTextView actvDifficulty;
 
     private Button btnSubmit;
     private ImageView ivRecipePreview;
@@ -39,7 +39,9 @@ public class AddRecipeActivity extends AppCompatActivity {
     private User currentUser;
     private Uri selectedImageUri;
 
-    // Launcher for selecting an image from gallery
+    // משתנה לעריכה
+    private Recipe recipeToEdit = null;
+
     private final ActivityResultLauncher<Intent> imagePickerLauncher = registerForActivityResult(
             new ActivityResultContracts.StartActivityForResult(),
             result -> {
@@ -62,8 +64,14 @@ public class AddRecipeActivity extends AppCompatActivity {
         recipesRef = FirebaseDatabase.getInstance().getReference("recipes");
 
         initializeViews();
-        setupDifficultyDropdown(); // אתחול הרשימה
+        setupDifficultyDropdown();
         setupClickListeners();
+
+        // בדיקה אם נכנסנו למצב עריכה
+        if (getIntent().hasExtra("RECIPE_TO_EDIT")) {
+            recipeToEdit = (Recipe) getIntent().getSerializableExtra("RECIPE_TO_EDIT");
+            fillFormForEdit();
+        }
     }
 
     private void initializeViews() {
@@ -72,10 +80,7 @@ public class AddRecipeActivity extends AppCompatActivity {
         etIngredients = findViewById(R.id.etRecipeIngredients);
         etInstructions = findViewById(R.id.etRecipeInstructions);
         etPrepTime = findViewById(R.id.etPrepTime);
-
-        // חיבור לרכיב החדש
         actvDifficulty = findViewById(R.id.actvDifficulty);
-
         btnSubmit = findViewById(R.id.btnSubmitRecipe);
         ivRecipePreview = findViewById(R.id.ivRecipePreview);
         tvAddImageHint = findViewById(R.id.tvAddImageHint);
@@ -90,12 +95,25 @@ public class AddRecipeActivity extends AppCompatActivity {
                 difficulties
         );
         actvDifficulty.setAdapter(adapter);
-        actvDifficulty.setText(difficulties[1], false); // ברירת מחדל: Medium
+        actvDifficulty.setText(difficulties[1], false);
     }
 
     private void setupClickListeners() {
         cardSelectImage.setOnClickListener(v -> openGallery());
         btnSubmit.setOnClickListener(v -> submitRecipe());
+    }
+
+    private void fillFormForEdit() {
+        etTitle.setText(recipeToEdit.getTitle());
+        etDescription.setText(recipeToEdit.getDescription());
+        etIngredients.setText(recipeToEdit.getIngredients());
+        etInstructions.setText(recipeToEdit.getInstructions());
+        etPrepTime.setText(recipeToEdit.getPreparationTime());
+        actvDifficulty.setText(recipeToEdit.getDifficulty(), false);
+        btnSubmit.setText("Fix & Resubmit");
+
+        // הערה: טעינת התמונה הקיימת דורשת ספרייה חיצונית.
+        // כרגע אם המשתמש לא יבחר תמונה חדשה, נשמור על ה-URL הישן.
     }
 
     private void openGallery() {
@@ -109,7 +127,6 @@ public class AddRecipeActivity extends AppCompatActivity {
         String ingredients = etIngredients.getText().toString().trim();
         String instructions = etInstructions.getText().toString().trim();
         String prepTime = etPrepTime.getText().toString().trim();
-        // קריאת הערך הנבחר מהרשימה
         String difficulty = actvDifficulty.getText().toString().trim();
 
         if (title.isEmpty() || description.isEmpty() || ingredients.isEmpty() || instructions.isEmpty()) {
@@ -117,13 +134,20 @@ public class AddRecipeActivity extends AppCompatActivity {
             return;
         }
 
-        if (difficulty.isEmpty()) {
-            Toast.makeText(this, "Please select difficulty", Toast.LENGTH_SHORT).show();
-            return;
+        String recipeId;
+        if (recipeToEdit != null) {
+            recipeId = recipeToEdit.getId(); // שימוש ב-ID הקיים
+        } else {
+            recipeId = recipesRef.push().getKey(); // יצירת חדש
         }
 
-        String recipeId = recipesRef.push().getKey();
-        String imageUrl = (selectedImageUri != null) ? selectedImageUri.toString() : "";
+        // שמירת התמונה: חדשה אם נבחרה, או הישנה אם אנחנו בעריכה
+        String imageUrl = "";
+        if (selectedImageUri != null) {
+            imageUrl = selectedImageUri.toString();
+        } else if (recipeToEdit != null) {
+            imageUrl = recipeToEdit.getImageUrl();
+        }
 
         Recipe newRecipe = new Recipe(
                 recipeId,
@@ -132,17 +156,20 @@ public class AddRecipeActivity extends AppCompatActivity {
                 ingredients,
                 instructions,
                 currentUser.getId(),
-                "General", // Default category
+                "General",
                 prepTime,
                 difficulty
         );
-
         newRecipe.setImageUrl(imageUrl);
+
+        // איפוס הסטטוסים לבדיקה מחדש
+        newRecipe.setApproved(false);
+        newRecipe.setAdminNotes(""); // מחיקת ההערה כדי שהמנהל יראה את זה שוב
 
         if (recipeId != null) {
             recipesRef.child(recipeId).setValue(newRecipe)
                     .addOnSuccessListener(aVoid -> {
-                        Toast.makeText(this, "Recipe submitted for approval!", Toast.LENGTH_LONG).show();
+                        Toast.makeText(this, "Recipe submitted successfully!", Toast.LENGTH_LONG).show();
                         finish();
                     })
                     .addOnFailureListener(e -> {

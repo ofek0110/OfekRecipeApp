@@ -2,7 +2,7 @@ package com.example.ofek.screens;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.widget.TextView; // הוספתי את הייבוא הזה
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -28,8 +28,6 @@ public class RecipeRequestsActivity extends AppCompatActivity {
     private RecipeAdapter adapter;
     private List<Recipe> requestList;
     private DatabaseReference recipesRef;
-
-    // הוספתי את המשתנה לכותרת הדף
     private TextView tvPageTitle;
 
     @Override
@@ -37,9 +35,8 @@ public class RecipeRequestsActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_recipe_requests);
 
-        // חיבור הכותרת מה-XML לקוד
         tvPageTitle = findViewById(R.id.tvPageTitle);
-        // כעת ניתן להשתמש בו, למשל: tvPageTitle.setText("Admin Approvals");
+        // אם תרצה לשנות כותרת: tvPageTitle.setText("Pending Approvals");
 
         rvRequests = findViewById(R.id.rvRecipeRequests);
         rvRequests.setLayoutManager(new LinearLayoutManager(this));
@@ -69,9 +66,12 @@ public class RecipeRequestsActivity extends AppCompatActivity {
                 requestList.clear();
                 for (DataSnapshot data : snapshot.getChildren()) {
                     Recipe recipe = data.getValue(Recipe.class);
-                    // סינון מתכונים שלא אושרו עדיין
+                    // תנאי הסינון החשוב:
+                    // מציגים למנהל רק אם לא מאושר וגם אין הערות (כלומר חדש או תוקן)
                     if (recipe != null && !recipe.isApproved()) {
-                        requestList.add(recipe);
+                        if (recipe.getAdminNotes() == null || recipe.getAdminNotes().isEmpty()) {
+                            requestList.add(recipe);
+                        }
                     }
                 }
                 adapter.setRecipeList(requestList);
