@@ -6,6 +6,7 @@ import android.text.Editable;
 import android.text.TextWatcher;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -45,13 +46,15 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        // אתחול רכיבים מה-XML
         rvRecipes = findViewById(R.id.rvRecipes);
         etSearch = findViewById(R.id.etSearch);
-        btnUsers = findViewById(R.id.btnUsers);
-        btnRequests = findViewById(R.id.btnRequests);
+        btnUsers = findViewById(R.id.btnUsers);         // הכפתור הירוק
+        btnRequests = findViewById(R.id.btnRequests);   // הכפתור הכתום
         fabAddRecipe = findViewById(R.id.fabAddRecipe);
         bottomNavigationView = findViewById(R.id.bottomNavigationView);
 
+        // הגדרת RecyclerView
         rvRecipes.setLayoutManager(new LinearLayoutManager(this));
         recipeList = new ArrayList<>();
         filteredList = new ArrayList<>();
@@ -63,31 +66,63 @@ public class MainActivity extends AppCompatActivity {
                 intent.putExtra("recipe", recipe);
                 startActivity(intent);
             }
+
             @Override
-            public void onLongRecipeClick(Recipe recipe) { }
+            public void onLongRecipeClick(Recipe recipe) {
+                // אופציונלי: כאן ניתן להוסיף פעולה בלחיצה ארוכה
+            }
         });
 
         rvRecipes.setAdapter(adapter);
 
-        fabAddRecipe.setOnClickListener(v -> startActivity(new Intent(MainActivity.this, AddRecipeActivity.class)));
-        btnUsers.setOnClickListener(v -> startActivity(new Intent(MainActivity.this, UsersList.class)));
-        btnRequests.setOnClickListener(v -> startActivity(new Intent(MainActivity.this, RecipeRequestsActivity.class)));
+        // הגדרת פעולות לכפתורים
+        fabAddRecipe.setOnClickListener(v -> {
+            startActivity(new Intent(MainActivity.this, AddRecipeActivity.class));
+        });
 
+        btnUsers.setOnClickListener(v -> {
+            startActivity(new Intent(MainActivity.this, UsersList.class));
+        });
+
+        btnRequests.setOnClickListener(v -> {
+            startActivity(new Intent(MainActivity.this, RecipeRequestsActivity.class));
+        });
+
+        // הגדרת חיפוש
         etSearch.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
-                filter(s.toString());
+                filterRecipes(s.toString());
             }
+
             @Override
             public void afterTextChanged(Editable s) {}
         });
 
-        loadRecipes();
+        // הגדרת הבר התחתון
+        bottomNavigationView.setOnItemSelectedListener(item -> {
+            int itemId = item.getItemId();
+            if (itemId == R.id.nav_home) {
+                // אנחנו כבר בבית, אולי לגלול למעלה?
+                return true;
+            } else if (itemId == R.id.nav_profile) {
+                startActivity(new Intent(MainActivity.this, UserProfile.class));
+                return true;
+            } else if (itemId == R.id.nav_explore) {
+                // אופציונלי: מסך נוסף או רענון
+                return true;
+            }
+            return false;
+        });
+
+        // טעינת הנתונים
+        loadRecipesFromFirebase();
     }
 
-    private void filter(String text) {
+    private void filterRecipes(String text) {
         filteredList.clear();
         for (Recipe recipe : recipeList) {
             if (recipe.getTitle().toLowerCase().contains(text.toLowerCase())) {
@@ -97,7 +132,7 @@ public class MainActivity extends AppCompatActivity {
         adapter.setRecipeList(filteredList);
     }
 
-    private void loadRecipes() {
+    private void loadRecipesFromFirebase() {
         recipesRef = FirebaseDatabase.getInstance().getReference("recipes");
         recipesRef.addValueEventListener(new ValueEventListener() {
             @Override
@@ -105,17 +140,23 @@ public class MainActivity extends AppCompatActivity {
                 recipeList.clear();
                 for (DataSnapshot data : snapshot.getChildren()) {
                     Recipe recipe = data.getValue(Recipe.class);
+                    // מציגים רק מתכונים שאושרו (isApproved = true)
                     if (recipe != null && recipe.isApproved()) {
                         recipeList.add(recipe);
                     }
                 }
+                // היפוך הרשימה כדי לראות את החדשים ביותר ראשונים
                 Collections.reverse(recipeList);
+
                 filteredList.clear();
                 filteredList.addAll(recipeList);
                 adapter.setRecipeList(filteredList);
             }
+
             @Override
-            public void onCancelled(@NonNull DatabaseError error) {}
+            public void onCancelled(@NonNull DatabaseError error) {
+                Toast.makeText(MainActivity.this, "Failed to load recipes", Toast.LENGTH_SHORT).show();
+            }
         });
     }
 }
