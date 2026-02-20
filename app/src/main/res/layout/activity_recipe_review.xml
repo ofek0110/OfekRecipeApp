@@ -21,7 +21,7 @@
             app:layout_scrollFlags="scroll|exitUntilCollapsed">
 
             <ImageView
-                android:id="@+id/ivRecipeImage"
+                android:id="@+id/IvRecipeImage"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:scaleType="centerCrop"
@@ -35,7 +35,7 @@
                 android:alpha="0.3"/>
 
             <androidx.appcompat.widget.Toolbar
-                android:id="@+id/toolbar"
+                android:id="@+id/Toolbar"
                 android:layout_width="match_parent"
                 android:layout_height="?attr/actionBarSize"
                 app:layout_collapseMode="pin"
@@ -73,7 +73,7 @@
                     android:padding="24dp">
 
                     <TextView
-                        android:id="@+id/tvReviewTitle"
+                        android:id="@+id/TvReviewTitle"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:text="Recipe Title"
@@ -89,7 +89,7 @@
                         android:layout_marginBottom="16dp">
 
                         <TextView
-                            android:id="@+id/tvReviewTime"
+                            android:id="@+id/TvReviewTime"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="🕒 45 min"
@@ -102,7 +102,7 @@
                             android:layout_marginEnd="8dp"/>
 
                         <TextView
-                            android:id="@+id/tvReviewDifficulty"
+                            android:id="@+id/TvReviewDifficulty"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="🔥 Medium"
@@ -115,7 +115,7 @@
                     </LinearLayout>
 
                     <TextView
-                        android:id="@+id/tvReviewDescription"
+                        android:id="@+id/TvReviewDescription"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:text="A short description of the recipe goes here..."
@@ -155,7 +155,7 @@
                         android:layout_marginBottom="16dp"/>
 
                     <TextView
-                        android:id="@+id/tvReviewIngredients"
+                        android:id="@+id/TvReviewIngredients"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:text="- Item 1\n- Item 2"
@@ -195,7 +195,7 @@
                         android:layout_marginBottom="16dp"/>
 
                     <TextView
-                        android:id="@+id/tvReviewInstructions"
+                        android:id="@+id/TvReviewInstructions"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:text="1. Do this.\n2. Then that."
@@ -206,7 +206,7 @@
             </com.google.android.material.card.MaterialCardView>
 
             <com.google.android.material.card.MaterialCardView
-                android:id="@+id/adminPanel"
+                android:id="@+id/AdminPanel"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="32dp"
@@ -240,19 +240,20 @@
                         android:layout_marginBottom="16dp">
 
                         <com.google.android.material.textfield.TextInputEditText
-                            android:id="@+id/etAdminNotes"
+                            android:id="@+id/EtAdminNotes"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"/>
                     </com.google.android.material.textfield.TextInputLayout>
 
                     <LinearLayout
+                        android:id="@+id/LayoutPendingButtons"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="horizontal"
                         android:weightSum="2">
 
                         <Button
-                            android:id="@+id/btnReject"
+                            android:id="@+id/BtnReject"
                             android:layout_width="0dp"
                             android:layout_height="56dp"
                             android:layout_weight="1"
@@ -264,7 +265,7 @@
                             android:layout_marginEnd="8dp"/>
 
                         <Button
-                            android:id="@+id/btnApprove"
+                            android:id="@+id/BtnApprove"
                             android:layout_width="0dp"
                             android:layout_height="56dp"
                             android:layout_weight="1"
@@ -272,6 +273,18 @@
                             android:backgroundTint="#16A34A"
                             style="@style/Widget.MaterialComponents.Button.UnelevatedButton"/>
                     </LinearLayout>
+
+                    <Button
+                        android:id="@+id/BtnRemove"
+                        android:layout_width="match_parent"
+                        android:layout_height="56dp"
+                        android:text="Remove &amp; Return to User"
+                        android:textColor="#B91C1C"
+                        app:strokeColor="#B91C1C"
+                        app:strokeWidth="1dp"
+                        style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                        android:visibility="gone"/>
+
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 

@@ -1,8 +1,10 @@
 package com.example.ofek.adapters;
 
+import android.graphics.Color;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -11,6 +13,11 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.ofek.R;
 import com.example.ofek.models.Recipe;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
 import java.util.List;
 
@@ -18,14 +25,21 @@ public class RecipeAdapter extends RecyclerView.Adapter<RecipeAdapter.RecipeView
 
     private List<Recipe> recipeList;
     private final OnRecipeClickListener listener;
+    private final String currentUserId;
+    private final DatabaseReference favoritesRef;
+    private final boolean showStatus; // המתג החדש שלנו!
 
     public interface OnRecipeClickListener {
         void onRecipeClick(Recipe recipe);
         void onLongRecipeClick(Recipe recipe);
     }
 
-    public RecipeAdapter(OnRecipeClickListener listener) {
+    // הוספנו את showStatus לבנאי
+    public RecipeAdapter(String currentUserId, boolean showStatus, OnRecipeClickListener listener) {
+        this.currentUserId = currentUserId;
+        this.showStatus = showStatus;
         this.listener = listener;
+        this.favoritesRef = FirebaseDatabase.getInstance().getReference("Favorites").child(currentUserId);
     }
 
     public void setRecipeList(List<Recipe> recipeList) {
@@ -43,11 +57,31 @@ public class RecipeAdapter extends RecyclerView.Adapter<RecipeAdapter.RecipeView
     @Override
     public void onBindViewHolder(@NonNull RecipeViewHolder holder, int position) {
         Recipe recipe = recipeList.get(position);
-        holder.tvTitle.setText(recipe.getTitle());
-        holder.tvPrepTime.setText(recipe.getPreparationTime());
-        holder.tvDifficulty.setText(recipe.getDifficulty());
-        holder.tvCategoryTag.setText(recipe.getCategory());
-        // כאן ניתן להשתמש ב-Glide לטעינת התמונה מה-URL
+        holder.TvTitle.setText(recipe.getTitle());
+        holder.TvPrepTime.setText(recipe.getPreparationTime());
+        holder.TvDifficulty.setText(recipe.getDifficulty());
+        holder.TvCategoryTag.setText(recipe.getCategory());
+
+        // בודקים אם בכלל צריך להציג את הסטטוס במסך הנוכחי
+        if (showStatus) {
+            holder.TvStatus.setVisibility(View.VISIBLE);
+            if (recipe.isApproved()) {
+                holder.TvStatus.setText("Approved");
+                holder.TvStatus.setTextColor(Color.parseColor("#16A34A")); // ירוק
+            } else if (recipe.getAdminNotes() != null && !recipe.getAdminNotes().isEmpty()) {
+                holder.TvStatus.setText("Needs Fixing");
+                holder.TvStatus.setTextColor(Color.parseColor("#DC2626")); // אדום
+            } else {
+                holder.TvStatus.setText("Pending");
+                holder.TvStatus.setTextColor(Color.parseColor("#D97706")); // כתום
+            }
+        } else {
+            // מסתירים את התגית לחלוטין (למשל במסך הראשי)
+            holder.TvStatus.setVisibility(View.GONE);
+        }
+
+        checkIfFavorite(recipe.getId(), holder.IvFavoriteIcon);
+        holder.FlFavoriteBtn.setOnClickListener(v -> toggleFavorite(recipe.getId(), holder.IvFavoriteIcon));
     }
 
     @Override
@@ -55,17 +89,55 @@ public class RecipeAdapter extends RecyclerView.Adapter<RecipeAdapter.RecipeView
         return recipeList != null ? recipeList.size() : 0;
     }
 
+    private void checkIfFavorite(String recipeId, ImageView heartIcon) {
+        favoritesRef.child(recipeId).addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                if (snapshot.exists()) {
+                    heartIcon.setAlpha(1.0f);
+                } else {
+                    heartIcon.setAlpha(0.3f);
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) { }
+        });
+    }
+
+    private void toggleFavorite(String recipeId, ImageView heartIcon) {
+        favoritesRef.child(recipeId).addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot snapshot) {
+                if (snapshot.exists()) {
+                    favoritesRef.child(recipeId).removeValue();
+                    heartIcon.setAlpha(0.3f);
+                } else {
+                    favoritesRef.child(recipeId).setValue(true);
+                    heartIcon.setAlpha(1.0f);
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) { }
+        });
+    }
+
     class RecipeViewHolder extends RecyclerView.ViewHolder {
-        TextView tvTitle, tvPrepTime, tvDifficulty, tvCategoryTag;
-        ImageView ivImage;
+        TextView TvTitle, TvPrepTime, TvDifficulty, TvCategoryTag, TvStatus;
+        ImageView IvImage, IvFavoriteIcon;
+        FrameLayout FlFavoriteBtn;
 
         public RecipeViewHolder(@NonNull View itemView) {
             super(itemView);
-            tvTitle = itemView.findViewById(R.id.tvRecipeTitle);
-            tvPrepTime = itemView.findViewById(R.id.tvPrepTime);
-            tvDifficulty = itemView.findViewById(R.id.tvDifficulty);
-            tvCategoryTag = itemView.findViewById(R.id.tvCategoryTag);
-            ivImage = itemView.findViewById(R.id.ivRecipeImage);
+            TvTitle = itemView.findViewById(R.id.TvRecipeTitle);
+            TvPrepTime = itemView.findViewById(R.id.TvPrepTime);
+            TvDifficulty = itemView.findViewById(R.id.TvDifficulty);
+            TvCategoryTag = itemView.findViewById(R.id.TvCategoryTag);
+            TvStatus = itemView.findViewById(R.id.TvStatus);
+            IvImage = itemView.findViewById(R.id.IvRecipeImage);
+            FlFavoriteBtn = itemView.findViewById(R.id.FlFavoriteBtn);
+            IvFavoriteIcon = itemView.findViewById(R.id.IvFavoriteIcon);
 
             itemView.setOnClickListener(v -> listener.onRecipeClick(recipeList.get(getAdapterPosition())));
             itemView.setOnLongClickListener(v -> {

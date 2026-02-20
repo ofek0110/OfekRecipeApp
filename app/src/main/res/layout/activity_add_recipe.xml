@@ -18,10 +18,22 @@
             android:textSize="24sp"
             android:textStyle="bold"
             android:textColor="@color/primary"
-            android:layout_marginBottom="24dp"/>
+            android:layout_marginBottom="16dp"/>
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/BtnViewRejectionReason"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="⚠️ View Admin Notes"
+            android:textColor="#B91C1C"
+            android:backgroundTint="#FEF2F2"
+            app:strokeColor="#EF4444"
+            app:strokeWidth="1dp"
+            android:visibility="gone"
+            android:layout_marginBottom="16dp"/>
 
         <com.google.android.material.card.MaterialCardView
-            android:id="@+id/cardSelectImage"
+            android:id="@+id/CardSelectImage"
             android:layout_width="match_parent"
             android:layout_height="200dp"
             android:layout_marginBottom="16dp"
@@ -33,14 +45,14 @@
                 android:layout_height="match_parent">
 
                 <ImageView
-                    android:id="@+id/ivRecipePreview"
+                    android:id="@+id/IvRecipePreview"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:scaleType="centerCrop"
                     android:background="#E2E8F0"/>
 
                 <TextView
-                    android:id="@+id/tvAddImageHint"
+                    android:id="@+id/TvAddImageHint"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center"
@@ -55,7 +67,7 @@
             android:hint="Recipe Title"
             android:layout_marginBottom="16dp">
             <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/etRecipeTitle"
+                android:id="@+id/EtRecipeTitle"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"/>
         </com.google.android.material.textfield.TextInputLayout>
@@ -74,7 +86,7 @@
                 android:hint="Time (e.g. 30 min)"
                 android:layout_marginEnd="8dp">
                 <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/etPrepTime"
+                    android:id="@+id/EtPrepTime"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"/>
             </com.google.android.material.textfield.TextInputLayout>
@@ -88,7 +100,7 @@
                 style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu">
 
                 <com.google.android.material.textfield.MaterialAutoCompleteTextView
-                    android:id="@+id/actvDifficulty"
+                    android:id="@+id/ActvDifficulty"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:inputType="none"
@@ -103,7 +115,7 @@
             android:hint="Short Description"
             android:layout_marginBottom="16dp">
             <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/etRecipeDescription"
+                android:id="@+id/EtRecipeDescription"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:lines="2"/>
@@ -115,7 +127,7 @@
             android:hint="Ingredients"
             android:layout_marginBottom="16dp">
             <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/etRecipeIngredients"
+                android:id="@+id/EtRecipeIngredients"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:gravity="top"
@@ -128,7 +140,7 @@
             android:hint="Instructions"
             android:layout_marginBottom="24dp">
             <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/etRecipeInstructions"
+                android:id="@+id/EtRecipeInstructions"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:gravity="top"
@@ -136,7 +148,7 @@
         </com.google.android.material.textfield.TextInputLayout>
 
         <Button
-            android:id="@+id/btnSubmitRecipe"
+            android:id="@+id/BtnSubmitRecipe"
             android:layout_width="match_parent"
             android:layout_height="56dp"
             android:text="Submit Recipe"

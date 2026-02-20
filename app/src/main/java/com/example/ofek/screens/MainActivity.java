@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -16,6 +17,8 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.ofek.R;
 import com.example.ofek.adapters.RecipeAdapter;
 import com.example.ofek.models.Recipe;
+import com.example.ofek.models.User;
+import com.example.ofek.utils.SharedPreferencesUtil;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.firebase.database.DataSnapshot;
@@ -41,25 +44,35 @@ public class MainActivity extends AppCompatActivity {
     private FloatingActionButton fabAddRecipe;
     private BottomNavigationView bottomNavigationView;
 
+    private ImageView IvMyRecipes;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        // אתחול רכיבים מה-XML
-        rvRecipes = findViewById(R.id.rvRecipes);
-        etSearch = findViewById(R.id.etSearch);
-        btnUsers = findViewById(R.id.btnUsers);         // הכפתור הירוק
-        btnRequests = findViewById(R.id.btnRequests);   // הכפתור הכתום
-        fabAddRecipe = findViewById(R.id.fabAddRecipe);
-        bottomNavigationView = findViewById(R.id.bottomNavigationView);
+        User currentUser = SharedPreferencesUtil.getUser(this);
+        if (currentUser == null) {
+            startActivity(new Intent(MainActivity.this, LogIn.class));
+            finish();
+            return;
+        }
+        String currentUserId = currentUser.getId();
 
-        // הגדרת RecyclerView
+        rvRecipes = findViewById(R.id.RvRecipes);
+        etSearch = findViewById(R.id.EtSearch);
+        btnUsers = findViewById(R.id.BtnUsers);
+        btnRequests = findViewById(R.id.BtnRequests);
+        fabAddRecipe = findViewById(R.id.FabAddRecipe);
+        bottomNavigationView = findViewById(R.id.BottomNavigationView);
+        IvMyRecipes = findViewById(R.id.IvMyRecipes);
+
         rvRecipes.setLayoutManager(new LinearLayoutManager(this));
         recipeList = new ArrayList<>();
         filteredList = new ArrayList<>();
 
-        adapter = new RecipeAdapter(new RecipeAdapter.OnRecipeClickListener() {
+        // התיקון כאן: הוספנו את ה-false בתור פרמטר שני
+        adapter = new RecipeAdapter(currentUserId, false, new RecipeAdapter.OnRecipeClickListener() {
             @Override
             public void onRecipeClick(Recipe recipe) {
                 Intent intent = new Intent(MainActivity.this, RecipeReviewActivity.class);
@@ -69,13 +82,15 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onLongRecipeClick(Recipe recipe) {
-                // אופציונלי: כאן ניתן להוסיף פעולה בלחיצה ארוכה
             }
         });
 
         rvRecipes.setAdapter(adapter);
 
-        // הגדרת פעולות לכפתורים
+        IvMyRecipes.setOnClickListener(v -> {
+            startActivity(new Intent(MainActivity.this, MyRecipesActivity.class));
+        });
+
         fabAddRecipe.setOnClickListener(v -> {
             startActivity(new Intent(MainActivity.this, AddRecipeActivity.class));
         });
@@ -88,7 +103,6 @@ public class MainActivity extends AppCompatActivity {
             startActivity(new Intent(MainActivity.this, RecipeRequestsActivity.class));
         });
 
-        // הגדרת חיפוש
         etSearch.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
@@ -102,23 +116,19 @@ public class MainActivity extends AppCompatActivity {
             public void afterTextChanged(Editable s) {}
         });
 
-        // הגדרת הבר התחתון
         bottomNavigationView.setOnItemSelectedListener(item -> {
             int itemId = item.getItemId();
             if (itemId == R.id.nav_home) {
-                // אנחנו כבר בבית, אולי לגלול למעלה?
                 return true;
             } else if (itemId == R.id.nav_profile) {
                 startActivity(new Intent(MainActivity.this, UserProfile.class));
                 return true;
             } else if (itemId == R.id.nav_explore) {
-                // אופציונלי: מסך נוסף או רענון
                 return true;
             }
             return false;
         });
 
-        // טעינת הנתונים
         loadRecipesFromFirebase();
     }
 
@@ -140,12 +150,10 @@ public class MainActivity extends AppCompatActivity {
                 recipeList.clear();
                 for (DataSnapshot data : snapshot.getChildren()) {
                     Recipe recipe = data.getValue(Recipe.class);
-                    // מציגים רק מתכונים שאושרו (isApproved = true)
                     if (recipe != null && recipe.isApproved()) {
                         recipeList.add(recipe);
                     }
                 }
-                // היפוך הרשימה כדי לראות את החדשים ביותר ראשונים
                 Collections.reverse(recipeList);
 
                 filteredList.clear();

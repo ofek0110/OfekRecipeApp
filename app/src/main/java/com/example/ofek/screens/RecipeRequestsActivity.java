@@ -13,6 +13,8 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.ofek.R;
 import com.example.ofek.adapters.RecipeAdapter;
 import com.example.ofek.models.Recipe;
+import com.example.ofek.models.User;
+import com.example.ofek.utils.SharedPreferencesUtil;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -24,25 +26,35 @@ import java.util.List;
 
 public class RecipeRequestsActivity extends AppCompatActivity {
 
-    private RecyclerView rvRequests;
+    private RecyclerView RvRequests;
     private RecipeAdapter adapter;
     private List<Recipe> requestList;
     private DatabaseReference recipesRef;
-    private TextView tvPageTitle;
+    private TextView TvPageTitle;
+    private User currentUser;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_recipe_requests);
 
-        tvPageTitle = findViewById(R.id.tvPageTitle);
-        // אם תרצה לשנות כותרת: tvPageTitle.setText("Pending Approvals");
+        // שליפת המשתמש הנוכחי מה-SharedPreferences
+        currentUser = SharedPreferencesUtil.getUser(this);
+        if (currentUser == null) {
+            finish();
+            return;
+        }
 
-        rvRequests = findViewById(R.id.rvRecipeRequests);
-        rvRequests.setLayoutManager(new LinearLayoutManager(this));
+        // שימוש ב-IDs עם אותיות גדולות
+        TvPageTitle = findViewById(R.id.tvPageTitle);
+        RvRequests = findViewById(R.id.rvRecipeRequests);
+
+        RvRequests.setLayoutManager(new LinearLayoutManager(this));
 
         requestList = new ArrayList<>();
-        adapter = new RecipeAdapter(new RecipeAdapter.OnRecipeClickListener() {
+
+        // התיקון כאן: הוספנו את false בתור פרמטר שני
+        adapter = new RecipeAdapter(currentUser.getId(), false, new RecipeAdapter.OnRecipeClickListener() {
             @Override
             public void onRecipeClick(Recipe recipe) {
                 Intent intent = new Intent(RecipeRequestsActivity.this, RecipeReviewActivity.class);
@@ -54,7 +66,7 @@ public class RecipeRequestsActivity extends AppCompatActivity {
             public void onLongRecipeClick(Recipe recipe) { }
         });
 
-        rvRequests.setAdapter(adapter);
+        RvRequests.setAdapter(adapter);
         loadRequests();
     }
 
@@ -66,7 +78,6 @@ public class RecipeRequestsActivity extends AppCompatActivity {
                 requestList.clear();
                 for (DataSnapshot data : snapshot.getChildren()) {
                     Recipe recipe = data.getValue(Recipe.class);
-                    // תנאי הסינון החשוב:
                     // מציגים למנהל רק אם לא מאושר וגם אין הערות (כלומר חדש או תוקן)
                     if (recipe != null && !recipe.isApproved()) {
                         if (recipe.getAdminNotes() == null || recipe.getAdminNotes().isEmpty()) {

@@ -29,8 +29,8 @@ import java.util.List;
 
 public class MyRecipesActivity extends AppCompatActivity {
 
-    private RecyclerView rvMyRecipes;
-    private TextView tvEmptyState;
+    private RecyclerView RvMyRecipes;
+    private TextView TvEmptyState;
     private RecipeAdapter adapter;
     private List<Recipe> myRecipesList;
     private DatabaseReference recipesRef;
@@ -39,7 +39,6 @@ public class MyRecipesActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        // טוען את קובץ ה-XML
         setContentView(R.layout.activity_my_recipes);
 
         currentUser = SharedPreferencesUtil.getUser(this);
@@ -48,15 +47,14 @@ public class MyRecipesActivity extends AppCompatActivity {
             return;
         }
 
-        // --- התיקון: שימוש ב-id עם אות קטנה (rvMyRecipes) ---
-        rvMyRecipes = findViewById(R.id.RvMyRecipes);
-        tvEmptyState = findViewById(R.id.TvEmptyState);
+        RvMyRecipes = findViewById(R.id.RvMyRecipes);
+        TvEmptyState = findViewById(R.id.TvEmptyState);
 
-        rvMyRecipes.setLayoutManager(new LinearLayoutManager(this));
+        RvMyRecipes.setLayoutManager(new LinearLayoutManager(this));
 
         myRecipesList = new ArrayList<>();
 
-        adapter = new RecipeAdapter(new RecipeAdapter.OnRecipeClickListener() {
+        adapter = new RecipeAdapter(currentUser.getId(), true, new RecipeAdapter.OnRecipeClickListener() {
             @Override
             public void onRecipeClick(Recipe recipe) {
                 handleRecipeClick(recipe);
@@ -66,7 +64,7 @@ public class MyRecipesActivity extends AppCompatActivity {
             public void onLongRecipeClick(Recipe recipe) { }
         });
 
-        rvMyRecipes.setAdapter(adapter);
+        RvMyRecipes.setAdapter(adapter);
         loadMyRecipes();
     }
 
@@ -85,16 +83,14 @@ public class MyRecipesActivity extends AppCompatActivity {
                             }
                         }
 
-                        // הופך את הרשימה כדי לראות את החדשים למעלה
                         Collections.reverse(myRecipesList);
 
-                        // טיפול במצב שאין מתכונים
                         if (myRecipesList.isEmpty()) {
-                            tvEmptyState.setVisibility(View.VISIBLE);
-                            rvMyRecipes.setVisibility(View.GONE);
+                            TvEmptyState.setVisibility(View.VISIBLE);
+                            RvMyRecipes.setVisibility(View.GONE);
                         } else {
-                            tvEmptyState.setVisibility(View.GONE);
-                            rvMyRecipes.setVisibility(View.VISIBLE);
+                            TvEmptyState.setVisibility(View.GONE);
+                            RvMyRecipes.setVisibility(View.VISIBLE);
                         }
 
                         adapter.setRecipeList(myRecipesList);
@@ -109,24 +105,45 @@ public class MyRecipesActivity extends AppCompatActivity {
 
     private void handleRecipeClick(Recipe recipe) {
         if (recipe.isApproved()) {
-            Toast.makeText(this, "Published! Good job.", Toast.LENGTH_SHORT).show();
+            showRecipeOptionsDialog(recipe, "This recipe is live!\nNote: If you edit it, it will return to pending status and require admin approval again.");
+        } else if (recipe.getAdminNotes() != null && !recipe.getAdminNotes().isEmpty()) {
+            // מתכון שנדחה - מציגים את סיבת הדחייה ונותנים אפשרות לצפות או לתקן
+            new AlertDialog.Builder(this)
+                    .setTitle("Action Required")
+                    .setMessage("Admin rejected this recipe.\nReason: " + recipe.getAdminNotes() + "\n\nWhat would you like to do?")
+                    .setPositiveButton("Fix Now", (dialog, which) -> {
+                        Intent intent = new Intent(MyRecipesActivity.this, AddRecipeActivity.class);
+                        intent.putExtra("RECIPE_TO_EDIT", recipe);
+                        startActivity(intent);
+                    })
+                    .setNeutralButton("View Recipe", (dialog, which) -> {
+                        Intent intent = new Intent(MyRecipesActivity.this, RecipeReviewActivity.class);
+                        intent.putExtra("recipe", recipe);
+                        startActivity(intent);
+                    })
+                    .setNegativeButton("Later", null)
+                    .show();
         } else {
-            // בדיקה אם יש הערת מנהל (דחייה)
-            if (recipe.getAdminNotes() != null && !recipe.getAdminNotes().isEmpty()) {
-                new AlertDialog.Builder(this)
-                        .setTitle("Action Required")
-                        .setMessage("Admin rejected this recipe.\nReason: " + recipe.getAdminNotes() + "\n\nDo you want to fix it now?")
-                        .setPositiveButton("Fix Now", (dialog, which) -> {
-                            Intent intent = new Intent(MyRecipesActivity.this, AddRecipeActivity.class);
-                            // מעביר את המתכון לעריכה
-                            intent.putExtra("RECIPE_TO_EDIT", recipe);
-                            startActivity(intent);
-                        })
-                        .setNegativeButton("Later", null)
-                        .show();
-            } else {
-                Toast.makeText(this, "Pending approval...", Toast.LENGTH_SHORT).show();
-            }
+            showRecipeOptionsDialog(recipe, "This recipe is currently waiting for admin approval. You can still view or edit it.");
         }
+    }
+
+    // פונקציית עזר שחוסכת קוד כפול - מקפיצה את הדיאלוג של בחירה בין צפייה לעריכה
+    private void showRecipeOptionsDialog(Recipe recipe, String message) {
+        new AlertDialog.Builder(this)
+                .setTitle(recipe.getTitle())
+                .setMessage(message)
+                .setPositiveButton("View", (dialog, which) -> {
+                    Intent intent = new Intent(MyRecipesActivity.this, RecipeReviewActivity.class);
+                    intent.putExtra("recipe", recipe);
+                    startActivity(intent);
+                })
+                .setNegativeButton("Edit", (dialog, which) -> {
+                    Intent intent = new Intent(MyRecipesActivity.this, AddRecipeActivity.class);
+                    intent.putExtra("RECIPE_TO_EDIT", recipe);
+                    startActivity(intent);
+                })
+                .setNeutralButton("Cancel", null)
+                .show();
     }
 }
