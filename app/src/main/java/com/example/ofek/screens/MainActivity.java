@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.view.View;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -41,6 +42,7 @@ public class MainActivity extends AppCompatActivity {
 
     private EditText etSearch;
     private TextView btnUsers, btnRequests;
+    private TextView tvRequestsBadge; // התגית האדומה
     private FloatingActionButton fabAddRecipe;
     private BottomNavigationView bottomNavigationView;
 
@@ -63,6 +65,7 @@ public class MainActivity extends AppCompatActivity {
         etSearch = findViewById(R.id.EtSearch);
         btnUsers = findViewById(R.id.BtnUsers);
         btnRequests = findViewById(R.id.BtnRequests);
+        tvRequestsBadge = findViewById(R.id.TvRequestsBadge); // חיבור התגית האדומה
         fabAddRecipe = findViewById(R.id.FabAddRecipe);
         bottomNavigationView = findViewById(R.id.BottomNavigationView);
         IvMyRecipes = findViewById(R.id.IvMyRecipes);
@@ -71,7 +74,6 @@ public class MainActivity extends AppCompatActivity {
         recipeList = new ArrayList<>();
         filteredList = new ArrayList<>();
 
-        // התיקון כאן: הוספנו את ה-false בתור פרמטר שני
         adapter = new RecipeAdapter(currentUserId, false, new RecipeAdapter.OnRecipeClickListener() {
             @Override
             public void onRecipeClick(Recipe recipe) {
@@ -148,10 +150,16 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 recipeList.clear();
+                int pendingCount = 0; // מונה לבקשות הממתינות לאישור
+
                 for (DataSnapshot data : snapshot.getChildren()) {
                     Recipe recipe = data.getValue(Recipe.class);
-                    if (recipe != null && recipe.isApproved()) {
-                        recipeList.add(recipe);
+                    if (recipe != null) {
+                        if (recipe.isApproved()) {
+                            recipeList.add(recipe);
+                        } else {
+                            pendingCount++; // מגדיל את המונה אם המתכון לא מאושר
+                        }
                     }
                 }
                 Collections.reverse(recipeList);
@@ -159,6 +167,18 @@ public class MainActivity extends AppCompatActivity {
                 filteredList.clear();
                 filteredList.addAll(recipeList);
                 adapter.setRecipeList(filteredList);
+
+                // עדכון התגית האדומה על כפתור הבקשות
+                if (pendingCount > 0) {
+                    tvRequestsBadge.setVisibility(View.VISIBLE);
+                    if (pendingCount > 99) {
+                        tvRequestsBadge.setText("99+");
+                    } else {
+                        tvRequestsBadge.setText(String.valueOf(pendingCount));
+                    }
+                } else {
+                    tvRequestsBadge.setVisibility(View.GONE);
+                }
             }
 
             @Override

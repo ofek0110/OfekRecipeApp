@@ -5,7 +5,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/background_light">
+    android:background="#F6F7F7">
 
     <com.google.android.material.appbar.AppBarLayout
         android:layout_width="match_parent"
@@ -15,7 +15,7 @@
         <com.google.android.material.appbar.CollapsingToolbarLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            app:contentScrim="@color/primary"
+            app:contentScrim="#4CAEAA"
             app:expandedTitleMarginBottom="20dp"
             app:expandedTitleMarginStart="20dp"
             app:layout_scrollFlags="scroll|exitUntilCollapsed">
@@ -31,8 +31,7 @@
             <View
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:background="@drawable/bg_circle_white_transparent"
-                android:alpha="0.3"/>
+                android:background="#33000000" />
 
             <androidx.appcompat.widget.Toolbar
                 android:id="@+id/Toolbar"
@@ -56,15 +55,17 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:paddingHorizontal="16dp">
+            android:paddingHorizontal="24dp">
 
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="16dp"
-                app:cardCornerRadius="24dp"
-                app:cardElevation="4dp"
-                app:cardBackgroundColor="@color/white">
+                app:cardCornerRadius="16dp"
+                app:cardElevation="0dp"
+                app:cardBackgroundColor="#FFFFFF"
+                app:strokeColor="#E2E8F0"
+                app:strokeWidth="1dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -79,8 +80,8 @@
                         android:text="Recipe Title"
                         android:textSize="26sp"
                         android:textStyle="bold"
-                        android:textColor="@color/text_dark"
-                        android:layout_marginBottom="8dp"/>
+                        android:textColor="#0F172A"
+                        android:layout_marginBottom="12dp"/>
 
                     <LinearLayout
                         android:layout_width="match_parent"
@@ -93,10 +94,10 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="🕒 45 min"
-                            android:textColor="@color/text_grey"
+                            android:textColor="#0F172A"
                             android:textSize="14sp"
                             android:background="@drawable/bg_tag_rounded"
-                            android:backgroundTint="#F3E8FF"
+                            android:backgroundTint="#E0F2F1"
                             android:paddingHorizontal="12dp"
                             android:paddingVertical="6dp"
                             android:layout_marginEnd="8dp"/>
@@ -106,10 +107,10 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="🔥 Medium"
-                            android:textColor="@color/text_grey"
+                            android:textColor="#0F172A"
                             android:textSize="14sp"
                             android:background="@drawable/bg_tag_rounded"
-                            android:backgroundTint="#FFF7ED"
+                            android:backgroundTint="#FFEDD5"
                             android:paddingHorizontal="12dp"
                             android:paddingVertical="6dp"/>
                     </LinearLayout>
@@ -120,7 +121,7 @@
                         android:layout_height="wrap_content"
                         android:text="A short description of the recipe goes here..."
                         android:lineSpacingExtra="4dp"
-                        android:textColor="@color/text_grey"
+                        android:textColor="#94A3B8"
                         android:textSize="16sp"/>
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
@@ -130,13 +131,16 @@
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="16dp"
                 app:cardCornerRadius="16dp"
-                app:cardElevation="2dp">
+                app:cardElevation="0dp"
+                app:cardBackgroundColor="#FFFFFF"
+                app:strokeColor="#E2E8F0"
+                app:strokeWidth="1dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
-                    android:padding="20dp">
+                    android:padding="24dp">
 
                     <TextView
                         android:layout_width="wrap_content"
@@ -144,14 +148,14 @@
                         android:text="Ingredients"
                         android:textSize="18sp"
                         android:textStyle="bold"
-                        android:textColor="@color/primary"
+                        android:textColor="#4CAEAA"
                         android:layout_marginBottom="12dp"/>
 
                     <View
                         android:layout_width="40dp"
                         android:layout_height="3dp"
-                        android:background="@color/primary"
-                        android:alpha="0.2"
+                        android:background="#4CAEAA"
+                        android:alpha="0.3"
                         android:layout_marginBottom="16dp"/>
 
                     <TextView
@@ -160,7 +164,7 @@
                         android:layout_height="wrap_content"
                         android:text="- Item 1\n- Item 2"
                         android:lineSpacingExtra="8dp"
-                        android:textColor="@color/text_dark"
+                        android:textColor="#0F172A"
                         android:textSize="16sp"/>
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
@@ -170,13 +174,16 @@
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="24dp"
                 app:cardCornerRadius="16dp"
-                app:cardElevation="2dp">
+                app:cardElevation="0dp"
+                app:cardBackgroundColor="#FFFFFF"
+                app:strokeColor="#E2E8F0"
+                app:strokeWidth="1dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
-                    android:padding="20dp">
+                    android:padding="24dp">
 
                     <TextView
                         android:layout_width="wrap_content"
@@ -184,14 +191,14 @@
                         android:text="Instructions"
                         android:textSize="18sp"
                         android:textStyle="bold"
-                        android:textColor="@color/primary"
+                        android:textColor="#4CAEAA"
                         android:layout_marginBottom="12dp"/>
 
                     <View
                         android:layout_width="40dp"
                         android:layout_height="3dp"
-                        android:background="@color/primary"
-                        android:alpha="0.2"
+                        android:background="#4CAEAA"
+                        android:alpha="0.3"
                         android:layout_marginBottom="16dp"/>
 
                     <TextView
@@ -200,7 +207,7 @@
                         android:layout_height="wrap_content"
                         android:text="1. Do this.\n2. Then that."
                         android:lineSpacingExtra="8dp"
-                        android:textColor="@color/text_dark"
+                        android:textColor="#0F172A"
                         android:textSize="16sp"/>
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
@@ -236,7 +243,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:hint="Reason for rejection (Optional)"
-                        app:boxBackgroundColor="@color/white"
+                        app:boxBackgroundColor="#FFFFFF"
                         android:layout_marginBottom="16dp">
 
                         <com.google.android.material.textfield.TextInputEditText
