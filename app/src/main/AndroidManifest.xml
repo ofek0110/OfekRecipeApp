@@ -12,9 +12,17 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.OfekRecipeApp">
         <activity
-            android:name=".screens.MyRecipesActivity"
+            android:name=".screens.ActivitySavedRecipes"
             android:exported="false" />
-        <!-- מסכים חדשים - חובה לרשום אותם כאן -->
+        <activity
+            android:name=".ActivitySavedRecipes"
+            android:exported="false" />
+        <activity
+            android:name=".activity_saved_recipes"
+            android:exported="false" />
+        <activity
+            android:name=".screens.MyRecipesActivity"
+            android:exported="false" /> <!-- מסכים חדשים - חובה לרשום אותם כאן -->
         <activity
             android:name=".screens.AddRecipeActivity"
             android:exported="false"
