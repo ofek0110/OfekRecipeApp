@@ -81,11 +81,13 @@
                 android:layout_marginHorizontal="24dp"
                 android:layout_marginBottom="32dp"
                 android:orientation="horizontal"
+                android:clipChildren="false"
+                android:clipToPadding="false"
                 android:weightSum="2">
 
-                <RelativeLayout
+                <FrameLayout
                     android:layout_width="0dp"
-                    android:layout_height="48dp"
+                    android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:layout_marginEnd="8dp">
 
@@ -93,7 +95,7 @@
                         android:id="@+id/BtnUsers"
                         android:layout_width="match_parent"
                         android:layout_height="40dp"
-                        android:layout_alignParentBottom="true"
+                        android:layout_marginTop="12dp"
                         android:background="@drawable/bg_tag_rounded"
                         android:backgroundTint="#4CAEAA"
                         android:text="Users"
@@ -102,19 +104,21 @@
                         android:textStyle="bold"
                         android:clickable="true"
                         android:focusable="true" />
-                </RelativeLayout>
+                </FrameLayout>
 
-                <RelativeLayout
+                <FrameLayout
                     android:layout_width="0dp"
-                    android:layout_height="48dp"
+                    android:layout_height="wrap_content"
                     android:layout_weight="1"
+                    android:clipChildren="false"
+                    android:clipToPadding="false"
                     android:layout_marginStart="8dp">
 
                     <TextView
                         android:id="@+id/BtnRequests"
                         android:layout_width="match_parent"
                         android:layout_height="40dp"
-                        android:layout_alignParentBottom="true"
+                        android:layout_marginTop="12dp"
                         android:background="@drawable/bg_tag_rounded"
                         android:backgroundTint="#4CAEAA"
                         android:text="Requests"
@@ -130,9 +134,7 @@
                         android:layout_height="wrap_content"
                         android:minWidth="22dp"
                         android:minHeight="22dp"
-                        android:layout_alignParentTop="true"
-                        android:layout_alignParentEnd="true"
-                        android:layout_marginEnd="2dp"
+                        android:layout_gravity="top|end"
                         android:background="@drawable/bg_badge_red"
                         android:text="1"
                         android:textColor="#FFFFFF"
@@ -142,7 +144,7 @@
                         android:paddingHorizontal="6dp"
                         android:visibility="gone"
                         android:elevation="6dp" />
-                </RelativeLayout>
+                </FrameLayout>
             </LinearLayout>
 
             <LinearLayout

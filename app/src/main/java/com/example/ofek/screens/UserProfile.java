@@ -93,9 +93,7 @@ public class UserProfile extends AppCompatActivity implements View.OnClickListen
         btnUpdateProfile.setOnClickListener(this);
         btnSignOut.setOnClickListener(this);
 
-        if (!isCurrentUser) {
-            btnSignOut.setVisibility(View.GONE);
-        }
+        // מחקנו את התנאי שהסתיר את הכפתור אם זה לא המשתמש הנוכחי, כך שעכשיו הוא יופיע תמיד.
 
         // הגדרת ניווט תחתון
         bottomNavigationView.setSelectedItemId(R.id.nav_profile);

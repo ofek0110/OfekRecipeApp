@@ -7,6 +7,7 @@ import android.text.TextWatcher;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -41,8 +42,9 @@ public class MainActivity extends AppCompatActivity {
     private DatabaseReference recipesRef;
 
     private EditText etSearch;
+    private LinearLayout headerButtons;
     private TextView btnUsers, btnRequests;
-    private TextView tvRequestsBadge; // התגית האדומה
+    private TextView tvRequestsBadge;
     private FloatingActionButton fabAddRecipe;
     private BottomNavigationView bottomNavigationView;
 
@@ -63,12 +65,17 @@ public class MainActivity extends AppCompatActivity {
 
         rvRecipes = findViewById(R.id.RvRecipes);
         etSearch = findViewById(R.id.EtSearch);
+        headerButtons = findViewById(R.id.HeaderButtons);
         btnUsers = findViewById(R.id.BtnUsers);
         btnRequests = findViewById(R.id.BtnRequests);
-        tvRequestsBadge = findViewById(R.id.TvRequestsBadge); // חיבור התגית האדומה
+        tvRequestsBadge = findViewById(R.id.TvRequestsBadge);
         fabAddRecipe = findViewById(R.id.FabAddRecipe);
         bottomNavigationView = findViewById(R.id.BottomNavigationView);
         IvMyRecipes = findViewById(R.id.IvMyRecipes);
+
+        if (!currentUser.isAdmin()) {
+            headerButtons.setVisibility(View.GONE);
+        }
 
         rvRecipes.setLayoutManager(new LinearLayoutManager(this));
         recipeList = new ArrayList<>();
@@ -118,6 +125,7 @@ public class MainActivity extends AppCompatActivity {
             public void afterTextChanged(Editable s) {}
         });
 
+        bottomNavigationView.setSelectedItemId(R.id.nav_home);
         bottomNavigationView.setOnItemSelectedListener(item -> {
             int itemId = item.getItemId();
             if (itemId == R.id.nav_home) {
@@ -125,7 +133,8 @@ public class MainActivity extends AppCompatActivity {
             } else if (itemId == R.id.nav_profile) {
                 startActivity(new Intent(MainActivity.this, UserProfile.class));
                 return true;
-            } else if (itemId == R.id.nav_explore) {
+            } else if (itemId == R.id.nav_saved) {
+                startActivity(new Intent(MainActivity.this, MyRecipesActivity.class));
                 return true;
             }
             return false;
@@ -150,7 +159,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 recipeList.clear();
-                int pendingCount = 0; // מונה לבקשות הממתינות לאישור
+                int pendingCount = 0;
 
                 for (DataSnapshot data : snapshot.getChildren()) {
                     Recipe recipe = data.getValue(Recipe.class);
@@ -158,7 +167,9 @@ public class MainActivity extends AppCompatActivity {
                         if (recipe.isApproved()) {
                             recipeList.add(recipe);
                         } else {
-                            pendingCount++; // מגדיל את המונה אם המתכון לא מאושר
+                            if (recipe.getAdminNotes() == null || recipe.getAdminNotes().isEmpty()) {
+                                pendingCount++;
+                            }
                         }
                     }
                 }
@@ -168,7 +179,6 @@ public class MainActivity extends AppCompatActivity {
                 filteredList.addAll(recipeList);
                 adapter.setRecipeList(filteredList);
 
-                // עדכון התגית האדומה על כפתור הבקשות
                 if (pendingCount > 0) {
                     tvRequestsBadge.setVisibility(View.VISIBLE);
                     if (pendingCount > 99) {
