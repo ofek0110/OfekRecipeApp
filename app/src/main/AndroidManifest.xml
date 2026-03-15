@@ -11,22 +11,17 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.OfekRecipeApp">
+
         <activity
-            android:name=".screens.ActivitySavedRecipes"
+            android:name=".screens.SavedRecipesActivity"
             android:exported="false" />
-        <activity
-            android:name=".ActivitySavedRecipes"
-            android:exported="false" />
-        <activity
-            android:name=".activity_saved_recipes"
-            android:exported="false" />
+
         <activity
             android:name=".screens.MyRecipesActivity"
-            android:exported="false" /> <!-- מסכים חדשים - חובה לרשום אותם כאן -->
-        <activity
-            android:name=".screens.AddRecipeActivity"
-            android:exported="false"
-            android:label="Add New Recipe" />
+            android:exported="false" /> <activity
+        android:name=".screens.AddRecipeActivity"
+        android:exported="false"
+        android:label="Add New Recipe" />
         <activity
             android:name=".screens.RecipeRequestsActivity"
             android:exported="false"
@@ -40,9 +35,6 @@
             android:exported="false" />
         <activity
             android:name=".screens.UsersList"
-            android:exported="false" />
-        <activity
-            android:name=".screens.EditProfile"
             android:exported="false" />
         <activity
             android:name=".screens.MainActivity"

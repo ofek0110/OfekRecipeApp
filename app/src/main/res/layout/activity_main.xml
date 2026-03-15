@@ -168,9 +168,10 @@
                         android:textColor="#0F172A" />
 
                     <TextView
+                        android:id="@+id/TvSeeAllCategories"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="See all"
+                        android:text="Clear Filters"
                         android:textColor="#4CAEAA"
                         android:textSize="14sp"
                         android:textStyle="bold"
@@ -191,12 +192,14 @@
                         android:orientation="horizontal">
 
                         <LinearLayout
+                            android:id="@+id/CatBreakfast"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:orientation="vertical"
                             android:gravity="center"
                             android:layout_marginEnd="16dp">
                             <com.google.android.material.card.MaterialCardView
+                                android:id="@+id/CardBreakfast"
                                 android:layout_width="64dp"
                                 android:layout_height="64dp"
                                 app:cardCornerRadius="16dp"
@@ -220,12 +223,14 @@
                         </LinearLayout>
 
                         <LinearLayout
+                            android:id="@+id/CatLunch"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:orientation="vertical"
                             android:gravity="center"
                             android:layout_marginEnd="16dp">
                             <com.google.android.material.card.MaterialCardView
+                                android:id="@+id/CardLunch"
                                 android:layout_width="64dp"
                                 android:layout_height="64dp"
                                 app:cardCornerRadius="16dp"
@@ -249,12 +254,14 @@
                         </LinearLayout>
 
                         <LinearLayout
+                            android:id="@+id/CatVegan"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:orientation="vertical"
                             android:gravity="center"
                             android:layout_marginEnd="16dp">
                             <com.google.android.material.card.MaterialCardView
+                                android:id="@+id/CardVegan"
                                 android:layout_width="64dp"
                                 android:layout_height="64dp"
                                 app:cardCornerRadius="16dp"
@@ -278,12 +285,14 @@
                         </LinearLayout>
 
                         <LinearLayout
+                            android:id="@+id/CatDesserts"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:orientation="vertical"
                             android:gravity="center"
                             android:layout_marginEnd="16dp">
                             <com.google.android.material.card.MaterialCardView
+                                android:id="@+id/CardDesserts"
                                 android:layout_width="64dp"
                                 android:layout_height="64dp"
                                 app:cardCornerRadius="16dp"
@@ -307,12 +316,14 @@
                         </LinearLayout>
 
                         <LinearLayout
+                            android:id="@+id/CatDinner"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:orientation="vertical"
                             android:gravity="center"
                             android:layout_marginEnd="16dp">
                             <com.google.android.material.card.MaterialCardView
+                                android:id="@+id/CardDinner"
                                 android:layout_width="64dp"
                                 android:layout_height="64dp"
                                 app:cardCornerRadius="16dp"

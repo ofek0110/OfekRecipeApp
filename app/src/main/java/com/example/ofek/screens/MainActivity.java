@@ -1,6 +1,7 @@
 package com.example.ofek.screens;
 
 import android.content.Intent;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -22,6 +23,7 @@ import com.example.ofek.models.Recipe;
 import com.example.ofek.models.User;
 import com.example.ofek.utils.SharedPreferencesUtil;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -49,6 +51,12 @@ public class MainActivity extends AppCompatActivity {
     private BottomNavigationView bottomNavigationView;
 
     private ImageView IvMyRecipes;
+
+    // משתנה לשמירת הקטגוריה המסוננת
+    private String currentCategoryFilter = "";
+
+    // משתנים לשמירת הכרטיסיות כדי שנוכל לשנות להן את הצבע
+    private MaterialCardView cardBreakfast, cardLunch, cardVegan, cardDesserts, cardDinner;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -95,6 +103,9 @@ public class MainActivity extends AppCompatActivity {
         });
 
         rvRecipes.setAdapter(adapter);
+
+        // הגדרת קטגוריות והחיבור לשינוי צבע
+        setupCategoryFilters();
 
         IvMyRecipes.setOnClickListener(v -> {
             startActivity(new Intent(MainActivity.this, MyRecipesActivity.class));
@@ -143,10 +154,75 @@ public class MainActivity extends AppCompatActivity {
         loadRecipesFromFirebase();
     }
 
+    private void setupCategoryFilters() {
+        LinearLayout catBreakfast = findViewById(R.id.CatBreakfast);
+        LinearLayout catLunch = findViewById(R.id.CatLunch);
+        LinearLayout catVegan = findViewById(R.id.CatVegan);
+        LinearLayout catDesserts = findViewById(R.id.CatDesserts);
+        LinearLayout catDinner = findViewById(R.id.CatDinner);
+        TextView tvSeeAll = findViewById(R.id.TvSeeAllCategories);
+
+        // מציאת הכרטיסיות
+        cardBreakfast = findViewById(R.id.CardBreakfast);
+        cardLunch = findViewById(R.id.CardLunch);
+        cardVegan = findViewById(R.id.CardVegan);
+        cardDesserts = findViewById(R.id.CardDesserts);
+        cardDinner = findViewById(R.id.CardDinner);
+
+        catBreakfast.setOnClickListener(v -> filterByCategory("Breakfast"));
+        catLunch.setOnClickListener(v -> filterByCategory("Lunch"));
+        catVegan.setOnClickListener(v -> filterByCategory("Vegan"));
+        catDesserts.setOnClickListener(v -> filterByCategory("Desserts"));
+        catDinner.setOnClickListener(v -> filterByCategory("Dinner"));
+        tvSeeAll.setOnClickListener(v -> filterByCategory("")); // איפוס
+    }
+
+    private void filterByCategory(String category) {
+        currentCategoryFilter = category;
+        updateCategoryColors(category); // עדכון הצבע של הקטגוריות
+        filterRecipes(etSearch.getText().toString());
+    }
+
+    // הפונקציה החדשה שאחראית על שינוי הצבעים
+    private void updateCategoryColors(String selectedCategory) {
+        // קודם כל - מאפסים את כל הקטגוריות לצבע הבהיר המקורי שלהן
+        cardBreakfast.setCardBackgroundColor(Color.parseColor("#E0F2F1"));
+        cardLunch.setCardBackgroundColor(Color.parseColor("#FFEDD5"));
+        cardVegan.setCardBackgroundColor(Color.parseColor("#DCFCE7"));
+        cardDesserts.setCardBackgroundColor(Color.parseColor("#FCE7F3"));
+        cardDinner.setCardBackgroundColor(Color.parseColor("#FEF9C3"));
+
+        // אם בחרנו קטגוריה מסוימת, נשנה לה את הצבע לכהה יותר
+        switch (selectedCategory) {
+            case "Breakfast":
+                cardBreakfast.setCardBackgroundColor(Color.parseColor("#80CBC4")); // Teal כהה יותר
+                break;
+            case "Lunch":
+                cardLunch.setCardBackgroundColor(Color.parseColor("#FDBA74")); // Orange כהה יותר
+                break;
+            case "Vegan":
+                cardVegan.setCardBackgroundColor(Color.parseColor("#86EFAC")); // Green כהה יותר
+                break;
+            case "Desserts":
+                cardDesserts.setCardBackgroundColor(Color.parseColor("#F9A8D4")); // Pink כהה יותר
+                break;
+            case "Dinner":
+                cardDinner.setCardBackgroundColor(Color.parseColor("#FDE047")); // Yellow כהה יותר
+                break;
+        }
+    }
+
     private void filterRecipes(String text) {
         filteredList.clear();
         for (Recipe recipe : recipeList) {
-            if (recipe.getTitle().toLowerCase().contains(text.toLowerCase())) {
+            // סינון לפי טקסט
+            boolean matchesSearch = recipe.getTitle().toLowerCase().contains(text.toLowerCase());
+
+            // סינון לפי קטגוריה
+            boolean matchesCategory = currentCategoryFilter.isEmpty() ||
+                    (recipe.getCategory() != null && recipe.getCategory().equalsIgnoreCase(currentCategoryFilter));
+
+            if (matchesSearch && matchesCategory) {
                 filteredList.add(recipe);
             }
         }
@@ -175,9 +251,8 @@ public class MainActivity extends AppCompatActivity {
                 }
                 Collections.reverse(recipeList);
 
-                filteredList.clear();
-                filteredList.addAll(recipeList);
-                adapter.setRecipeList(filteredList);
+                // הפעלה של הסינון הנוכחי (למקרה שהרשימה מתעדכנת בזמן שיש סינון פעיל)
+                filterRecipes(etSearch.getText().toString());
 
                 if (pendingCount > 0) {
                     tvRequestsBadge.setVisibility(View.VISIBLE);

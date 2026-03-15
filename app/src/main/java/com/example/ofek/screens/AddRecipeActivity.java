@@ -30,10 +30,10 @@ import com.google.firebase.database.FirebaseDatabase;
 public class AddRecipeActivity extends AppCompatActivity {
 
     private TextInputEditText EtTitle, EtDescription, EtIngredients, EtInstructions, EtPrepTime;
-    private AutoCompleteTextView ActvDifficulty;
+    private AutoCompleteTextView ActvDifficulty, ActvCategory; // הוספנו את רכיב הקטגוריה
 
     private Button BtnSubmit;
-    private MaterialButton BtnViewRejectionReason; // הכפתור החדש
+    private MaterialButton BtnViewRejectionReason;
     private ImageView IvRecipePreview;
     private TextView TvAddImageHint;
     private MaterialCardView CardSelectImage;
@@ -67,7 +67,7 @@ public class AddRecipeActivity extends AppCompatActivity {
         recipesRef = FirebaseDatabase.getInstance().getReference("recipes");
 
         initializeViews();
-        setupDifficultyDropdown();
+        setupDropdowns(); // הפונקציה המעודכנת שמגדירה גם רמת קושי וגם קטגוריה
         setupClickListeners();
 
         // בדיקה אם נכנסנו למצב עריכה
@@ -84,24 +84,39 @@ public class AddRecipeActivity extends AppCompatActivity {
         EtInstructions = findViewById(R.id.EtRecipeInstructions);
         EtPrepTime = findViewById(R.id.EtPrepTime);
         ActvDifficulty = findViewById(R.id.ActvDifficulty);
+
+        // חיבור הקטגוריה למסך (יש לוודא שהוספת את זה בקובץ ה-XML)
+        ActvCategory = findViewById(R.id.ActvCategory);
+
         BtnSubmit = findViewById(R.id.BtnSubmitRecipe);
         IvRecipePreview = findViewById(R.id.IvRecipePreview);
         TvAddImageHint = findViewById(R.id.TvAddImageHint);
         CardSelectImage = findViewById(R.id.CardSelectImage);
-
-        // חיבור הכפתור החדש
         BtnViewRejectionReason = findViewById(R.id.BtnViewRejectionReason);
     }
 
-    private void setupDifficultyDropdown() {
+    private void setupDropdowns() {
+        // הגדרת רמת קושי
         String[] difficulties = new String[] {"Easy", "Medium", "Hard"};
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(
+        ArrayAdapter<String> difficultyAdapter = new ArrayAdapter<>(
                 this,
                 android.R.layout.simple_dropdown_item_1line,
                 difficulties
         );
-        ActvDifficulty.setAdapter(adapter);
+        ActvDifficulty.setAdapter(difficultyAdapter);
         ActvDifficulty.setText(difficulties[1], false);
+
+        // הגדרת קטגוריות
+        if (ActvCategory != null) {
+            String[] categories = new String[] {"Breakfast", "Lunch", "Vegan", "Desserts", "Dinner", "General"};
+            ArrayAdapter<String> categoryAdapter = new ArrayAdapter<>(
+                    this,
+                    android.R.layout.simple_dropdown_item_1line,
+                    categories
+            );
+            ActvCategory.setAdapter(categoryAdapter);
+            ActvCategory.setText(categories[5], false); // ברירת מחדל: General
+        }
     }
 
     private void setupClickListeners() {
@@ -116,9 +131,14 @@ public class AddRecipeActivity extends AppCompatActivity {
         EtInstructions.setText(recipeToEdit.getInstructions());
         EtPrepTime.setText(recipeToEdit.getPreparationTime());
         ActvDifficulty.setText(recipeToEdit.getDifficulty(), false);
+
+        // עדכון הקטגוריה במסך העריכה
+        if (ActvCategory != null && recipeToEdit.getCategory() != null) {
+            ActvCategory.setText(recipeToEdit.getCategory(), false);
+        }
+
         BtnSubmit.setText("Fix & Resubmit");
 
-        // אם יש הערת מנהל - מציגים את הכפתור שמקפיץ את הדיאלוג
         if (recipeToEdit.getAdminNotes() != null && !recipeToEdit.getAdminNotes().isEmpty()) {
             BtnViewRejectionReason.setVisibility(View.VISIBLE);
             BtnViewRejectionReason.setOnClickListener(v -> {
@@ -143,6 +163,12 @@ public class AddRecipeActivity extends AppCompatActivity {
         String instructions = EtInstructions.getText().toString().trim();
         String prepTime = EtPrepTime.getText().toString().trim();
         String difficulty = ActvDifficulty.getText().toString().trim();
+
+        // שליפת הקטגוריה שנבחרה במקום לקבע אותה
+        String category = "General";
+        if (ActvCategory != null) {
+            category = ActvCategory.getText().toString().trim();
+        }
 
         if (title.isEmpty() || description.isEmpty() || ingredients.isEmpty() || instructions.isEmpty()) {
             Toast.makeText(this, "Please fill all fields", Toast.LENGTH_SHORT).show();
@@ -170,13 +196,11 @@ public class AddRecipeActivity extends AppCompatActivity {
                 ingredients,
                 instructions,
                 currentUser.getId(),
-                "General",
+                category, // הקטגוריה שנבחרה נכנסת לכאן
                 prepTime,
                 difficulty
         );
         newRecipe.setImageUrl(imageUrl);
-
-        // איפוס הסטטוסים לבדיקה מחדש אצל המנהל
         newRecipe.setApproved(false);
         newRecipe.setAdminNotes("");
 
