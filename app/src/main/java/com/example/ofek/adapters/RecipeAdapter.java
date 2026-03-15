@@ -27,19 +27,19 @@ public class RecipeAdapter extends RecyclerView.Adapter<RecipeAdapter.RecipeView
     private final OnRecipeClickListener listener;
     private final String currentUserId;
     private final DatabaseReference favoritesRef;
-    private final boolean showStatus; // המתג החדש שלנו!
+    private final boolean showStatus;
 
     public interface OnRecipeClickListener {
         void onRecipeClick(Recipe recipe);
         void onLongRecipeClick(Recipe recipe);
     }
 
-    // הוספנו את showStatus לבנאי
     public RecipeAdapter(String currentUserId, boolean showStatus, OnRecipeClickListener listener) {
         this.currentUserId = currentUserId;
         this.showStatus = showStatus;
         this.listener = listener;
-        this.favoritesRef = FirebaseDatabase.getInstance().getReference("Favorites").child(currentUserId);
+        // התיקון כאן: שינינו מ-"Favorites" ל-"favorites" עם f קטנה
+        this.favoritesRef = FirebaseDatabase.getInstance().getReference("favorites").child(currentUserId);
     }
 
     public void setRecipeList(List<Recipe> recipeList) {
@@ -62,21 +62,19 @@ public class RecipeAdapter extends RecyclerView.Adapter<RecipeAdapter.RecipeView
         holder.TvDifficulty.setText(recipe.getDifficulty());
         holder.TvCategoryTag.setText(recipe.getCategory());
 
-        // בודקים אם בכלל צריך להציג את הסטטוס במסך הנוכחי
         if (showStatus) {
             holder.TvStatus.setVisibility(View.VISIBLE);
             if (recipe.isApproved()) {
                 holder.TvStatus.setText("Approved");
-                holder.TvStatus.setTextColor(Color.parseColor("#16A34A")); // ירוק
+                holder.TvStatus.setTextColor(Color.parseColor("#16A34A"));
             } else if (recipe.getAdminNotes() != null && !recipe.getAdminNotes().isEmpty()) {
                 holder.TvStatus.setText("Needs Fixing");
-                holder.TvStatus.setTextColor(Color.parseColor("#DC2626")); // אדום
+                holder.TvStatus.setTextColor(Color.parseColor("#DC2626"));
             } else {
                 holder.TvStatus.setText("Pending");
-                holder.TvStatus.setTextColor(Color.parseColor("#D97706")); // כתום
+                holder.TvStatus.setTextColor(Color.parseColor("#D97706"));
             }
         } else {
-            // מסתירים את התגית לחלוטין (למשל במסך הראשי)
             holder.TvStatus.setVisibility(View.GONE);
         }
 

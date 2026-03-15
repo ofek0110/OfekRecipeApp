@@ -6,6 +6,7 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.ofek.R;
@@ -43,6 +44,7 @@ public class RecipeReviewActivity extends AppCompatActivity {
         }
 
         recipesRef = FirebaseDatabase.getInstance().getReference("recipes");
+
         initializeViews();
         displayRecipeData();
         setupClickListeners();
@@ -65,7 +67,7 @@ public class RecipeReviewActivity extends AppCompatActivity {
         AdminPanel = findViewById(R.id.AdminPanel);
 
         if (AdminPanel != null) {
-            // הסרתי את הבדיקה אם המשתמש הוא מנהל - הפאנל יוצג תמיד כדי שתוכל לבדוק
+            // הפאנל יוצג תמיד כדי שהמנהל יוכל לבדוק
             AdminPanel.setVisibility(View.VISIBLE);
         }
     }
@@ -100,8 +102,8 @@ public class RecipeReviewActivity extends AppCompatActivity {
         BtnApprove.setOnClickListener(v -> approveRecipe());
         BtnReject.setOnClickListener(v -> handleRejectClick());
 
-        // גם כפתור ה-Remove מפעיל את פונקציית הדחייה כדי להחזיר את המתכון למשתמש
-        BtnRemove.setOnClickListener(v -> handleRejectClick());
+        // התיקון כאן: מפעיל חלונית ששואלת האם למחוק את המתכון לצמיתות
+        BtnRemove.setOnClickListener(v -> showDeleteConfirmationDialog());
     }
 
     private void approveRecipe() {
@@ -145,5 +147,29 @@ public class RecipeReviewActivity extends AppCompatActivity {
                 .addOnFailureListener(e ->
                         Toast.makeText(this, "Error returning recipe", Toast.LENGTH_SHORT).show()
                 );
+    }
+
+    // פונקציה חדשה: מציגה חלונית אישור לפני המחיקה
+    private void showDeleteConfirmationDialog() {
+        new AlertDialog.Builder(this)
+                .setTitle("Delete Recipe")
+                .setMessage("Are you sure you want to permanently delete this recipe?")
+                .setPositiveButton("Delete", (dialog, which) -> deleteRecipeFromFirebase())
+                .setNegativeButton("Cancel", null)
+                .show();
+    }
+
+    // פונקציה חדשה: מוחקת את המתכון מ-Firebase
+    private void deleteRecipeFromFirebase() {
+        if (currentRecipe == null) return;
+
+        recipesRef.child(currentRecipe.getId()).removeValue()
+                .addOnSuccessListener(aVoid -> {
+                    Toast.makeText(this, "Recipe deleted permanently.", Toast.LENGTH_SHORT).show();
+                    finish(); // סוגר את המסך וחוזר למסך הקודם
+                })
+                .addOnFailureListener(e -> {
+                    Toast.makeText(this, "Error deleting recipe: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                });
     }
 }

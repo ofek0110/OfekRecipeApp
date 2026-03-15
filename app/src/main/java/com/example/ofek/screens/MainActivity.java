@@ -107,6 +107,7 @@ public class MainActivity extends AppCompatActivity {
         // הגדרת קטגוריות והחיבור לשינוי צבע
         setupCategoryFilters();
 
+        // כפתור "המתכונים שלי" שמוביל למתכונים שהמשתמש יצר
         IvMyRecipes.setOnClickListener(v -> {
             startActivity(new Intent(MainActivity.this, MyRecipesActivity.class));
         });
@@ -136,6 +137,7 @@ public class MainActivity extends AppCompatActivity {
             public void afterTextChanged(Editable s) {}
         });
 
+        // הגדרת סרגל הניווט התחתון - תוקן כדי להוביל ל-SavedRecipesActivity
         bottomNavigationView.setSelectedItemId(R.id.nav_home);
         bottomNavigationView.setOnItemSelectedListener(item -> {
             int itemId = item.getItemId();
@@ -145,7 +147,8 @@ public class MainActivity extends AppCompatActivity {
                 startActivity(new Intent(MainActivity.this, UserProfile.class));
                 return true;
             } else if (itemId == R.id.nav_saved) {
-                startActivity(new Intent(MainActivity.this, MyRecipesActivity.class));
+                // התיקון כאן: מנווט עכשיו למסך השמירות החדש שיצרת
+                startActivity(new Intent(MainActivity.this, SavedRecipesActivity.class));
                 return true;
             }
             return false;
@@ -183,7 +186,7 @@ public class MainActivity extends AppCompatActivity {
         filterRecipes(etSearch.getText().toString());
     }
 
-    // הפונקציה החדשה שאחראית על שינוי הצבעים
+    // הפונקציה שאחראית על שינוי הצבעים בלחיצה
     private void updateCategoryColors(String selectedCategory) {
         // קודם כל - מאפסים את כל הקטגוריות לצבע הבהיר המקורי שלהן
         cardBreakfast.setCardBackgroundColor(Color.parseColor("#E0F2F1"));
