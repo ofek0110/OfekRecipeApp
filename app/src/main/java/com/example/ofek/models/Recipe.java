@@ -12,9 +12,11 @@ public class Recipe implements Serializable {
     private String userId;
     private String category;
     private String preparationTime;
-    private String difficulty; // שדה חדש לרמת קושי
+    private String difficulty;
     private boolean isApproved;
     private String adminNotes;
+    private String foodTokUrl;
+    private String mediaType; // "video" or "image"
 
     // בנאי ריק (חובה עבור Firebase)
     public Recipe() {
@@ -30,104 +32,52 @@ public class Recipe implements Serializable {
         this.category = category;
         this.preparationTime = preparationTime;
         this.difficulty = difficulty;
-        this.isApproved = false; // ברירת מחדל: לא מאושר עד שמנהל יאשר
+        this.isApproved = false;
+        this.foodTokUrl = "";
+        this.mediaType = "";
     }
 
     // --- Getters and Setters ---
 
-    public String getId() {
-        return id;
-    }
+    public String getId() { return id; }
+    public void setId(String id) { this.id = id; }
 
-    public void setId(String id) {
-        this.id = id;
-    }
+    public String getTitle() { return title; }
+    public void setTitle(String title) { this.title = title; }
 
-    public String getTitle() {
-        return title;
-    }
+    public String getDescription() { return description; }
+    public void setDescription(String description) { this.description = description; }
 
-    public void setTitle(String title) {
-        this.title = title;
-    }
+    public String getIngredients() { return ingredients; }
+    public void setIngredients(String ingredients) { this.ingredients = ingredients; }
 
-    public String getDescription() {
-        return description;
-    }
+    public String getInstructions() { return instructions; }
+    public void setInstructions(String instructions) { this.instructions = instructions; }
 
-    public void setDescription(String description) {
-        this.description = description;
-    }
+    public String getImageUrl() { return imageUrl; }
+    public void setImageUrl(String imageUrl) { this.imageUrl = imageUrl; }
 
-    public String getIngredients() {
-        return ingredients;
-    }
+    public String getUserId() { return userId; }
+    public void setUserId(String userId) { this.userId = userId; }
 
-    public void setIngredients(String ingredients) {
-        this.ingredients = ingredients;
-    }
+    public String getCategory() { return category; }
+    public void setCategory(String category) { this.category = category; }
 
-    public String getInstructions() {
-        return instructions;
-    }
+    public String getPreparationTime() { return preparationTime; }
+    public void setPreparationTime(String preparationTime) { this.preparationTime = preparationTime; }
 
-    public void setInstructions(String instructions) {
-        this.instructions = instructions;
-    }
+    public String getDifficulty() { return difficulty; }
+    public void setDifficulty(String difficulty) { this.difficulty = difficulty; }
 
-    public String getImageUrl() {
-        return imageUrl;
-    }
+    public boolean isApproved() { return isApproved; }
+    public void setApproved(boolean approved) { isApproved = approved; }
 
-    public void setImageUrl(String imageUrl) {
-        this.imageUrl = imageUrl;
-    }
+    public String getAdminNotes() { return adminNotes; }
+    public void setAdminNotes(String adminNotes) { this.adminNotes = adminNotes; }
 
-    public String getUserId() {
-        return userId;
-    }
+    public String getFoodTokUrl() { return foodTokUrl; }
+    public void setFoodTokUrl(String foodTokUrl) { this.foodTokUrl = foodTokUrl; }
 
-    public void setUserId(String userId) {
-        this.userId = userId;
-    }
-
-    public String getCategory() {
-        return category;
-    }
-
-    public void setCategory(String category) {
-        this.category = category;
-    }
-
-    public String getPreparationTime() {
-        return preparationTime;
-    }
-
-    public void setPreparationTime(String preparationTime) {
-        this.preparationTime = preparationTime;
-    }
-
-    public String getDifficulty() {
-        return difficulty;
-    }
-
-    public void setDifficulty(String difficulty) {
-        this.difficulty = difficulty;
-    }
-
-    public boolean isApproved() {
-        return isApproved;
-    }
-
-    public void setApproved(boolean approved) {
-        isApproved = approved;
-    }
-
-    public String getAdminNotes() {
-        return adminNotes;
-    }
-
-    public void setAdminNotes(String adminNotes) {
-        this.adminNotes = adminNotes;
-    }
+    public String getMediaType() { return mediaType; }
+    public void setMediaType(String mediaType) { this.mediaType = mediaType; }
 }

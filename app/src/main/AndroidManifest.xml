@@ -13,49 +13,67 @@
         android:theme="@style/Theme.OfekRecipeApp">
 
         <activity
+            android:name=".screens.FoodTokActivity"
+            android:exported="false" />
+
+        <activity
             android:name=".screens.SavedRecipesActivity"
             android:exported="false" />
 
         <activity
             android:name=".screens.MyRecipesActivity"
-            android:exported="false" /> <activity
-        android:name=".screens.AddRecipeActivity"
-        android:exported="false"
-        android:label="Add New Recipe" />
+            android:exported="false" />
+
+        <activity
+            android:name=".screens.AddRecipeActivity"
+            android:exported="false"
+            android:label="Add New Recipe" />
+
         <activity
             android:name=".screens.RecipeRequestsActivity"
             android:exported="false"
             android:label="Recipe Requests" />
+
         <activity
             android:name=".screens.RecipeReviewActivity"
             android:exported="false"
             android:label="Review Recipe" />
+
         <activity
             android:name=".screens.UserProfile"
             android:exported="false" />
+
         <activity
             android:name=".screens.UsersList"
             android:exported="false" />
+
         <activity
             android:name=".screens.MainActivity"
             android:exported="false" />
+
         <activity
             android:name=".screens.LogIn"
             android:exported="false" />
+
         <activity
             android:name=".screens.Register"
             android:exported="false"
             android:label="@string/title_activity_register"
             android:theme="@style/Theme.OfekRecipeApp" />
+
         <activity
             android:name=".screens.LandingActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".screens.SplashActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
     </application>
 
 </manifest>

@@ -79,8 +79,8 @@ public class RecipeReviewActivity extends AppCompatActivity {
             TvIngredients.setText(currentRecipe.getIngredients());
             TvInstructions.setText(currentRecipe.getInstructions());
 
-            TvTime.setText("🕒 " + currentRecipe.getPreparationTime());
-            TvDifficulty.setText("🔥 " + currentRecipe.getDifficulty());
+            // TvTime.setText("🕒 " + currentRecipe.getPreparationTime());
+            // TvDifficulty.setText("🔥 " + currentRecipe.getDifficulty());
         }
     }
 

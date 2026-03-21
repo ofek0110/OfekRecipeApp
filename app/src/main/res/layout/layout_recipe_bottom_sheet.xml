@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="24dp"
+    android:background="#FFFFFF">
+
+    <View
+        android:layout_width="40dp"
+        android:layout_height="4dp"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginBottom="24dp"
+        android:background="#E0E0E0" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Ingredients"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        android:textColor="#333333"
+        android:layout_marginBottom="16dp" />
+
+    <TextView
+        android:id="@+id/tvBottomSheetIngredients"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="• 2 cups of flour\n• 1 cup of sugar\n• 3 eggs\n• 1 tsp vanilla extract\n• 1/2 cup butter"
+        android:textSize="16sp"
+        android:lineSpacingExtra="8dp"
+        android:textColor="#666666" />
+
+    <Button
+        android:id="@+id/btnCloseBottomSheet"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="24dp"
+        android:text="Got it!"
+        android:backgroundTint="#2C3E50" />
+
+</LinearLayout>

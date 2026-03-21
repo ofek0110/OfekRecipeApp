@@ -7,9 +7,7 @@ plugins {
 
 android {
     namespace 'com.example.ofek'
-    compileSdk {
-        version = release(36)
-    }
+    compileSdk 36
 
     defaultConfig {
         applicationId "com.example.ofek"
@@ -42,6 +40,8 @@ dependencies {
     implementation libs.activity
     implementation libs.constraintlayout
     implementation libs.firebase.database
+    implementation libs.firebase.auth
+    implementation libs.firebase.storage
     implementation libs.lifecycle.runtime.ktx
     implementation libs.activity.compose
     implementation platform(libs.compose.bom)
@@ -50,14 +50,11 @@ dependencies {
     implementation libs.ui.tooling.preview
     implementation libs.material3
     implementation libs.recyclerview
-
-
-    /*
-        Add the dependency for the GSON library
-        This dependency is used to parse JSON data.
-        This is used in the SharedPreferenceUtil.java class to parse the object to and from JSON data.
-    */
     implementation libs.gson
     implementation libs.cardview
-
+    
+    // FoodTok Dependencies
+    implementation libs.media3.exoplayer
+    implementation libs.media3.ui
+    implementation libs.glide
 }

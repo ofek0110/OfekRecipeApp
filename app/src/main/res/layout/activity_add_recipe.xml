@@ -39,7 +39,7 @@
             android:id="@+id/CardSelectImage"
             android:layout_width="match_parent"
             android:layout_height="200dp"
-            android:layout_marginBottom="24dp"
+            android:layout_marginBottom="16dp"
             app:cardCornerRadius="16dp"
             app:cardElevation="0dp"
             app:cardBackgroundColor="#FFFFFF"
@@ -66,6 +66,28 @@
                     android:textStyle="bold"/>
             </FrameLayout>
         </com.google.android.material.card.MaterialCardView>
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/BtnAddFoodTokMedia"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="🎬 Add Media for FoodTok (Optional)"
+            android:textColor="#FF4081"
+            app:strokeColor="#FF4081"
+            android:layout_marginBottom="24dp"
+            app:cornerRadius="12dp"/>
+
+        <TextView
+            android:id="@+id/TvFoodTokStatus"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="No FoodTok media selected"
+            android:textSize="12sp"
+            android:textColor="#64748B"
+            android:layout_marginTop="-20dp"
+            android:layout_marginBottom="16dp"
+            android:layout_gravity="center_horizontal"/>
 
         <com.google.android.material.textfield.TextInputLayout
             style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"

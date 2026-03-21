@@ -1,5 +1,6 @@
 package com.example.ofek.screens;
 
+import android.app.ProgressDialog;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
@@ -18,6 +19,7 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.ofek.R;
+import com.example.ofek.models.FoodTokPost;
 import com.example.ofek.models.Recipe;
 import com.example.ofek.models.User;
 import com.example.ofek.utils.SharedPreferencesUtil;
@@ -26,23 +28,28 @@ import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
+
+import java.util.UUID;
 
 public class AddRecipeActivity extends AppCompatActivity {
 
     private TextInputEditText EtTitle, EtDescription, EtIngredients, EtInstructions, EtPrepTime;
-    private AutoCompleteTextView ActvDifficulty, ActvCategory; // הוספנו את רכיב הקטגוריה
+    private AutoCompleteTextView ActvDifficulty, ActvCategory;
 
     private Button BtnSubmit;
-    private MaterialButton BtnViewRejectionReason;
+    private MaterialButton BtnViewRejectionReason, BtnAddFoodTokMedia;
     private ImageView IvRecipePreview;
-    private TextView TvAddImageHint;
+    private TextView TvAddImageHint, TvFoodTokStatus;
     private MaterialCardView CardSelectImage;
 
     private DatabaseReference recipesRef;
     private User currentUser;
     private Uri selectedImageUri;
+    private Uri selectedFoodTokUri;
+    private String foodTokMediaType = "";
 
-    // משתנה לעריכה
     private Recipe recipeToEdit = null;
 
     private final ActivityResultLauncher<Intent> imagePickerLauncher = registerForActivityResult(
@@ -58,6 +65,23 @@ public class AddRecipeActivity extends AppCompatActivity {
             }
     );
 
+    private final ActivityResultLauncher<Intent> foodTokPickerLauncher = registerForActivityResult(
+            new ActivityResultContracts.StartActivityForResult(),
+            result -> {
+                if (result.getResultCode() == RESULT_OK && result.getData() != null) {
+                    selectedFoodTokUri = result.getData().getData();
+                    String type = getContentResolver().getType(selectedFoodTokUri);
+                    if (type != null && type.startsWith("video")) {
+                        foodTokMediaType = "video";
+                        TvFoodTokStatus.setText("Video selected for FoodTok");
+                    } else {
+                        foodTokMediaType = "image";
+                        TvFoodTokStatus.setText("Image selected for FoodTok");
+                    }
+                }
+            }
+    );
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -67,10 +91,9 @@ public class AddRecipeActivity extends AppCompatActivity {
         recipesRef = FirebaseDatabase.getInstance().getReference("recipes");
 
         initializeViews();
-        setupDropdowns(); // הפונקציה המעודכנת שמגדירה גם רמת קושי וגם קטגוריה
+        setupDropdowns();
         setupClickListeners();
 
-        // בדיקה אם נכנסנו למצב עריכה
         if (getIntent().hasExtra("RECIPE_TO_EDIT")) {
             recipeToEdit = (Recipe) getIntent().getSerializableExtra("RECIPE_TO_EDIT");
             fillFormForEdit();
@@ -84,8 +107,6 @@ public class AddRecipeActivity extends AppCompatActivity {
         EtInstructions = findViewById(R.id.EtRecipeInstructions);
         EtPrepTime = findViewById(R.id.EtPrepTime);
         ActvDifficulty = findViewById(R.id.ActvDifficulty);
-
-        // חיבור הקטגוריה למסך (יש לוודא שהוספת את זה בקובץ ה-XML)
         ActvCategory = findViewById(R.id.ActvCategory);
 
         BtnSubmit = findViewById(R.id.BtnSubmitRecipe);
@@ -93,67 +114,37 @@ public class AddRecipeActivity extends AppCompatActivity {
         TvAddImageHint = findViewById(R.id.TvAddImageHint);
         CardSelectImage = findViewById(R.id.CardSelectImage);
         BtnViewRejectionReason = findViewById(R.id.BtnViewRejectionReason);
+        BtnAddFoodTokMedia = findViewById(R.id.BtnAddFoodTokMedia);
+        TvFoodTokStatus = findViewById(R.id.TvFoodTokStatus);
     }
 
     private void setupDropdowns() {
-        // הגדרת רמת קושי
         String[] difficulties = new String[] {"Easy", "Medium", "Hard"};
-        ArrayAdapter<String> difficultyAdapter = new ArrayAdapter<>(
-                this,
-                android.R.layout.simple_dropdown_item_1line,
-                difficulties
-        );
+        ArrayAdapter<String> difficultyAdapter = new ArrayAdapter<>(this, android.R.layout.simple_dropdown_item_1line, difficulties);
         ActvDifficulty.setAdapter(difficultyAdapter);
-        ActvDifficulty.setText(difficulties[1], false);
 
-        // הגדרת קטגוריות
-        if (ActvCategory != null) {
-            String[] categories = new String[] {"Breakfast", "Lunch", "Vegan", "Desserts", "Dinner", "General"};
-            ArrayAdapter<String> categoryAdapter = new ArrayAdapter<>(
-                    this,
-                    android.R.layout.simple_dropdown_item_1line,
-                    categories
-            );
-            ActvCategory.setAdapter(categoryAdapter);
-            ActvCategory.setText(categories[5], false); // ברירת מחדל: General
-        }
+        String[] categories = new String[] {"Breakfast", "Lunch", "Vegan", "Desserts", "Dinner", "General"};
+        ArrayAdapter<String> categoryAdapter = new ArrayAdapter<>(this, android.R.layout.simple_dropdown_item_1line, categories);
+        ActvCategory.setAdapter(categoryAdapter);
     }
 
     private void setupClickListeners() {
-        CardSelectImage.setOnClickListener(v -> openGallery());
+        CardSelectImage.setOnClickListener(v -> openGallery(false));
+        BtnAddFoodTokMedia.setOnClickListener(v -> openGallery(true));
         BtnSubmit.setOnClickListener(v -> submitRecipe());
     }
 
-    private void fillFormForEdit() {
-        EtTitle.setText(recipeToEdit.getTitle());
-        EtDescription.setText(recipeToEdit.getDescription());
-        EtIngredients.setText(recipeToEdit.getIngredients());
-        EtInstructions.setText(recipeToEdit.getInstructions());
-        EtPrepTime.setText(recipeToEdit.getPreparationTime());
-        ActvDifficulty.setText(recipeToEdit.getDifficulty(), false);
-
-        // עדכון הקטגוריה במסך העריכה
-        if (ActvCategory != null && recipeToEdit.getCategory() != null) {
-            ActvCategory.setText(recipeToEdit.getCategory(), false);
+    private void openGallery(boolean isFoodTok) {
+        Intent intent = new Intent(Intent.ACTION_PICK);
+        if (isFoodTok) {
+            intent.setType("video/* image/*");
+            String[] mimeTypes = {"image/*", "video/*"};
+            intent.putExtra(Intent.EXTRA_MIME_TYPES, mimeTypes);
+            foodTokPickerLauncher.launch(intent);
+        } else {
+            intent.setData(MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+            imagePickerLauncher.launch(intent);
         }
-
-        BtnSubmit.setText("Fix & Resubmit");
-
-        if (recipeToEdit.getAdminNotes() != null && !recipeToEdit.getAdminNotes().isEmpty()) {
-            BtnViewRejectionReason.setVisibility(View.VISIBLE);
-            BtnViewRejectionReason.setOnClickListener(v -> {
-                new AlertDialog.Builder(AddRecipeActivity.this)
-                        .setTitle("Admin Feedback")
-                        .setMessage(recipeToEdit.getAdminNotes())
-                        .setPositiveButton("Got it", null)
-                        .show();
-            });
-        }
-    }
-
-    private void openGallery() {
-        Intent intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
-        imagePickerLauncher.launch(intent);
     }
 
     private void submitRecipe() {
@@ -163,56 +154,82 @@ public class AddRecipeActivity extends AppCompatActivity {
         String instructions = EtInstructions.getText().toString().trim();
         String prepTime = EtPrepTime.getText().toString().trim();
         String difficulty = ActvDifficulty.getText().toString().trim();
-
-        // שליפת הקטגוריה שנבחרה במקום לקבע אותה
-        String category = "General";
-        if (ActvCategory != null) {
-            category = ActvCategory.getText().toString().trim();
-        }
+        String category = ActvCategory.getText().toString().trim();
 
         if (title.isEmpty() || description.isEmpty() || ingredients.isEmpty() || instructions.isEmpty()) {
             Toast.makeText(this, "Please fill all fields", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        String recipeId;
-        if (recipeToEdit != null) {
-            recipeId = recipeToEdit.getId();
+        ProgressDialog progressDialog = new ProgressDialog(this);
+        progressDialog.setTitle("Saving Recipe...");
+        progressDialog.setCancelable(false);
+        progressDialog.show();
+
+        String recipeId = (recipeToEdit != null) ? recipeToEdit.getId() : recipesRef.push().getKey();
+        
+        Recipe newRecipe = new Recipe(recipeId, title, description, ingredients, instructions, currentUser.getId(), category, prepTime, difficulty);
+        
+        if (selectedFoodTokUri != null) {
+            uploadFoodTokMedia(selectedFoodTokUri, newRecipe, progressDialog);
         } else {
-            recipeId = recipesRef.push().getKey();
+            saveRecipeToDatabase(newRecipe, progressDialog);
         }
+    }
 
-        String imageUrl = "";
+    private void uploadFoodTokMedia(Uri uri, Recipe recipe, ProgressDialog progressDialog) {
+        String fileName = UUID.randomUUID().toString();
+        StorageReference storageRef = FirebaseStorage.getInstance().getReference("foodtok_media/" + fileName);
+
+        storageRef.putFile(uri)
+                .addOnProgressListener(snapshot -> {
+                    double progress = (100.0 * snapshot.getBytesTransferred()) / snapshot.getTotalByteCount();
+                    progressDialog.setMessage("Uploading FoodTok Media: " + (int)progress + "%");
+                })
+                .addOnSuccessListener(taskSnapshot -> storageRef.getDownloadUrl().addOnSuccessListener(downloadUri -> {
+                    recipe.setFoodTokUrl(downloadUri.toString());
+                    recipe.setMediaType(foodTokMediaType);
+                    
+                    // Create FoodTok post
+                    DatabaseReference foodTokRef = FirebaseDatabase.getInstance().getReference("foodtok_posts").push();
+                    FoodTokPost post = new FoodTokPost(downloadUri.toString(), foodTokMediaType, recipe.getTitle(), currentUser.getFirstname());
+                    foodTokRef.setValue(post);
+
+                    saveRecipeToDatabase(recipe, progressDialog);
+                }))
+                .addOnFailureListener(e -> {
+                    progressDialog.dismiss();
+                    Toast.makeText(this, "Upload failed: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                });
+    }
+
+    private void saveRecipeToDatabase(Recipe recipe, ProgressDialog progressDialog) {
         if (selectedImageUri != null) {
-            imageUrl = selectedImageUri.toString();
+            recipe.setImageUrl(selectedImageUri.toString());
         } else if (recipeToEdit != null) {
-            imageUrl = recipeToEdit.getImageUrl();
+            recipe.setImageUrl(recipeToEdit.getImageUrl());
         }
 
-        Recipe newRecipe = new Recipe(
-                recipeId,
-                title,
-                description,
-                ingredients,
-                instructions,
-                currentUser.getId(),
-                category, // הקטגוריה שנבחרה נכנסת לכאן
-                prepTime,
-                difficulty
-        );
-        newRecipe.setImageUrl(imageUrl);
-        newRecipe.setApproved(false);
-        newRecipe.setAdminNotes("");
+        recipesRef.child(recipe.getId()).setValue(recipe)
+                .addOnSuccessListener(aVoid -> {
+                    progressDialog.dismiss();
+                    Toast.makeText(this, "Recipe saved!", Toast.LENGTH_SHORT).show();
+                    finish();
+                })
+                .addOnFailureListener(e -> {
+                    progressDialog.dismiss();
+                    Toast.makeText(this, "Database error", Toast.LENGTH_SHORT).show();
+                });
+    }
 
-        if (recipeId != null) {
-            recipesRef.child(recipeId).setValue(newRecipe)
-                    .addOnSuccessListener(aVoid -> {
-                        Toast.makeText(this, "Recipe submitted successfully!", Toast.LENGTH_LONG).show();
-                        finish();
-                    })
-                    .addOnFailureListener(e -> {
-                        Toast.makeText(this, "Failed to submit recipe", Toast.LENGTH_SHORT).show();
-                    });
-        }
+    private void fillFormForEdit() {
+        EtTitle.setText(recipeToEdit.getTitle());
+        EtDescription.setText(recipeToEdit.getDescription());
+        EtIngredients.setText(recipeToEdit.getIngredients());
+        EtInstructions.setText(recipeToEdit.getInstructions());
+        EtPrepTime.setText(recipeToEdit.getPreparationTime());
+        ActvDifficulty.setText(recipeToEdit.getDifficulty(), false);
+        ActvCategory.setText(recipeToEdit.getCategory(), false);
+        BtnSubmit.setText("Fix & Resubmit");
     }
 }

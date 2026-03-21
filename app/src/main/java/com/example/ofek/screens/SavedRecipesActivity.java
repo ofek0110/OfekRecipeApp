@@ -79,6 +79,9 @@ public class SavedRecipesActivity extends AppCompatActivity {
                 startActivity(new Intent(SavedRecipesActivity.this, MainActivity.class));
                 finish();
                 return true;
+            } else if (itemId == R.id.nav_foodtok) {
+                startActivity(new Intent(SavedRecipesActivity.this, FoodTokActivity.class));
+                return true;
             } else if (itemId == R.id.nav_profile) {
                 startActivity(new Intent(SavedRecipesActivity.this, UserProfile.class));
                 finish();
@@ -142,5 +145,11 @@ public class SavedRecipesActivity extends AppCompatActivity {
             tvEmptySavedState.setVisibility(View.GONE);
             rvSavedRecipes.setVisibility(View.VISIBLE);
         }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        bottomNavigationView.setSelectedItemId(R.id.nav_saved);
     }
 }

@@ -25,6 +25,7 @@ import com.example.ofek.utils.SharedPreferencesUtil;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -51,6 +52,7 @@ public class MainActivity extends AppCompatActivity {
     private BottomNavigationView bottomNavigationView;
 
     private ImageView IvMyRecipes;
+    private User currentUser;
 
     // משתנה לשמירת הקטגוריה המסוננת
     private String currentCategoryFilter = "";
@@ -63,7 +65,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        User currentUser = SharedPreferencesUtil.getUser(this);
+        currentUser = SharedPreferencesUtil.getUser(this);
         if (currentUser == null) {
             startActivity(new Intent(MainActivity.this, LogIn.class));
             finish();
@@ -78,11 +80,13 @@ public class MainActivity extends AppCompatActivity {
         btnRequests = findViewById(R.id.BtnRequests);
         tvRequestsBadge = findViewById(R.id.TvRequestsBadge);
         fabAddRecipe = findViewById(R.id.FabAddRecipe);
-        bottomNavigationView = findViewById(R.id.BottomNavigationView);
+        bottomNavigationView = findViewById(R.id.BottomNavigationMain);
         IvMyRecipes = findViewById(R.id.IvMyRecipes);
 
+        // הסתרת כפתורי הניהול למשתמש רגיל כבר בטעינה
         if (!currentUser.isAdmin()) {
             headerButtons.setVisibility(View.GONE);
+            tvRequestsBadge.setVisibility(View.GONE);
         }
 
         rvRecipes.setLayoutManager(new LinearLayoutManager(this));
@@ -137,18 +141,23 @@ public class MainActivity extends AppCompatActivity {
             public void afterTextChanged(Editable s) {}
         });
 
-        // הגדרת סרגל הניווט התחתון - תוקן כדי להוביל ל-SavedRecipesActivity
+        // הגדרת סרגל הניווט התחתון
         bottomNavigationView.setSelectedItemId(R.id.nav_home);
         bottomNavigationView.setOnItemSelectedListener(item -> {
             int itemId = item.getItemId();
             if (itemId == R.id.nav_home) {
+                // ריענון/חזרה למצב התחלתי
+                etSearch.setText("");
+                filterByCategory("");
+                return true;
+            } else if (itemId == R.id.nav_foodtok) {
+                startActivity(new Intent(MainActivity.this, FoodTokActivity.class));
+                return true;
+            } else if (itemId == R.id.nav_saved) {
+                startActivity(new Intent(MainActivity.this, SavedRecipesActivity.class));
                 return true;
             } else if (itemId == R.id.nav_profile) {
                 startActivity(new Intent(MainActivity.this, UserProfile.class));
-                return true;
-            } else if (itemId == R.id.nav_saved) {
-                // התיקון כאן: מנווט עכשיו למסך השמירות החדש שיצרת
-                startActivity(new Intent(MainActivity.this, SavedRecipesActivity.class));
                 return true;
             }
             return false;
@@ -233,6 +242,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void loadRecipesFromFirebase() {
+        String currentUid = FirebaseAuth.getInstance().getUid();
         recipesRef = FirebaseDatabase.getInstance().getReference("recipes");
         recipesRef.addValueEventListener(new ValueEventListener() {
             @Override
@@ -243,11 +253,19 @@ public class MainActivity extends AppCompatActivity {
                 for (DataSnapshot data : snapshot.getChildren()) {
                     Recipe recipe = data.getValue(Recipe.class);
                     if (recipe != null) {
-                        if (recipe.isApproved()) {
-                            recipeList.add(recipe);
+                        // אם המשתמש אינו אדמין, הוא רואה רק את המתכונים שלו
+                        if (!currentUser.isAdmin()) {
+                            if (recipe.getUserId() != null && recipe.getUserId().equals(currentUid)) {
+                                recipeList.add(recipe);
+                            }
                         } else {
-                            if (recipe.getAdminNotes() == null || recipe.getAdminNotes().isEmpty()) {
-                                pendingCount++;
+                            // אדמין רואה את כל המתכונים המאושרים
+                            if (recipe.isApproved()) {
+                                recipeList.add(recipe);
+                            } else {
+                                if (recipe.getAdminNotes() == null || recipe.getAdminNotes().isEmpty()) {
+                                    pendingCount++;
+                                }
                             }
                         }
                     }
@@ -257,7 +275,8 @@ public class MainActivity extends AppCompatActivity {
                 // הפעלה של הסינון הנוכחי (למקרה שהרשימה מתעדכנת בזמן שיש סינון פעיל)
                 filterRecipes(etSearch.getText().toString());
 
-                if (pendingCount > 0) {
+                // Badge מוצג רק למנהלים ורק אם יש בקשות ממתינות
+                if (currentUser != null && currentUser.isAdmin() && pendingCount > 0) {
                     tvRequestsBadge.setVisibility(View.VISIBLE);
                     if (pendingCount > 99) {
                         tvRequestsBadge.setText("99+");
@@ -274,5 +293,11 @@ public class MainActivity extends AppCompatActivity {
                 Toast.makeText(MainActivity.this, "Failed to load recipes", Toast.LENGTH_SHORT).show();
             }
         });
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        bottomNavigationView.setSelectedItemId(R.id.nav_home);
     }
 }
