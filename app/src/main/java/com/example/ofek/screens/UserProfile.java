@@ -103,6 +103,10 @@ public class UserProfile extends AppCompatActivity implements View.OnClickListen
                 startActivity(new Intent(UserProfile.this, MainActivity.class));
                 finish();
                 return true;
+            } else if (itemId == R.id.nav_saved) {
+                startActivity(new Intent(UserProfile.this, SavedRecipesActivity.class));
+                finish();
+                return true;
             }
             return true;
         });
