@@ -3,17 +3,17 @@ package com.example.ofek.screens;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.activity.EdgeToEdge;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.fragment.app.Fragment;
 
 import com.example.ofek.R;
 import com.example.ofek.models.User;
@@ -21,93 +21,88 @@ import com.example.ofek.services.DatabaseService;
 import com.example.ofek.utils.SharedPreferencesUtil;
 import com.example.ofek.utils.Validator;
 
-public class UserProfile extends AppCompatActivity implements View.OnClickListener {
+public class ProfileFragment extends Fragment implements View.OnClickListener {
 
-    private static final String TAG = "UserProfileActivity";
     private EditText etUserFirstName, etUserLastName, etUserEmail, etUserPhone, etUserPassword;
     private TextView tvUserDisplayName, tvUserDisplayEmail;
     private Button btnUpdateProfile, btnSignOut;
     private View adminBadge;
 
-    String selectedUid;
-    User selectedUser;
-    boolean isCurrentUser = false;
-    DatabaseService databaseService;
+    private String selectedUid;
+    private User selectedUser;
+    private boolean isCurrentUser = false;
+    private DatabaseService databaseService;
+
+    @Nullable
+    @Override
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        return inflater.inflate(R.layout.fragment_profile, container, false);
+    }
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        EdgeToEdge.enable(this);
-        setContentView(R.layout.fragment_profile);
-
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
-            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
-            return insets;
-        });
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
 
         databaseService = DatabaseService.getInstance();
-        User currentUser = SharedPreferencesUtil.getUser(this);
+        User currentUser = SharedPreferencesUtil.getUser(requireContext());
 
         if (currentUser == null) {
-            finish();
+            requireActivity().finish();
             return;
         }
 
-        selectedUid = getIntent().getStringExtra("USER_UID");
+        if (getArguments() != null) {
+            selectedUid = getArguments().getString("USER_UID");
+        }
+        
         if (selectedUid == null) {
             selectedUid = currentUser.getId();
         }
+        
         isCurrentUser = selectedUid.equals(currentUser.getId());
 
         if (!currentUser.isAdmin() && !isCurrentUser) {
-            Toast.makeText(this, "You are not authorized to view this profile", Toast.LENGTH_SHORT).show();
-            finish();
+            Toast.makeText(requireContext(), "You are not authorized to view this profile", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        initializeViews();
+        initializeViews(view);
         showUserProfile();
     }
 
-    private void initializeViews() {
-        etUserFirstName = findViewById(R.id.et_user_first_name);
-        etUserLastName = findViewById(R.id.et_user_last_name);
-        etUserEmail = findViewById(R.id.et_user_email);
-        etUserPhone = findViewById(R.id.et_user_phone);
-        etUserPassword = findViewById(R.id.et_user_password);
-        tvUserDisplayName = findViewById(R.id.tv_user_display_name);
-        tvUserDisplayEmail = findViewById(R.id.tv_user_display_email);
-        btnUpdateProfile = findViewById(R.id.btn_edit_profile);
-        btnSignOut = findViewById(R.id.btn_sign_out);
-        adminBadge = findViewById(R.id.admin_badge);
+    private void initializeViews(View view) {
+        etUserFirstName = view.findViewById(R.id.et_user_first_name);
+        etUserLastName = view.findViewById(R.id.et_user_last_name);
+        etUserEmail = view.findViewById(R.id.et_user_email);
+        etUserPhone = view.findViewById(R.id.et_user_phone);
+        etUserPassword = view.findViewById(R.id.et_user_password);
+        tvUserDisplayName = view.findViewById(R.id.tv_user_display_name);
+        tvUserDisplayEmail = view.findViewById(R.id.tv_user_display_email);
+        btnUpdateProfile = view.findViewById(R.id.btn_edit_profile);
+        btnSignOut = view.findViewById(R.id.btn_sign_out);
+        adminBadge = view.findViewById(R.id.admin_badge);
 
         btnUpdateProfile.setOnClickListener(this);
         btnSignOut.setOnClickListener(this);
-        
-        // Hide sign out if viewing another user's profile
-        if (!isCurrentUser) {
-            btnSignOut.setVisibility(View.GONE);
-        }
-        
-        // Hide bottom navigation if it exists in the layout (not needed for standalone activity)
-        View nav = findViewById(R.id.bottomNavigation);
-        if (nav != null) nav.setVisibility(View.GONE);
     }
 
     @Override
     public void onClick(View v) {
-        if (v.getId() == R.id.btn_edit_profile) {
+        int id = v.getId();
+        if (id == R.id.btn_edit_profile) {
             updateUserProfile();
-        } else if (v.getId() == R.id.btn_sign_out) {
+        } else if (id == R.id.btn_sign_out) {
             signOut();
         }
     }
 
     private void showUserProfile() {
+        if (selectedUid == null) return;
+        
         databaseService.getUser(selectedUid, new DatabaseService.DatabaseCallback<User>() {
             @Override
             public void onCompleted(User user) {
+                if (!isAdded()) return;
                 selectedUser = user;
                 etUserFirstName.setText(user.getFirstname());
                 etUserLastName.setText(user.getLastname());
@@ -123,7 +118,7 @@ public class UserProfile extends AppCompatActivity implements View.OnClickListen
 
             @Override
             public void onFailed(Exception e) {
-                Log.e(TAG, "Error getting user profile", e);
+                Log.e("ProfileFragment", "Error getting user profile", e);
             }
         });
 
@@ -153,13 +148,15 @@ public class UserProfile extends AppCompatActivity implements View.OnClickListen
         databaseService.updateUser(selectedUser, new DatabaseService.DatabaseCallback<Void>() {
             @Override
             public void onCompleted(Void result) {
-                Toast.makeText(UserProfile.this, "Profile updated successfully", Toast.LENGTH_SHORT).show();
+                if (!isAdded()) return;
+                Toast.makeText(requireContext(), "Profile updated successfully", Toast.LENGTH_SHORT).show();
                 showUserProfile();
             }
 
             @Override
             public void onFailed(Exception e) {
-                Toast.makeText(UserProfile.this, "Failed to update profile", Toast.LENGTH_SHORT).show();
+                if (!isAdded()) return;
+                Toast.makeText(requireContext(), "Failed to update profile", Toast.LENGTH_SHORT).show();
             }
         });
     }
@@ -174,10 +171,10 @@ public class UserProfile extends AppCompatActivity implements View.OnClickListen
     }
 
     private void signOut() {
-        SharedPreferencesUtil.signOutUser(this);
-        Intent landingIntent = new Intent(this, LandingActivity.class);
+        SharedPreferencesUtil.signOutUser(requireContext());
+        Intent landingIntent = new Intent(requireActivity(), LandingActivity.class);
         landingIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         startActivity(landingIntent);
-        finish();
+        requireActivity().finish();
     }
 }

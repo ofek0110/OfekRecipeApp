@@ -26,8 +26,8 @@ public class LandingActivity extends AppCompatActivity {
             return insets;
         });
         if(SharedPreferencesUtil.isUserLoggedIn(this)) {
-            Intent mainIntent = new Intent(LandingActivity.this, MainActivity.class);
-            /// clear the back stack (clear history) and start the MainActivity
+            // Updated to MainContainerActivity
+            Intent mainIntent = new Intent(LandingActivity.this, MainContainerActivity.class);
             mainIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
             startActivity(mainIntent);
             finish();

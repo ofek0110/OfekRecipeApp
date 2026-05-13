@@ -372,26 +372,13 @@
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
 
-    <com.google.android.material.bottomnavigation.BottomNavigationView
-        android:id="@+id/BottomNavigationView"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_gravity="bottom"
-        android:background="#FFFFFF"
-        app:elevation="16dp"
-        app:menu="@menu/bottom_nav_menu"
-        app:labelVisibilityMode="labeled"
-        app:itemHorizontalTranslationEnabled="false"
-        app:itemIconTint="#94A3B8"
-        app:itemTextColor="#94A3B8"/>
-
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/FabAddRecipe"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|end"
         android:layout_marginEnd="16dp"
-        android:layout_marginBottom="110dp"
+        android:layout_marginBottom="24dp"
         android:backgroundTint="#4CAEAA"
         app:tint="@color/white"
         android:src="@android:drawable/ic_input_add"

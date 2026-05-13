@@ -2,6 +2,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
+    <uses-permission android:name="android.permission.INTERNET" />
+
     <application
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
@@ -13,49 +15,63 @@
         android:theme="@style/Theme.OfekRecipeApp">
 
         <activity
-            android:name=".screens.SavedRecipesActivity"
-            android:exported="false" />
+            android:name=".screens.MainContainerActivity"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
 
         <activity
             android:name=".screens.MyRecipesActivity"
-            android:exported="false" /> <activity
-        android:name=".screens.AddRecipeActivity"
-        android:exported="false"
-        android:label="Add New Recipe" />
+            android:exported="false" />
+
+        <activity
+            android:name=".screens.AddRecipeActivity"
+            android:exported="false"
+            android:label="Add New Recipe" />
+
         <activity
             android:name=".screens.RecipeRequestsActivity"
             android:exported="false"
             android:label="Recipe Requests" />
+
         <activity
             android:name=".screens.RecipeReviewActivity"
             android:exported="false"
             android:label="Review Recipe" />
+
         <activity
             android:name=".screens.UserProfile"
             android:exported="false" />
+
         <activity
             android:name=".screens.UsersList"
             android:exported="false" />
-        <activity
-            android:name=".screens.MainActivity"
-            android:exported="false" />
+
         <activity
             android:name=".screens.LogIn"
             android:exported="false" />
+
         <activity
             android:name=".screens.Register"
             android:exported="false"
             android:label="@string/title_activity_register"
             android:theme="@style/Theme.OfekRecipeApp" />
+
+        <activity
+            android:name=".screens.LoginActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".screens.SignUpActivity"
+            android:exported="false" />
+
         <activity
             android:name=".screens.LandingActivity"
-            android:exported="true">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
+            android:exported="false" />
 
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-        </activity>
     </application>
 
 </manifest>

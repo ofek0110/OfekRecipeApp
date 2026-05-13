@@ -56,48 +56,27 @@ public class LogIn extends AppCompatActivity {
             public void onClick(View v) {
                 Log.d(TAG, "onClick: Login button clicked");
 
-                /// get the email and password entered by the user
                 String email = etEmail.getText().toString();
                 String password = etPassword.getText().toString();
 
-                /// log the email and password
-                Log.d(TAG, "onClick: Email: " + email);
-                Log.d(TAG, "onClick: Password: " + password);
-
-                Log.d(TAG, "onClick: Validating input...");
-                /// Validate input
                 if (!checkInput(email, password)) {
-                    /// stop if input is invalid
                     return;
                 }
 
-                Log.d(TAG, "onClick: Logging in user...");
-
-                /// Login user
                 loginUser(email, password);
             }
         });
     }
 
-    /// Method to check if the input is valid
-    /// It checks if the email and password are valid
-    /// @see Validator#isEmailValid(String)
-    /// @see Validator#isPasswordValid(String)
     private boolean checkInput(String email, String password) {
         if (!Validator.isEmailValid(email)) {
-            Log.e(TAG, "checkInput: Invalid email address");
-            /// show error message to user
             etEmail.setError("Invalid email address");
-            /// set focus to email field
             etEmail.requestFocus();
             return false;
         }
 
         if (!Validator.isPasswordValid(password)) {
-            Log.e(TAG, "checkInput: Invalid password");
-            /// show error message to user
             etPassword.setError("Password must be at least 6 characters long");
-            /// set focus to password field
             etPassword.requestFocus();
             return false;
         }
@@ -108,8 +87,6 @@ public class LogIn extends AppCompatActivity {
     private void loginUser(String email, String password) {
         DatabaseService databaseService = DatabaseService.getInstance();
         databaseService.getUserByEmailAndPassword(email, password, new DatabaseService.DatabaseCallback<User>() {
-            /// Callback method called when the operation is completed
-            /// @param user the user object that is logged in
             @Override
             public void onCompleted(User user) {
                 if (user == null) {
@@ -117,24 +94,17 @@ public class LogIn extends AppCompatActivity {
                     etPassword.requestFocus();
                     return;
                 }
-                Log.d(TAG, "onCompleted: User logged in: " + user.toString());
-                /// save the user data to shared preferences
                 SharedPreferencesUtil.saveUser(LogIn.this, user);
-                /// Redirect to main activity and clear back stack to prevent user from going back to login screen
-                Intent mainIntent = new Intent(LogIn.this, MainActivity.class);
-                /// Clear the back stack (clear history) and start the MainActivity
+                // Redirect to MainContainerActivity instead of MainActivity
+                Intent mainIntent = new Intent(LogIn.this, MainContainerActivity.class);
                 mainIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                 startActivity(mainIntent);
             }
 
             @Override
             public void onFailed(Exception e) {
-                Log.e(TAG, "onFailed: Failed to retrieve user data", e);
-                /// Show error message to user
                 etPassword.setError("Invalid email or password");
                 etPassword.requestFocus();
-                /// Sign out the user if failed to retrieve user data
-                /// This is to prevent the user from being logged in again
                 SharedPreferencesUtil.signOutUser(LogIn.this);
             }
         });

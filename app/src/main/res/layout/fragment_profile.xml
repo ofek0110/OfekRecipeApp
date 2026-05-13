@@ -3,11 +3,9 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#F6F7F7"
-    tools:context=".screens.UserProfile">
+    android:background="#F6F7F7">
 
     <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
@@ -286,16 +284,5 @@
             </LinearLayout>
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
-
-    <com.google.android.material.bottomnavigation.BottomNavigationView
-        android:id="@+id/bottomNavigation"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_gravity="bottom"
-        android:background="#FFFFFF"
-        app:elevation="16dp"
-        app:menu="@menu/bottom_nav_menu"
-        app:itemIconTint="#94A3B8"
-        app:itemTextColor="#94A3B8"/>
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
