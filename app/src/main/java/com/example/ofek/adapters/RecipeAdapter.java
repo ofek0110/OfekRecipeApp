@@ -9,15 +9,14 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.ofek.R;
+import com.example.ofek.models.FavoriteRecipe;
 import com.example.ofek.models.Recipe;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.ValueEventListener;
+import com.example.ofek.services.DatabaseService;
+import com.example.ofek.utils.ImageUtil;
 
 import java.util.List;
 
@@ -26,7 +25,6 @@ public class RecipeAdapter extends RecyclerView.Adapter<RecipeAdapter.RecipeView
     private List<Recipe> recipeList;
     private final OnRecipeClickListener listener;
     private final String currentUserId;
-    private final DatabaseReference favoritesRef;
     private final boolean showStatus;
 
     public interface OnRecipeClickListener {
@@ -38,8 +36,6 @@ public class RecipeAdapter extends RecyclerView.Adapter<RecipeAdapter.RecipeView
         this.currentUserId = currentUserId;
         this.showStatus = showStatus;
         this.listener = listener;
-        // התיקון כאן: שינינו מ-"Favorites" ל-"favorites" עם f קטנה
-        this.favoritesRef = FirebaseDatabase.getInstance().getReference("favorites").child(currentUserId);
     }
 
     public void setRecipeList(List<Recipe> recipeList) {
@@ -78,6 +74,9 @@ public class RecipeAdapter extends RecyclerView.Adapter<RecipeAdapter.RecipeView
             holder.TvStatus.setVisibility(View.GONE);
         }
 
+        if (recipe.getImageBase64() != null)
+            holder.IvImage.setImageBitmap(ImageUtil.convertFrom64base(recipe.getImageBase64()));
+
         checkIfFavorite(recipe.getId(), holder.IvFavoriteIcon);
         holder.FlFavoriteBtn.setOnClickListener(v -> toggleFavorite(recipe.getId(), holder.IvFavoriteIcon));
     }
@@ -88,36 +87,63 @@ public class RecipeAdapter extends RecyclerView.Adapter<RecipeAdapter.RecipeView
     }
 
     private void checkIfFavorite(String recipeId, ImageView heartIcon) {
-        favoritesRef.child(recipeId).addListenerForSingleValueEvent(new ValueEventListener() {
+        DatabaseService.getInstance().getFavoriteRecipeByUserAndRecipe(this.currentUserId, recipeId, new DatabaseService.DatabaseCallback<FavoriteRecipe>() {
             @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot) {
-                if (snapshot.exists()) {
-                    heartIcon.setAlpha(1.0f);
-                } else {
+            public void onCompleted(@Nullable FavoriteRecipe favoriteRecipe) {
+                if (favoriteRecipe == null)
+                {
                     heartIcon.setAlpha(0.3f);
+                }
+                else {
+                    heartIcon.setAlpha(1.0f);
                 }
             }
 
             @Override
-            public void onCancelled(@NonNull DatabaseError error) { }
+            public void onFailed(Exception e) {
+
+            }
         });
     }
 
     private void toggleFavorite(String recipeId, ImageView heartIcon) {
-        favoritesRef.child(recipeId).addListenerForSingleValueEvent(new ValueEventListener() {
+        DatabaseService.getInstance().getFavoriteRecipeByUserAndRecipe(this.currentUserId, recipeId, new DatabaseService.DatabaseCallback<FavoriteRecipe>() {
             @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot) {
-                if (snapshot.exists()) {
-                    favoritesRef.child(recipeId).removeValue();
-                    heartIcon.setAlpha(0.3f);
+            public void onCompleted(FavoriteRecipe favoriteRecipe) {
+                if (favoriteRecipe != null) // exist
+                {
+                    DatabaseService.getInstance().deleteFavoriteRecipe(favoriteRecipe.getId(), new DatabaseService.DatabaseCallback<Void>() {
+                        @Override
+                        public void onCompleted(@Nullable Void object) {
+                            heartIcon.setAlpha(0.3f);
+                        }
+
+                        @Override
+                        public void onFailed(Exception e) {
+
+                        }
+                    });
                 } else {
-                    favoritesRef.child(recipeId).setValue(true);
-                    heartIcon.setAlpha(1.0f);
+                    String id = DatabaseService.getInstance().generateFavoriteRecipeId();
+                    FavoriteRecipe favoriteRecipe1 = new FavoriteRecipe(id, currentUserId, recipeId);
+                    DatabaseService.getInstance().createNewFavoriteRecipe(favoriteRecipe1, new DatabaseService.DatabaseCallback<Void>() {
+                        @Override
+                        public void onCompleted(@Nullable Void object) {
+                            heartIcon.setAlpha(1.0f);
+                        }
+
+                        @Override
+                        public void onFailed(Exception e) {
+
+                        }
+                    });
                 }
             }
 
             @Override
-            public void onCancelled(@NonNull DatabaseError error) { }
+            public void onFailed(Exception e) {
+
+            }
         });
     }
 

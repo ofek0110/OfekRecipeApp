@@ -16,18 +16,20 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.ofek.R;
 import com.example.ofek.adapters.RecipeAdapter;
+import com.example.ofek.models.FavoriteRecipe;
 import com.example.ofek.models.Recipe;
 import com.example.ofek.models.User;
+import com.example.ofek.services.DatabaseService;
 import com.example.ofek.utils.SharedPreferencesUtil;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.ValueEventListener;
+
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 public class SavedRecipesFragment extends Fragment {
 
@@ -35,8 +37,6 @@ public class SavedRecipesFragment extends Fragment {
     private TextView tvEmptySavedState;
     private RecipeAdapter adapter;
     private List<Recipe> savedRecipesList = new ArrayList<>();
-    private DatabaseReference favoritesRef;
-    private DatabaseReference recipesRef;
     private User currentUser;
 
     @Nullable
@@ -78,58 +78,35 @@ public class SavedRecipesFragment extends Fragment {
     private void loadSavedRecipes() {
         if (currentUser == null) return;
         String uid = currentUser.getId();
-        favoritesRef = FirebaseDatabase.getInstance().getReference("favorites").child(uid);
-        recipesRef = FirebaseDatabase.getInstance().getReference("recipes");
-
-        favoritesRef.addValueEventListener(new ValueEventListener() {
+        DatabaseService.getInstance().getFavoriteRecipeByUser(uid, new DatabaseService.DatabaseCallback<List<FavoriteRecipe>>() {
             @Override
-            public void onDataChange(@NonNull DataSnapshot favoritesSnapshot) {
-                if (!isAdded()) return;
-                savedRecipesList.clear();
+            public void onCompleted(List<FavoriteRecipe> favoriteRecipes) {
+                Set<String> recipeIds = favoriteRecipes.stream().map(FavoriteRecipe::getRecipeId).collect(Collectors.toSet());
+                DatabaseService.getInstance().getRecipeList(new DatabaseService.DatabaseCallback<List<Recipe>>() {
+                    @Override
+                    public void onCompleted(List<Recipe> recipes) {
+                        recipes.removeIf(new Predicate<Recipe>() {
+                            @Override
+                            public boolean test(Recipe recipe) {
+                                return !recipeIds.contains(recipe.getId());
+                            }
+                        });
+                        savedRecipesList.clear();
+                        savedRecipesList.addAll(recipes);
+                        updateUI(savedRecipesList.isEmpty());
 
-                if (!favoritesSnapshot.exists() || !favoritesSnapshot.hasChildren()) {
-                    updateUI(true);
-                    return;
-                }
-
-                List<String> favoriteIds = new ArrayList<>();
-                for (DataSnapshot child : favoritesSnapshot.getChildren()) {
-                    if (child.getKey() != null) {
-                        favoriteIds.add(child.getKey());
                     }
-                }
 
-                final int totalFavorites = favoriteIds.size();
-                final int[] loadedCount = {0};
+                    @Override
+                    public void onFailed(Exception e) {
 
-                for (String recipeId : favoriteIds) {
-                    recipesRef.child(recipeId).addListenerForSingleValueEvent(new ValueEventListener() {
-                        @Override
-                        public void onDataChange(@NonNull DataSnapshot recipeSnapshot) {
-                            if (!isAdded()) return;
-                            Recipe recipe = recipeSnapshot.getValue(Recipe.class);
-                            if (recipe != null) {
-                                savedRecipesList.add(recipe);
-                            }
-                            loadedCount[0]++;
-                            if (loadedCount[0] == totalFavorites) {
-                                Collections.reverse(savedRecipesList);
-                                adapter.setRecipeList(savedRecipesList);
-                                updateUI(savedRecipesList.isEmpty());
-                            }
-                        }
-
-                        @Override
-                        public void onCancelled(@NonNull DatabaseError error) {
-                            loadedCount[0]++;
-                        }
-                    });
-                }
+                    }
+                });
             }
 
             @Override
-            public void onCancelled(@NonNull DatabaseError error) {
-                if (isAdded()) Toast.makeText(requireContext(), "Error loading saved recipes", Toast.LENGTH_SHORT).show();
+            public void onFailed(Exception e) {
+
             }
         });
     }

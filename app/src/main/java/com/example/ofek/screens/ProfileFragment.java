@@ -21,6 +21,8 @@ import com.example.ofek.services.DatabaseService;
 import com.example.ofek.utils.SharedPreferencesUtil;
 import com.example.ofek.utils.Validator;
 
+import java.util.function.UnaryOperator;
+
 public class ProfileFragment extends Fragment implements View.OnClickListener {
 
     private EditText etUserFirstName, etUserLastName, etUserEmail, etUserPhone, etUserPassword;
@@ -145,9 +147,21 @@ public class ProfileFragment extends Fragment implements View.OnClickListener {
         selectedUser.setEmail(email);
         selectedUser.setPassword(password);
 
-        databaseService.updateUser(selectedUser, new DatabaseService.DatabaseCallback<Void>() {
+        databaseService.updateUser(selectedUid, new UnaryOperator<User>() {
             @Override
-            public void onCompleted(Void result) {
+            public User apply(User user) {
+                if (user != null) {
+                    user.setFirstname(selectedUser.getFirstname());
+                    user.setLastname(selectedUser.getLastname());
+                    user.setPhone(selectedUser.getPhone());
+                    user.setEmail(selectedUser.getEmail());
+                    user.setPassword(selectedUser.getPassword());
+                }
+                return user;
+            }
+        }, new DatabaseService.DatabaseCallback<User>() {
+            @Override
+            public void onCompleted(User user) {
                 if (!isAdded()) return;
                 Toast.makeText(requireContext(), "Profile updated successfully", Toast.LENGTH_SHORT).show();
                 showUserProfile();

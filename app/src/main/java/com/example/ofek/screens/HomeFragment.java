@@ -24,18 +24,15 @@ import com.example.ofek.R;
 import com.example.ofek.adapters.RecipeAdapter;
 import com.example.ofek.models.Recipe;
 import com.example.ofek.models.User;
+import com.example.ofek.services.DatabaseService;
 import com.example.ofek.utils.SharedPreferencesUtil;
 import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.function.Predicate;
 
 public class HomeFragment extends Fragment {
 
@@ -43,8 +40,6 @@ public class HomeFragment extends Fragment {
     private RecipeAdapter adapter;
     private List<Recipe> recipeList = new ArrayList<>();
     private List<Recipe> filteredList = new ArrayList<>();
-    private DatabaseReference recipesRef;
-
     private EditText etSearch;
     private LinearLayout headerButtons;
     private TextView btnUsers, btnRequests, tvRequestsBadge;
@@ -118,6 +113,12 @@ public class HomeFragment extends Fragment {
             public void afterTextChanged(Editable s) {}
         });
 
+
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
         loadRecipesFromFirebase();
     }
 
@@ -173,24 +174,21 @@ public class HomeFragment extends Fragment {
     }
 
     private void loadRecipesFromFirebase() {
-        recipesRef = FirebaseDatabase.getInstance().getReference("recipes");
-        recipesRef.addValueEventListener(new ValueEventListener() {
+        DatabaseService.getInstance().getRecipeList(new DatabaseService.DatabaseCallback<List<Recipe>>() {
             @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot) {
+            public void onCompleted(@Nullable List<Recipe> recipes) {
                 if (!isAdded()) return;
                 recipeList.clear();
-                int pendingCount = 0;
+                recipes.removeIf(recipe -> recipe.isApproved());
 
-                for (DataSnapshot data : snapshot.getChildren()) {
-                    Recipe recipe = data.getValue(Recipe.class);
-                    if (recipe != null) {
-                        if (recipe.isApproved()) {
-                            recipeList.add(recipe);
-                        } else if (recipe.getAdminNotes() == null || recipe.getAdminNotes().isEmpty()) {
-                            pendingCount++;
-                        }
+                int pendingCount = (int) recipes.stream().filter(new Predicate<Recipe>() {
+                    @Override
+                    public boolean test(Recipe recipe) {
+                        return recipe.getAdminNotes() == null || recipe.getAdminNotes().isEmpty();
                     }
-                }
+                }).count();
+                recipeList.clear();
+                recipes.addAll(recipes);
                 Collections.reverse(recipeList);
                 filterRecipes(etSearch.getText().toString());
 
@@ -203,8 +201,8 @@ public class HomeFragment extends Fragment {
             }
 
             @Override
-            public void onCancelled(@NonNull DatabaseError error) {
-                if (isAdded()) Toast.makeText(requireContext(), "Failed to load recipes", Toast.LENGTH_SHORT).show();
+            public void onFailed(Exception e) {
+
             }
         });
     }

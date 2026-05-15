@@ -8,7 +8,7 @@ public class Recipe implements Serializable {
     private String description;
     private String ingredients;
     private String instructions;
-    private String imageUrl;
+    private String imageBase64;
     private String userId;
     private String category;
     private String preparationTime;
@@ -20,17 +20,23 @@ public class Recipe implements Serializable {
     public Recipe() {
     }
 
-    public Recipe(String id, String title, String description, String ingredients, String instructions, String userId, String category, String preparationTime, String difficulty) {
+    public Recipe(String id, String title, String description,
+                  String ingredients, String instructions,
+                  String imageBase64, String userId, String category,
+                  String preparationTime, String difficulty,
+                  boolean isApproved, String adminNotes) {
         this.id = id;
         this.title = title;
         this.description = description;
         this.ingredients = ingredients;
         this.instructions = instructions;
+        this.imageBase64 = imageBase64;
         this.userId = userId;
         this.category = category;
         this.preparationTime = preparationTime;
         this.difficulty = difficulty;
-        this.isApproved = false; // ברירת מחדל: לא מאושר עד שמנהל יאשר
+        this.isApproved = isApproved;
+        this.adminNotes = adminNotes;
     }
 
     // --- Getters and Setters ---
@@ -75,12 +81,12 @@ public class Recipe implements Serializable {
         this.instructions = instructions;
     }
 
-    public String getImageUrl() {
-        return imageUrl;
+    public String getImageBase64() {
+        return imageBase64;
     }
 
-    public void setImageUrl(String imageUrl) {
-        this.imageUrl = imageUrl;
+    public void setImageBase64(String imageBase64) {
+        this.imageBase64 = imageBase64;
     }
 
     public String getUserId() {

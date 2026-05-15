@@ -5,6 +5,8 @@ import android.util.Log;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import com.example.ofek.models.FavoriteRecipe;
+import com.example.ofek.models.Recipe;
 import com.example.ofek.models.User;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -18,6 +20,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.Predicate;
 import java.util.function.UnaryOperator;
 
 
@@ -34,8 +37,8 @@ public class DatabaseService {
     /// paths for different data types in the database
     /// @see DatabaseService#readData(String)
     private static final String USERS_PATH = "users",
-            FOODS_PATH = "foods",
-            CARTS_PATH = "carts";
+            RECIPES_PATH = "recipes",
+            FAVORITES_PATH = "favorites";
 
     /// callback interface for database operations
     /// @param <T> the type of the object to return
@@ -43,7 +46,7 @@ public class DatabaseService {
     /// @see DatabaseCallback#onFailed(Exception)
     public interface DatabaseCallback<T> {
         /// called when the operation is completed successfully
-        public void onCompleted(T object);
+        public void onCompleted(@Nullable T object);
 
         /// called when the operation fails with an exception
         public void onFailed(Exception e);
@@ -133,6 +136,10 @@ public class DatabaseService {
             if (!task.isSuccessful()) {
                 Log.e(TAG, "Error getting data", task.getException());
                 callback.onFailed(task.getException());
+                return;
+            }
+            if (!task.getResult().exists()) {
+                callback.onCompleted(null);
                 return;
             }
             T data = task.getResult().getValue(clazz);
@@ -313,25 +320,163 @@ public class DatabaseService {
         });
     }
 
-    public void updateUser(@NotNull final User user, @Nullable final DatabaseCallback<Void> callback) {
-        runTransaction(USERS_PATH + "/" + user.getId(), User.class, currentUser -> user, new DatabaseCallback<User>() {
+    public void updateUser(@NotNull final String recipeId, UnaryOperator<User> function, @NotNull final DatabaseCallback<User> callback) {
+        runTransaction(USERS_PATH + "/" + recipeId, User.class, function, callback);
+    }
+
+    // endregion User Section
+
+
+    // region Recipes Section
+
+    /// generate a new id for a new recipe in the database
+    /// @return a new id for the user
+    /// @see #generateNewId(String)
+    /// @see User
+    public String generateRecipeId() {
+        return generateNewId(RECIPES_PATH);
+    }
+
+    /// create a new recipe in the database
+    /// @param recipe the recipe object to create
+    /// @param callback the callback to call when the operation is completed
+    ///              the callback will receive void
+    ///            if the operation fails, the callback will receive an exception
+    /// @see DatabaseCallback
+    /// @see User
+    public void createNewRecipe(@NotNull final Recipe recipe, @Nullable final DatabaseCallback<Void> callback) {
+        writeData(RECIPES_PATH + "/" + recipe.getId(), recipe, callback);
+    }
+
+    /// get a recipe from the database
+    /// @param rid the id of the recipe to get
+    /// @param callback the callback to call when the operation is completed
+    ///               the callback will receive the user object
+    ///             if the operation fails, the callback will receive an exception
+    /// @see DatabaseCallback
+    /// @see User
+    public void getRecipe(@NotNull final String rid, @NotNull final DatabaseCallback<Recipe> callback) {
+        getData(RECIPES_PATH + "/" + rid, Recipe.class, callback);
+    }
+
+    /// get all the users from the database
+    /// @param callback the callback to call when the operation is completed
+    ///              the callback will receive a list of recipe objects
+    ///            if the operation fails, the callback will receive an exception
+    /// @see DatabaseCallback
+    /// @see List
+    /// @see User
+    public void getRecipeList(@NotNull final DatabaseCallback<List<Recipe>> callback) {
+        getDataList(RECIPES_PATH, Recipe.class, callback);
+    }
+
+    /// delete a user from the database
+    /// @param rid the recipe id to delete
+    /// @param callback the callback to call when the operation is completed
+    public void deleteRecipe(@NotNull final String rid, @Nullable final DatabaseCallback<Void> callback) {
+        deleteData(RECIPES_PATH + "/" + rid, callback);
+    }
+
+    public void updateRecipes(@NotNull final String recipeId, UnaryOperator<Recipe> function, @NotNull final DatabaseCallback<Recipe> callback) {
+        runTransaction(RECIPES_PATH + "/" + recipeId, Recipe.class, function, callback);
+    }
+
+
+    // endregion Recipes Section
+
+    // region favorite Section
+
+    /// generate a new id for a new recipe in the database
+    /// @return a new id for the user
+    /// @see #generateNewId(String)
+    /// @see User
+    public String generateFavoriteRecipeId() {
+        return generateNewId(FAVORITES_PATH);
+    }
+
+    /// create a new recipe in the database
+    /// @param callback the callback to call when the operation is completed
+    ///              the callback will receive void
+    ///            if the operation fails, the callback will receive an exception
+    /// @see DatabaseCallback
+    /// @see User
+    public void createNewFavoriteRecipe(@NotNull final FavoriteRecipe favoriteRecipe, @Nullable final DatabaseCallback<Void> callback) {
+        writeData(FAVORITES_PATH + "/" + favoriteRecipe.getId(), favoriteRecipe, callback);
+    }
+
+    /// get a recipe from the database
+    /// @param id the id of the recipe to get
+    /// @param callback the callback to call when the operation is completed
+    ///               the callback will receive the user object
+    ///             if the operation fails, the callback will receive an exception
+    /// @see DatabaseCallback
+    /// @see User
+    public void getFavoriteRecipe(@NotNull final String id, @NotNull final DatabaseCallback<FavoriteRecipe> callback) {
+        getData(FAVORITES_PATH + "/" + id, FavoriteRecipe.class, callback);
+    }
+
+    /// get all the users from the database
+    /// @param callback the callback to call when the operation is completed
+    ///              the callback will receive a list of recipe objects
+    ///            if the operation fails, the callback will receive an exception
+    /// @see DatabaseCallback
+    /// @see List
+    /// @see User
+    public void getFavoriteRecipeList(@NotNull final DatabaseCallback<List<FavoriteRecipe>> callback) {
+        getDataList(FAVORITES_PATH, FavoriteRecipe.class, callback);
+    }
+
+    /// delete a user from the database
+    /// @param callback the callback to call when the operation is completed
+    public void deleteFavoriteRecipe(@NotNull final String id, @Nullable final DatabaseCallback<Void> callback) {
+        deleteData(FAVORITES_PATH + "/" + id, callback);
+    }
+
+    public void updateFavoriteRecipes(@NotNull final String id, UnaryOperator<FavoriteRecipe> function, @NotNull final DatabaseCallback<FavoriteRecipe> callback) {
+        runTransaction(FAVORITES_PATH + "/" + id, FavoriteRecipe.class, function, callback);
+    }
+
+
+    public void getFavoriteRecipeByUserAndRecipe(@NotNull final String uid, @NotNull final String rid, @NotNull final DatabaseCallback<FavoriteRecipe> callback) {
+        getFavoriteRecipeList(new DatabaseCallback<List<FavoriteRecipe>>() {
             @Override
-            public void onCompleted(User object) {
-                if (callback != null) {
-                    callback.onCompleted(null);
+            public void onCompleted(List<FavoriteRecipe> favoriteRecipes) {
+                for (FavoriteRecipe favoriteRecipe: favoriteRecipes) {
+                    if (Objects.equals(favoriteRecipe.getUserId(), uid) && Objects.equals(favoriteRecipe.getRecipeId(), rid)) {
+                        callback.onCompleted(favoriteRecipe);
+                        return;
+                    }
                 }
+                callback.onCompleted(null);
             }
 
             @Override
             public void onFailed(Exception e) {
-                if (callback != null) {
-                    callback.onFailed(e);
-                }
+
+            }
+        });
+    }
+
+    public void getFavoriteRecipeByUser(@NotNull final String uid, @NotNull final DatabaseCallback<List<FavoriteRecipe>> callback) {
+        getFavoriteRecipeList(new DatabaseCallback<List<FavoriteRecipe>>() {
+            @Override
+            public void onCompleted(List<FavoriteRecipe> favoriteRecipes) {
+                favoriteRecipes.removeIf(new Predicate<FavoriteRecipe>() {
+                    @Override
+                    public boolean test(FavoriteRecipe favoriteRecipe) {
+                        return !Objects.equals(favoriteRecipe.getUserId(), uid) ;
+                    }
+                });
+                callback.onCompleted(favoriteRecipes);
+            }
+
+            @Override
+            public void onFailed(Exception e) {
+
             }
         });
     }
 
 
-    // endregion User Section
-
+    // endregion favorite Section
 }

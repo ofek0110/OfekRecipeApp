@@ -3,29 +3,33 @@ package com.example.ofek.screens;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.ofek.R;
 import com.example.ofek.models.Recipe;
 import com.example.ofek.models.User;
+import com.example.ofek.services.DatabaseService;
+import com.example.ofek.utils.ImageUtil;
 import com.example.ofek.utils.SharedPreferencesUtil;
 import com.google.android.material.textfield.TextInputEditText;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
+
+import java.util.function.UnaryOperator;
 
 public class RecipeReviewActivity extends AppCompatActivity {
 
     private TextView TvTitle, TvDescription, TvIngredients, TvInstructions, TvTime, TvDifficulty;
     private Button BtnApprove, BtnReject, BtnRemove;
     private View LayoutPendingButtons;
+    private ImageView imageView;
     private TextInputEditText EtAdminNotes;
     private View AdminPanel;
     private Recipe currentRecipe;
-    private DatabaseReference recipesRef;
     private User currentUser;
 
     @Override
@@ -42,8 +46,6 @@ public class RecipeReviewActivity extends AppCompatActivity {
             finish();
             return;
         }
-
-        recipesRef = FirebaseDatabase.getInstance().getReference("recipes");
 
         initializeViews();
         displayRecipeData();
@@ -65,6 +67,7 @@ public class RecipeReviewActivity extends AppCompatActivity {
         LayoutPendingButtons = findViewById(R.id.LayoutPendingButtons);
         EtAdminNotes = findViewById(R.id.EtAdminNotes);
         AdminPanel = findViewById(R.id.AdminPanel);
+        imageView = findViewById(R.id.recipe_review_view);
 
         if (AdminPanel != null) {
             // הפאנל יוצג תמיד כדי שהמנהל יוכל לבדוק
@@ -81,6 +84,8 @@ public class RecipeReviewActivity extends AppCompatActivity {
 
             TvTime.setText("🕒 " + currentRecipe.getPreparationTime());
             TvDifficulty.setText("🔥 " + currentRecipe.getDifficulty());
+            if (currentRecipe.getImageBase64() != null)
+                imageView.setImageBitmap(ImageUtil.convertFrom64base(currentRecipe.getImageBase64()));
         }
     }
 
@@ -112,14 +117,29 @@ public class RecipeReviewActivity extends AppCompatActivity {
         currentRecipe.setApproved(true);
         currentRecipe.setAdminNotes("");
 
-        recipesRef.child(currentRecipe.getId()).setValue(currentRecipe)
-                .addOnSuccessListener(a -> {
-                    Toast.makeText(this, "Recipe Approved Successfully!", Toast.LENGTH_SHORT).show();
-                    finish();
-                })
-                .addOnFailureListener(e ->
-                        Toast.makeText(this, "Error approving recipe: " + e.getMessage(), Toast.LENGTH_SHORT).show()
-                );
+        DatabaseService.getInstance().updateRecipes(currentRecipe.getId(), new UnaryOperator<Recipe>() {
+            @Override
+            public Recipe apply(Recipe recipe) {
+                if (recipe != null) {
+                    recipe.setApproved(currentRecipe.isApproved());
+                    recipe.setAdminNotes(currentRecipe.getAdminNotes());
+                }
+                return recipe;
+            }
+        }, new DatabaseService.DatabaseCallback<Recipe>() {
+            @Override
+            public void onCompleted(@Nullable Recipe serverRecipe) {
+                Toast.makeText(RecipeReviewActivity.this, "Recipe Approved Successfully!", Toast.LENGTH_SHORT).show();
+                finish();
+            }
+
+            @Override
+            public void onFailed(Exception e) {
+                Toast.makeText(RecipeReviewActivity.this, "Error approving recipe: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+
+            }
+        });
+
     }
 
     private void handleRejectClick() {
@@ -139,14 +159,28 @@ public class RecipeReviewActivity extends AppCompatActivity {
         currentRecipe.setApproved(false);
         currentRecipe.setAdminNotes(reason);
 
-        recipesRef.child(currentRecipe.getId()).setValue(currentRecipe)
-                .addOnSuccessListener(a -> {
-                    Toast.makeText(this, "Recipe returned to user.", Toast.LENGTH_LONG).show();
-                    finish();
-                })
-                .addOnFailureListener(e ->
-                        Toast.makeText(this, "Error returning recipe", Toast.LENGTH_SHORT).show()
-                );
+        DatabaseService.getInstance().updateRecipes(currentRecipe.getId(), new UnaryOperator<Recipe>() {
+            @Override
+            public Recipe apply(Recipe recipe) {
+                if (recipe != null) {
+                    recipe.setApproved(currentRecipe.isApproved());
+                    recipe.setAdminNotes(currentRecipe.getAdminNotes());
+                }
+                return recipe;
+            }
+        }, new DatabaseService.DatabaseCallback<Recipe>() {
+            @Override
+            public void onCompleted(@Nullable Recipe serverRecipe) {
+                Toast.makeText(RecipeReviewActivity.this, "Recipe returned to user.", Toast.LENGTH_LONG).show();
+                finish();
+            }
+
+            @Override
+            public void onFailed(Exception e) {
+                Toast.makeText(RecipeReviewActivity.this, "Error returning recipe: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+
+            }
+        });
     }
 
     // פונקציה חדשה: מציגה חלונית אישור לפני המחיקה
@@ -163,13 +197,19 @@ public class RecipeReviewActivity extends AppCompatActivity {
     private void deleteRecipeFromFirebase() {
         if (currentRecipe == null) return;
 
-        recipesRef.child(currentRecipe.getId()).removeValue()
-                .addOnSuccessListener(aVoid -> {
-                    Toast.makeText(this, "Recipe deleted permanently.", Toast.LENGTH_SHORT).show();
-                    finish(); // סוגר את המסך וחוזר למסך הקודם
-                })
-                .addOnFailureListener(e -> {
-                    Toast.makeText(this, "Error deleting recipe: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                });
+        DatabaseService.getInstance().deleteRecipe(currentRecipe.getId(), new DatabaseService.DatabaseCallback<Void>() {
+            @Override
+            public void onCompleted(@Nullable Void v) {
+                Toast.makeText(RecipeReviewActivity.this, "Recipe deleted permanently.", Toast.LENGTH_SHORT).show();
+                finish(); // סוגר את המסך וחוזר למסך הקודם
+            }
+
+            @Override
+            public void onFailed(Exception e) {
+                Toast.makeText(RecipeReviewActivity.this, "Error deleting recipe: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+
+            }
+        });
+
     }
 }

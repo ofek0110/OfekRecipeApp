@@ -6,6 +6,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -14,22 +15,17 @@ import com.example.ofek.R;
 import com.example.ofek.adapters.RecipeAdapter;
 import com.example.ofek.models.Recipe;
 import com.example.ofek.models.User;
+import com.example.ofek.services.DatabaseService;
 import com.example.ofek.utils.SharedPreferencesUtil;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Predicate;
 
 public class RecipeRequestsActivity extends AppCompatActivity {
 
     private RecyclerView RvRequests;
     private RecipeAdapter adapter;
-    private List<Recipe> requestList;
-    private DatabaseReference recipesRef;
     private TextView TvPageTitle;
     private User currentUser;
 
@@ -51,8 +47,6 @@ public class RecipeRequestsActivity extends AppCompatActivity {
 
         RvRequests.setLayoutManager(new LinearLayoutManager(this));
 
-        requestList = new ArrayList<>();
-
         // התיקון כאן: הוספנו את false בתור פרמטר שני
         adapter = new RecipeAdapter(currentUser.getId(), false, new RecipeAdapter.OnRecipeClickListener() {
             @Override
@@ -67,30 +61,28 @@ public class RecipeRequestsActivity extends AppCompatActivity {
         });
 
         RvRequests.setAdapter(adapter);
+
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
         loadRequests();
     }
 
     private void loadRequests() {
-        recipesRef = FirebaseDatabase.getInstance().getReference("recipes");
-        recipesRef.addValueEventListener(new ValueEventListener() {
+
+        DatabaseService.getInstance().getRecipeList(new DatabaseService.DatabaseCallback<List<Recipe>>() {
             @Override
-            public void onDataChange(@NonNull DataSnapshot snapshot) {
-                requestList.clear();
-                for (DataSnapshot data : snapshot.getChildren()) {
-                    Recipe recipe = data.getValue(Recipe.class);
-                    // מציגים למנהל רק אם לא מאושר וגם אין הערות (כלומר חדש או תוקן)
-                    if (recipe != null && !recipe.isApproved()) {
-                        if (recipe.getAdminNotes() == null || recipe.getAdminNotes().isEmpty()) {
-                            requestList.add(recipe);
-                        }
-                    }
-                }
-                adapter.setRecipeList(requestList);
+            public void onCompleted(List<Recipe> recipes) {
+                recipes.removeIf(recipe -> recipe.isApproved());
+                recipes.removeIf(recipe -> !(recipe.getAdminNotes() == null || recipe.getAdminNotes().isEmpty()));
+                adapter.setRecipeList(recipes);
             }
 
             @Override
-            public void onCancelled(@NonNull DatabaseError error) {
-                Toast.makeText(RecipeRequestsActivity.this, "Error loading requests", Toast.LENGTH_SHORT).show();
+            public void onFailed(Exception e) {
+
             }
         });
     }

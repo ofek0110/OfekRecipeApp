@@ -1,6 +1,7 @@
 package com.example.ofek.screens;
 
 import android.content.Intent;
+import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
@@ -14,18 +15,19 @@ import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.ofek.R;
 import com.example.ofek.models.Recipe;
 import com.example.ofek.models.User;
+import com.example.ofek.services.DatabaseService;
+import com.example.ofek.utils.ImageUtil;
 import com.example.ofek.utils.SharedPreferencesUtil;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.textfield.TextInputEditText;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
 
 public class AddRecipeActivity extends AppCompatActivity {
 
@@ -37,26 +39,15 @@ public class AddRecipeActivity extends AppCompatActivity {
     private ImageView IvRecipePreview;
     private TextView TvAddImageHint;
     private MaterialCardView CardSelectImage;
-
-    private DatabaseReference recipesRef;
     private User currentUser;
     private Uri selectedImageUri;
+
+    /// Activity result launcher for selecting image from gallery
+    private ActivityResultLauncher<Intent> selectImageLauncher;
 
     // משתנה לעריכה
     private Recipe recipeToEdit = null;
 
-    private final ActivityResultLauncher<Intent> imagePickerLauncher = registerForActivityResult(
-            new ActivityResultContracts.StartActivityForResult(),
-            result -> {
-                if (result.getResultCode() == RESULT_OK && result.getData() != null) {
-                    selectedImageUri = result.getData().getData();
-                    IvRecipePreview.setImageURI(selectedImageUri);
-                    IvRecipePreview.setPadding(0, 0, 0, 0);
-                    IvRecipePreview.setAlpha(1.0f);
-                    TvAddImageHint.setVisibility(View.GONE);
-                }
-            }
-    );
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -64,7 +55,9 @@ public class AddRecipeActivity extends AppCompatActivity {
         setContentView(R.layout.activity_add_recipe);
 
         currentUser = SharedPreferencesUtil.getUser(this);
-        recipesRef = FirebaseDatabase.getInstance().getReference("recipes");
+
+        /// request permission for the camera and storage
+        ImageUtil.requestPermission(this);
 
         initializeViews();
         setupDropdowns(); // הפונקציה המעודכנת שמגדירה גם רמת קושי וגם קטגוריה
@@ -75,6 +68,19 @@ public class AddRecipeActivity extends AppCompatActivity {
             recipeToEdit = (Recipe) getIntent().getSerializableExtra("RECIPE_TO_EDIT");
             fillFormForEdit();
         }
+
+        /// register the activity result launcher for selecting image from gallery
+        selectImageLauncher = registerForActivityResult(
+                new ActivityResultContracts.StartActivityForResult(),
+                result -> {
+                    if (result.getResultCode() == RESULT_OK && result.getData() != null) {
+                        Uri selectedImage = result.getData().getData();
+                        IvRecipePreview.setImageURI(selectedImage);
+                        /// set the tag for the image view to null
+                        IvRecipePreview.setTag(null);
+                    }
+                });
+
     }
 
     private void initializeViews() {
@@ -120,7 +126,7 @@ public class AddRecipeActivity extends AppCompatActivity {
     }
 
     private void setupClickListeners() {
-        CardSelectImage.setOnClickListener(v -> openGallery());
+        CardSelectImage.setOnClickListener(v -> selectImageFromGallery());
         BtnSubmit.setOnClickListener(v -> submitRecipe());
     }
 
@@ -151,9 +157,10 @@ public class AddRecipeActivity extends AppCompatActivity {
         }
     }
 
-    private void openGallery() {
+    /// select image from gallery
+    private void selectImageFromGallery() {
         Intent intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
-        imagePickerLauncher.launch(intent);
+        selectImageLauncher.launch(intent);
     }
 
     private void submitRecipe() {
@@ -179,15 +186,10 @@ public class AddRecipeActivity extends AppCompatActivity {
         if (recipeToEdit != null) {
             recipeId = recipeToEdit.getId();
         } else {
-            recipeId = recipesRef.push().getKey();
+            recipeId = DatabaseService.getInstance().generateRecipeId();
         }
 
-        String imageUrl = "";
-        if (selectedImageUri != null) {
-            imageUrl = selectedImageUri.toString();
-        } else if (recipeToEdit != null) {
-            imageUrl = recipeToEdit.getImageUrl();
-        }
+        String imageBase64 = ImageUtil.convertTo64Base(IvRecipePreview);
 
         Recipe newRecipe = new Recipe(
                 recipeId,
@@ -195,24 +197,30 @@ public class AddRecipeActivity extends AppCompatActivity {
                 description,
                 ingredients,
                 instructions,
+                imageBase64,
                 currentUser.getId(),
                 category, // הקטגוריה שנבחרה נכנסת לכאן
                 prepTime,
-                difficulty
+                difficulty,
+                false,
+                null
         );
-        newRecipe.setImageUrl(imageUrl);
         newRecipe.setApproved(false);
         newRecipe.setAdminNotes("");
 
         if (recipeId != null) {
-            recipesRef.child(recipeId).setValue(newRecipe)
-                    .addOnSuccessListener(aVoid -> {
-                        Toast.makeText(this, "Recipe submitted successfully!", Toast.LENGTH_LONG).show();
-                        finish();
-                    })
-                    .addOnFailureListener(e -> {
-                        Toast.makeText(this, "Failed to submit recipe", Toast.LENGTH_SHORT).show();
-                    });
+            DatabaseService.getInstance().createNewRecipe(newRecipe, new DatabaseService.DatabaseCallback<Void>() {
+                @Override
+                public void onCompleted(@Nullable Void v) {
+                    Toast.makeText(AddRecipeActivity.this, "Recipe submitted successfully!", Toast.LENGTH_LONG).show();
+                    finish();
+                }
+
+                @Override
+                public void onFailed(Exception e) {
+                    Toast.makeText(AddRecipeActivity.this, "Failed to submit recipe", Toast.LENGTH_SHORT).show();
+                }
+            });
         }
     }
 }

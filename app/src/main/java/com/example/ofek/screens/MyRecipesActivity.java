@@ -7,6 +7,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -16,24 +17,20 @@ import com.example.ofek.R;
 import com.example.ofek.adapters.RecipeAdapter;
 import com.example.ofek.models.Recipe;
 import com.example.ofek.models.User;
+import com.example.ofek.services.DatabaseService;
 import com.example.ofek.utils.SharedPreferencesUtil;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
+import java.util.function.Predicate;
 
 public class MyRecipesActivity extends AppCompatActivity {
 
     private RecyclerView RvMyRecipes;
     private TextView TvEmptyState;
     private RecipeAdapter adapter;
-    private List<Recipe> myRecipesList;
-    private DatabaseReference recipesRef;
     private User currentUser;
 
     @Override
@@ -52,7 +49,6 @@ public class MyRecipesActivity extends AppCompatActivity {
 
         RvMyRecipes.setLayoutManager(new LinearLayoutManager(this));
 
-        myRecipesList = new ArrayList<>();
 
         adapter = new RecipeAdapter(currentUser.getId(), true, new RecipeAdapter.OnRecipeClickListener() {
             @Override
@@ -69,38 +65,29 @@ public class MyRecipesActivity extends AppCompatActivity {
     }
 
     private void loadMyRecipes() {
-        recipesRef = FirebaseDatabase.getInstance().getReference("recipes");
 
-        recipesRef.orderByChild("userId").equalTo(currentUser.getId())
-                .addValueEventListener(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(@NonNull DataSnapshot snapshot) {
-                        myRecipesList.clear();
-                        for (DataSnapshot data : snapshot.getChildren()) {
-                            Recipe recipe = data.getValue(Recipe.class);
-                            if (recipe != null) {
-                                myRecipesList.add(recipe);
-                            }
-                        }
+        DatabaseService.getInstance().getRecipeList(new DatabaseService.DatabaseCallback<List<Recipe>>() {
+            @Override
+            public void onCompleted(List<Recipe> recipes) {
+                recipes.removeIf(recipe -> !Objects.equals(recipe.getUserId(),currentUser.getId()));
+                Collections.reverse(recipes);
 
-                        Collections.reverse(myRecipesList);
+                if (recipes.isEmpty()) {
+                    TvEmptyState.setVisibility(View.VISIBLE);
+                    RvMyRecipes.setVisibility(View.GONE);
+                } else {
+                    TvEmptyState.setVisibility(View.GONE);
+                    RvMyRecipes.setVisibility(View.VISIBLE);
+                }
 
-                        if (myRecipesList.isEmpty()) {
-                            TvEmptyState.setVisibility(View.VISIBLE);
-                            RvMyRecipes.setVisibility(View.GONE);
-                        } else {
-                            TvEmptyState.setVisibility(View.GONE);
-                            RvMyRecipes.setVisibility(View.VISIBLE);
-                        }
+                adapter.setRecipeList(recipes);
+            }
 
-                        adapter.setRecipeList(myRecipesList);
-                    }
+            @Override
+            public void onFailed(Exception e) {
 
-                    @Override
-                    public void onCancelled(@NonNull DatabaseError error) {
-                        Toast.makeText(MyRecipesActivity.this, "Error loading recipes", Toast.LENGTH_SHORT).show();
-                    }
-                });
+            }
+        });
     }
 
     private void handleRecipeClick(Recipe recipe) {
