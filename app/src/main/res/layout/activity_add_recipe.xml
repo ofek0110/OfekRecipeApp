@@ -61,9 +61,9 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center"
-                    android:text="+ Add Recipe Photo"
+                    android:text="+ Set Photo"
                     android:textColor="#94A3B8"
-                    android:textStyle="bold"/>
+                    android:textStyle="bold" />
             </FrameLayout>
         </com.google.android.material.card.MaterialCardView>
 

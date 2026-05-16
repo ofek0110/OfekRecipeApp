@@ -62,7 +62,7 @@ public class SavedRecipesFragment extends Fragment {
             @Override
             public void onRecipeClick(Recipe recipe) {
                 Intent intent = new Intent(requireContext(), RecipeReviewActivity.class);
-                intent.putExtra("recipe", recipe);
+                intent.putExtra("recipe_id", recipe.getId());
                 startActivity(intent);
             }
 
@@ -85,14 +85,11 @@ public class SavedRecipesFragment extends Fragment {
                 DatabaseService.getInstance().getRecipeList(new DatabaseService.DatabaseCallback<List<Recipe>>() {
                     @Override
                     public void onCompleted(List<Recipe> recipes) {
-                        recipes.removeIf(new Predicate<Recipe>() {
-                            @Override
-                            public boolean test(Recipe recipe) {
-                                return !recipeIds.contains(recipe.getId());
-                            }
-                        });
+                        recipes.removeIf(recipe -> !recipe.isApproved());
+                        recipes.removeIf(recipe -> !recipeIds.contains(recipe.getId()));
                         savedRecipesList.clear();
                         savedRecipesList.addAll(recipes);
+                        adapter.setRecipeList(savedRecipesList);
                         updateUI(savedRecipesList.isEmpty());
 
                     }

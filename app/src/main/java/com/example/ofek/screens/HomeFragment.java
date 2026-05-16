@@ -85,7 +85,7 @@ public class HomeFragment extends Fragment {
             @Override
             public void onRecipeClick(Recipe recipe) {
                 Intent intent = new Intent(requireContext(), RecipeReviewActivity.class);
-                intent.putExtra("recipe", recipe);
+                intent.putExtra("recipe_id", recipe.getId());
                 startActivity(intent);
             }
 
@@ -179,16 +179,14 @@ public class HomeFragment extends Fragment {
             public void onCompleted(@Nullable List<Recipe> recipes) {
                 if (!isAdded()) return;
                 recipeList.clear();
-                recipes.removeIf(recipe -> recipe.isApproved());
+                assert recipes != null;
 
-                int pendingCount = (int) recipes.stream().filter(new Predicate<Recipe>() {
-                    @Override
-                    public boolean test(Recipe recipe) {
-                        return recipe.getAdminNotes() == null || recipe.getAdminNotes().isEmpty();
-                    }
-                }).count();
+                int pendingCount = (int) recipes.stream().filter(Recipe::isPending).count();
+
+                recipes.removeIf(recipe -> !recipe.isApproved());
+
                 recipeList.clear();
-                recipes.addAll(recipes);
+                recipeList.addAll(recipes);
                 Collections.reverse(recipeList);
                 filterRecipes(etSearch.getText().toString());
 

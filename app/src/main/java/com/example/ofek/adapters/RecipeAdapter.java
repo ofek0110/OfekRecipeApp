@@ -1,6 +1,7 @@
 package com.example.ofek.adapters;
 
 import android.graphics.Color;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -18,6 +19,8 @@ import com.example.ofek.models.Recipe;
 import com.example.ofek.services.DatabaseService;
 import com.example.ofek.utils.ImageUtil;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.util.List;
 
 public class RecipeAdapter extends RecyclerView.Adapter<RecipeAdapter.RecipeViewHolder> {
@@ -32,7 +35,7 @@ public class RecipeAdapter extends RecyclerView.Adapter<RecipeAdapter.RecipeView
         void onLongRecipeClick(Recipe recipe);
     }
 
-    public RecipeAdapter(String currentUserId, boolean showStatus, OnRecipeClickListener listener) {
+    public RecipeAdapter(@NotNull String currentUserId, boolean showStatus, OnRecipeClickListener listener) {
         this.currentUserId = currentUserId;
         this.showStatus = showStatus;
         this.listener = listener;
@@ -110,6 +113,7 @@ public class RecipeAdapter extends RecyclerView.Adapter<RecipeAdapter.RecipeView
         DatabaseService.getInstance().getFavoriteRecipeByUserAndRecipe(this.currentUserId, recipeId, new DatabaseService.DatabaseCallback<FavoriteRecipe>() {
             @Override
             public void onCompleted(FavoriteRecipe favoriteRecipe) {
+                Log.e("TAG", "onCompleted: " + favoriteRecipe);
                 if (favoriteRecipe != null) // exist
                 {
                     DatabaseService.getInstance().deleteFavoriteRecipe(favoriteRecipe.getId(), new DatabaseService.DatabaseCallback<Void>() {
@@ -125,7 +129,7 @@ public class RecipeAdapter extends RecyclerView.Adapter<RecipeAdapter.RecipeView
                     });
                 } else {
                     String id = DatabaseService.getInstance().generateFavoriteRecipeId();
-                    FavoriteRecipe favoriteRecipe1 = new FavoriteRecipe(id, currentUserId, recipeId);
+                    FavoriteRecipe favoriteRecipe1 = new FavoriteRecipe(id, recipeId, currentUserId);
                     DatabaseService.getInstance().createNewFavoriteRecipe(favoriteRecipe1, new DatabaseService.DatabaseCallback<Void>() {
                         @Override
                         public void onCompleted(@Nullable Void object) {

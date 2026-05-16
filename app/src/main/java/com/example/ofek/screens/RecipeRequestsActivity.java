@@ -52,7 +52,7 @@ public class RecipeRequestsActivity extends AppCompatActivity {
             @Override
             public void onRecipeClick(Recipe recipe) {
                 Intent intent = new Intent(RecipeRequestsActivity.this, RecipeReviewActivity.class);
-                intent.putExtra("recipe", recipe);
+                intent.putExtra("recipe_id", recipe.getId());
                 startActivity(intent);
             }
 
@@ -75,8 +75,7 @@ public class RecipeRequestsActivity extends AppCompatActivity {
         DatabaseService.getInstance().getRecipeList(new DatabaseService.DatabaseCallback<List<Recipe>>() {
             @Override
             public void onCompleted(List<Recipe> recipes) {
-                recipes.removeIf(recipe -> recipe.isApproved());
-                recipes.removeIf(recipe -> !(recipe.getAdminNotes() == null || recipe.getAdminNotes().isEmpty()));
+                recipes.removeIf(recipe -> !recipe.isPending());
                 adapter.setRecipeList(recipes);
             }
 

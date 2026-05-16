@@ -30,6 +30,7 @@ public class RecipeReviewActivity extends AppCompatActivity {
     private TextInputEditText EtAdminNotes;
     private View AdminPanel;
     private Recipe currentRecipe;
+    private String recipeId;
     private User currentUser;
 
     @Override
@@ -39,8 +40,8 @@ public class RecipeReviewActivity extends AppCompatActivity {
 
         currentUser = SharedPreferencesUtil.getUser(this);
 
-        if (getIntent().hasExtra("recipe")) {
-            currentRecipe = (Recipe) getIntent().getSerializableExtra("recipe");
+        if (getIntent().hasExtra("recipe_id")) {
+            recipeId = getIntent().getStringExtra("recipe_id");
         } else {
             Toast.makeText(this, "Error: No recipe data found", Toast.LENGTH_SHORT).show();
             finish();
@@ -48,9 +49,20 @@ public class RecipeReviewActivity extends AppCompatActivity {
         }
 
         initializeViews();
-        displayRecipeData();
-        setupClickListeners();
-        setupAdminPanel();
+        DatabaseService.getInstance().getRecipe(recipeId, new DatabaseService.DatabaseCallback<Recipe>() {
+            @Override
+            public void onCompleted(@Nullable Recipe recipe) {
+                currentRecipe = recipe;
+                displayRecipeData();
+                setupAdminPanel();
+                setupClickListeners();
+            }
+
+            @Override
+            public void onFailed(Exception e) {
+
+            }
+        });
     }
 
     private void initializeViews() {
@@ -69,24 +81,22 @@ public class RecipeReviewActivity extends AppCompatActivity {
         AdminPanel = findViewById(R.id.AdminPanel);
         imageView = findViewById(R.id.recipe_review_view);
 
-        if (AdminPanel != null) {
+        if (currentUser.isAdmin()) {
             // הפאנל יוצג תמיד כדי שהמנהל יוכל לבדוק
             AdminPanel.setVisibility(View.VISIBLE);
         }
     }
 
     private void displayRecipeData() {
-        if (currentRecipe != null) {
-            TvTitle.setText(currentRecipe.getTitle());
-            TvDescription.setText(currentRecipe.getDescription());
-            TvIngredients.setText(currentRecipe.getIngredients());
-            TvInstructions.setText(currentRecipe.getInstructions());
+        TvTitle.setText(currentRecipe.getTitle());
+        TvDescription.setText(currentRecipe.getDescription());
+        TvIngredients.setText(currentRecipe.getIngredients());
+        TvInstructions.setText(currentRecipe.getInstructions());
 
-            TvTime.setText("🕒 " + currentRecipe.getPreparationTime());
-            TvDifficulty.setText("🔥 " + currentRecipe.getDifficulty());
-            if (currentRecipe.getImageBase64() != null)
-                imageView.setImageBitmap(ImageUtil.convertFrom64base(currentRecipe.getImageBase64()));
-        }
+        TvTime.setText("🕒 " + currentRecipe.getPreparationTime());
+        TvDifficulty.setText("🔥 " + currentRecipe.getDifficulty());
+        if (currentRecipe.getImageBase64() != null)
+            imageView.setImageBitmap(ImageUtil.convertFrom64base(currentRecipe.getImageBase64()));
     }
 
     private void setupAdminPanel() {

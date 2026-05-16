@@ -438,11 +438,16 @@ public class DatabaseService {
 
 
     public void getFavoriteRecipeByUserAndRecipe(@NotNull final String uid, @NotNull final String rid, @NotNull final DatabaseCallback<FavoriteRecipe> callback) {
+        Log.e("TAG", "getFavoriteRecipeByUserAndRecipe: " + uid + " " + rid);
         getFavoriteRecipeList(new DatabaseCallback<List<FavoriteRecipe>>() {
             @Override
             public void onCompleted(List<FavoriteRecipe> favoriteRecipes) {
                 for (FavoriteRecipe favoriteRecipe: favoriteRecipes) {
+                    Log.e("TAG", "onCompleted: user id: " + favoriteRecipe.getUserId());
+                    Log.e("TAG", "onCompleted: recipe id: " + favoriteRecipe.getRecipeId());
+                    Log.e("TAG", "-----------------------");
                     if (Objects.equals(favoriteRecipe.getUserId(), uid) && Objects.equals(favoriteRecipe.getRecipeId(), rid)) {
+                        Log.e("TAG", "onCompleted: " + favoriteRecipe);
                         callback.onCompleted(favoriteRecipe);
                         return;
                     }

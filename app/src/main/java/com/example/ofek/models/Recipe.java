@@ -1,5 +1,7 @@
 package com.example.ofek.models;
 
+import com.google.firebase.database.Exclude;
+
 import java.io.Serializable;
 
 public class Recipe implements Serializable {
@@ -135,5 +137,15 @@ public class Recipe implements Serializable {
 
     public void setAdminNotes(String adminNotes) {
         this.adminNotes = adminNotes;
+    }
+
+
+    @Exclude
+    public boolean isPending() {
+        return !isApproved && (adminNotes == null || adminNotes.isEmpty());
+    }
+    @Exclude
+    public boolean isRejected() {
+        return !isApproved && (adminNotes != null && !adminNotes.isEmpty());
     }
 }

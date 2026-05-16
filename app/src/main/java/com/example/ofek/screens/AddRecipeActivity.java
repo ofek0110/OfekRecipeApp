@@ -10,9 +10,12 @@ import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.activity.result.ActivityResult;
+import androidx.activity.result.ActivityResultCallback;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.Nullable;
@@ -20,14 +23,19 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.ofek.R;
+import com.example.ofek.adapters.ImageSourceAdapter;
+import com.example.ofek.models.ImageSourceOption;
 import com.example.ofek.models.Recipe;
 import com.example.ofek.models.User;
 import com.example.ofek.services.DatabaseService;
 import com.example.ofek.utils.ImageUtil;
 import com.example.ofek.utils.SharedPreferencesUtil;
+import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.textfield.TextInputEditText;
+
+import java.util.ArrayList;
 
 public class AddRecipeActivity extends AppCompatActivity {
 
@@ -44,6 +52,8 @@ public class AddRecipeActivity extends AppCompatActivity {
 
     /// Activity result launcher for selecting image from gallery
     private ActivityResultLauncher<Intent> selectImageLauncher;
+    /// Activity result launcher for capturing image from camera
+    private ActivityResultLauncher<Intent> captureImageLauncher;
 
     // משתנה לעריכה
     private Recipe recipeToEdit = null;
@@ -64,9 +74,22 @@ public class AddRecipeActivity extends AppCompatActivity {
         setupClickListeners();
 
         // בדיקה אם נכנסנו למצב עריכה
-        if (getIntent().hasExtra("RECIPE_TO_EDIT")) {
-            recipeToEdit = (Recipe) getIntent().getSerializableExtra("RECIPE_TO_EDIT");
-            fillFormForEdit();
+        if (getIntent().hasExtra("RECIPE_ID_TO_EDIT")) {
+            String recipeIdToEdit = getIntent().getStringExtra("RECIPE_ID_TO_EDIT");
+            assert recipeIdToEdit != null;
+            DatabaseService.getInstance().getRecipe(recipeIdToEdit, new DatabaseService.DatabaseCallback<Recipe>() {
+                @Override
+                public void onCompleted(@Nullable Recipe recipe) {
+                    recipeToEdit = recipe;
+                    fillFormForEdit();
+                }
+
+                @Override
+                public void onFailed(Exception e) {
+
+                }
+            });
+
         }
 
         /// register the activity result launcher for selecting image from gallery
@@ -76,6 +99,17 @@ public class AddRecipeActivity extends AppCompatActivity {
                     if (result.getResultCode() == RESULT_OK && result.getData() != null) {
                         Uri selectedImage = result.getData().getData();
                         IvRecipePreview.setImageURI(selectedImage);
+                        /// set the tag for the image view to null
+                        IvRecipePreview.setTag(null);
+                    }
+                });
+        /// register the activity result launcher for capturing image from camera
+        captureImageLauncher = registerForActivityResult(
+                new ActivityResultContracts.StartActivityForResult(),
+                result -> {
+                    if (result.getResultCode() == RESULT_OK && result.getData() != null) {
+                        Bitmap bitmap = (Bitmap) result.getData().getExtras().get("data");
+                        IvRecipePreview.setImageBitmap(bitmap);
                         /// set the tag for the image view to null
                         IvRecipePreview.setTag(null);
                     }
@@ -91,7 +125,7 @@ public class AddRecipeActivity extends AppCompatActivity {
         EtPrepTime = findViewById(R.id.EtPrepTime);
         ActvDifficulty = findViewById(R.id.ActvDifficulty);
 
-        // חיבור הקטגוריה למסך (יש לוודא שהוספת את זה בקובץ ה-XML)
+        // חיבור הקטגוריה למסך
         ActvCategory = findViewById(R.id.ActvCategory);
 
         BtnSubmit = findViewById(R.id.BtnSubmitRecipe);
@@ -126,8 +160,42 @@ public class AddRecipeActivity extends AppCompatActivity {
     }
 
     private void setupClickListeners() {
-        CardSelectImage.setOnClickListener(v -> selectImageFromGallery());
+        CardSelectImage.setOnClickListener(v -> showImageSourceDialog());
         BtnSubmit.setOnClickListener(v -> submitRecipe());
+    }
+
+    /// capture image from camera
+    private void captureImageFromCamera() {
+        Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+        captureImageLauncher.launch(takePictureIntent);
+    }
+
+    /// show the image source dialog
+    /// this dialog will show the options to select image from gallery or capture image from camera
+    /// @see ImageSourceOption
+    /// @see ImageSourceAdapter
+    /// @see BottomSheetDialog
+    private void showImageSourceDialog() {
+        BottomSheetDialog bottomSheetDialog = new BottomSheetDialog(this);
+        View bottomSheetView = getLayoutInflater().inflate(R.layout.bottom_sheet_image_source, null);
+        bottomSheetDialog.setContentView(bottomSheetView);
+
+        final ArrayList<ImageSourceOption> options = new ArrayList<>();
+        options.add(new ImageSourceOption(getString(R.string.gallery_title), getString(R.string.gallery_description), R.drawable.gallery_thumbnail));
+        options.add(new ImageSourceOption(getString(R.string.camera_title), getString(R.string.camera_description), R.drawable.photo_camera));
+
+        ListView listView = bottomSheetView.findViewById(R.id.list_view_image_sources);
+        ImageSourceAdapter adapter = new ImageSourceAdapter(this, options, option -> {
+            bottomSheetDialog.dismiss();
+            if (option.getTitle().equals(getString(R.string.gallery_title))) {
+                selectImageFromGallery();
+            } else if (option.getTitle().equals(getString(R.string.camera_title))) {
+                captureImageFromCamera();
+            }
+        });
+        listView.setAdapter(adapter);
+
+        bottomSheetDialog.show();
     }
 
     private void fillFormForEdit() {

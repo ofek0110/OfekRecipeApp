@@ -105,7 +105,7 @@ public class MyRecipesActivity extends AppCompatActivity {
                     })
                     .setNeutralButton("View Recipe", (dialog, which) -> {
                         Intent intent = new Intent(MyRecipesActivity.this, RecipeReviewActivity.class);
-                        intent.putExtra("recipe", recipe);
+                        intent.putExtra("recipe_id", recipe.getId());
                         startActivity(intent);
                     })
                     .setNegativeButton("Later", null)
@@ -118,19 +118,19 @@ public class MyRecipesActivity extends AppCompatActivity {
     // פונקציית עזר שחוסכת קוד כפול - מקפיצה את הדיאלוג של בחירה בין צפייה לעריכה
     private void showRecipeOptionsDialog(Recipe recipe, String message) {
         new AlertDialog.Builder(this)
-                .setTitle(recipe.getTitle())
-                .setMessage(message)
-                .setPositiveButton("View", (dialog, which) -> {
-                    Intent intent = new Intent(MyRecipesActivity.this, RecipeReviewActivity.class);
-                    intent.putExtra("recipe", recipe);
-                    startActivity(intent);
-                })
-                .setNegativeButton("Edit", (dialog, which) -> {
-                    Intent intent = new Intent(MyRecipesActivity.this, AddRecipeActivity.class);
-                    intent.putExtra("RECIPE_TO_EDIT", recipe);
-                    startActivity(intent);
-                })
-                .setNeutralButton("Cancel", null)
-                .show();
+            .setTitle(recipe.getTitle())
+            .setMessage(message)
+            .setPositiveButton("View", (dialog, which) -> {
+                Intent intent = new Intent(MyRecipesActivity.this, RecipeReviewActivity.class);
+                intent.putExtra("recipe_id", recipe.getId());
+                startActivity(intent);
+            })
+            .setNegativeButton("Edit", (dialog, which) -> {
+                Intent intent = new Intent(MyRecipesActivity.this, AddRecipeActivity.class);
+                intent.putExtra("RECIPE_TO_EDIT", recipe);
+                startActivity(intent);
+            })
+            .setNeutralButton("Cancel", null)
+            .show();
     }
 }
