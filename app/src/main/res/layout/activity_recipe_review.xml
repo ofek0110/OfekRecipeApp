@@ -83,7 +83,34 @@
                         android:textSize="26sp"
                         android:textStyle="bold"
                         android:textColor="#0F172A"
-                        android:layout_marginBottom="12dp"/>
+                        android:layout_marginBottom="4dp"/>
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:layout_marginBottom="12dp">
+
+                        <RatingBar
+                            android:id="@+id/RbRecipeRatingDisplay"
+                            style="?android:attr/ratingBarStyleSmall"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:isIndicator="true"
+                            android:numStars="5"
+                            android:progressTint="#F59E0B"
+                            android:stepSize="0.1" />
+
+                        <TextView
+                            android:id="@+id/TvRatingCount"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="8dp"
+                            android:text="(0 ratings)"
+                            android:textColor="#94A3B8"
+                            android:textSize="14sp"/>
+                    </LinearLayout>
 
                     <LinearLayout
                         android:layout_width="match_parent"
@@ -211,6 +238,44 @@
                         android:lineSpacingExtra="8dp"
                         android:textColor="#0F172A"
                         android:textSize="16sp"/>
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/CardUserRating"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="24dp"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="0dp"
+                app:cardBackgroundColor="#FFFFFF"
+                app:strokeColor="#E2E8F0"
+                app:strokeWidth="1dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:gravity="center"
+                    android:padding="24dp">
+
+                    <TextView
+                        android:id="@+id/TvUserRatingTitle"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Rate this recipe:"
+                        android:textSize="18sp"
+                        android:textStyle="bold"
+                        android:textColor="#0F172A"
+                        android:layout_marginBottom="8dp"/>
+
+                    <RatingBar
+                        android:id="@+id/RbUserRating"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:numStars="5"
+                        android:stepSize="1.0"
+                        android:progressTint="#F59E0B" />
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 

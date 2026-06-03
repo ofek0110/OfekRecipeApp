@@ -14,8 +14,6 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.activity.result.ActivityResult;
-import androidx.activity.result.ActivityResultCallback;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.Nullable;
@@ -36,11 +34,12 @@ import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.textfield.TextInputEditText;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 
 public class AddRecipeActivity extends AppCompatActivity {
 
     private TextInputEditText EtTitle, EtDescription, EtIngredients, EtInstructions, EtPrepTime;
-    private AutoCompleteTextView ActvDifficulty, ActvCategory; // הוספנו את רכיב הקטגוריה
+    private AutoCompleteTextView ActvDifficulty, ActvCategory;
 
     private Button BtnSubmit;
     private MaterialButton BtnViewRejectionReason;
@@ -50,14 +49,13 @@ public class AddRecipeActivity extends AppCompatActivity {
     private User currentUser;
     private Uri selectedImageUri;
 
-    /// Activity result launcher for selecting image from gallery
+    private int selectedHour = 0;
+    private int selectedMinute = 0;
+
     private ActivityResultLauncher<Intent> selectImageLauncher;
-    /// Activity result launcher for capturing image from camera
     private ActivityResultLauncher<Intent> captureImageLauncher;
 
-    // משתנה לעריכה
     private Recipe recipeToEdit = null;
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -66,14 +64,12 @@ public class AddRecipeActivity extends AppCompatActivity {
 
         currentUser = SharedPreferencesUtil.getUser(this);
 
-        /// request permission for the camera and storage
         ImageUtil.requestPermission(this);
 
         initializeViews();
-        setupDropdowns(); // הפונקציה המעודכנת שמגדירה גם רמת קושי וגם קטגוריה
+        setupDropdowns();
         setupClickListeners();
 
-        // בדיקה אם נכנסנו למצב עריכה
         if (getIntent().hasExtra("RECIPE_ID_TO_EDIT")) {
             String recipeIdToEdit = getIntent().getStringExtra("RECIPE_ID_TO_EDIT");
             assert recipeIdToEdit != null;
@@ -89,32 +85,27 @@ public class AddRecipeActivity extends AppCompatActivity {
 
                 }
             });
-
         }
 
-        /// register the activity result launcher for selecting image from gallery
         selectImageLauncher = registerForActivityResult(
                 new ActivityResultContracts.StartActivityForResult(),
                 result -> {
                     if (result.getResultCode() == RESULT_OK && result.getData() != null) {
                         Uri selectedImage = result.getData().getData();
                         IvRecipePreview.setImageURI(selectedImage);
-                        /// set the tag for the image view to null
                         IvRecipePreview.setTag(null);
                     }
                 });
-        /// register the activity result launcher for capturing image from camera
+
         captureImageLauncher = registerForActivityResult(
                 new ActivityResultContracts.StartActivityForResult(),
                 result -> {
                     if (result.getResultCode() == RESULT_OK && result.getData() != null) {
                         Bitmap bitmap = (Bitmap) result.getData().getExtras().get("data");
                         IvRecipePreview.setImageBitmap(bitmap);
-                        /// set the tag for the image view to null
                         IvRecipePreview.setTag(null);
                     }
                 });
-
     }
 
     private void initializeViews() {
@@ -124,8 +115,6 @@ public class AddRecipeActivity extends AppCompatActivity {
         EtInstructions = findViewById(R.id.EtRecipeInstructions);
         EtPrepTime = findViewById(R.id.EtPrepTime);
         ActvDifficulty = findViewById(R.id.ActvDifficulty);
-
-        // חיבור הקטגוריה למסך
         ActvCategory = findViewById(R.id.ActvCategory);
 
         BtnSubmit = findViewById(R.id.BtnSubmitRecipe);
@@ -136,7 +125,6 @@ public class AddRecipeActivity extends AppCompatActivity {
     }
 
     private void setupDropdowns() {
-        // הגדרת רמת קושי
         String[] difficulties = new String[] {"Easy", "Medium", "Hard"};
         ArrayAdapter<String> difficultyAdapter = new ArrayAdapter<>(
                 this,
@@ -146,7 +134,6 @@ public class AddRecipeActivity extends AppCompatActivity {
         ActvDifficulty.setAdapter(difficultyAdapter);
         ActvDifficulty.setText(difficulties[1], false);
 
-        // הגדרת קטגוריות
         if (ActvCategory != null) {
             String[] categories = new String[] {"Breakfast", "Lunch", "Vegan", "Desserts", "Dinner", "General"};
             ArrayAdapter<String> categoryAdapter = new ArrayAdapter<>(
@@ -155,26 +142,54 @@ public class AddRecipeActivity extends AppCompatActivity {
                     categories
             );
             ActvCategory.setAdapter(categoryAdapter);
-            ActvCategory.setText(categories[5], false); // ברירת מחדל: General
+            ActvCategory.setText(categories[5], false);
         }
     }
 
     private void setupClickListeners() {
         CardSelectImage.setOnClickListener(v -> showImageSourceDialog());
         BtnSubmit.setOnClickListener(v -> submitRecipe());
+        EtPrepTime.setOnClickListener(v -> showTimePickerWheel());
     }
 
-    /// capture image from camera
+    private void showTimePickerWheel() {
+        android.app.TimePickerDialog timePickerDialog = new android.app.TimePickerDialog(
+                this,
+                android.R.style.Theme_Holo_Light_Dialog_NoActionBar,
+                new android.app.TimePickerDialog.OnTimeSetListener() {
+                    @Override
+                    public void onTimeSet(android.widget.TimePicker view, int hourOfDay, int minute) {
+                        selectedHour = hourOfDay;
+                        selectedMinute = minute;
+
+                        String timeText = "";
+                        if (selectedHour > 0) {
+                            timeText += selectedHour + " שעות ";
+                        }
+                        if (selectedMinute > 0 || selectedHour == 0) {
+                            timeText += selectedMinute + " דקות";
+                        }
+
+                        EtPrepTime.setText(timeText.trim());
+                    }
+                },
+                selectedHour,
+                selectedMinute,
+                true
+        );
+
+        if (timePickerDialog.getWindow() != null) {
+            timePickerDialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
+        }
+        timePickerDialog.setTitle("בחר זמן הכנה:");
+        timePickerDialog.show();
+    }
+
     private void captureImageFromCamera() {
         Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
         captureImageLauncher.launch(takePictureIntent);
     }
 
-    /// show the image source dialog
-    /// this dialog will show the options to select image from gallery or capture image from camera
-    /// @see ImageSourceOption
-    /// @see ImageSourceAdapter
-    /// @see BottomSheetDialog
     private void showImageSourceDialog() {
         BottomSheetDialog bottomSheetDialog = new BottomSheetDialog(this);
         View bottomSheetView = getLayoutInflater().inflate(R.layout.bottom_sheet_image_source, null);
@@ -206,7 +221,6 @@ public class AddRecipeActivity extends AppCompatActivity {
         EtPrepTime.setText(recipeToEdit.getPreparationTime());
         ActvDifficulty.setText(recipeToEdit.getDifficulty(), false);
 
-        // עדכון הקטגוריה במסך העריכה
         if (ActvCategory != null && recipeToEdit.getCategory() != null) {
             ActvCategory.setText(recipeToEdit.getCategory(), false);
         }
@@ -225,7 +239,6 @@ public class AddRecipeActivity extends AppCompatActivity {
         }
     }
 
-    /// select image from gallery
     private void selectImageFromGallery() {
         Intent intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
         selectImageLauncher.launch(intent);
@@ -239,13 +252,12 @@ public class AddRecipeActivity extends AppCompatActivity {
         String prepTime = EtPrepTime.getText().toString().trim();
         String difficulty = ActvDifficulty.getText().toString().trim();
 
-        // שליפת הקטגוריה שנבחרה במקום לקבע אותה
         String category = "General";
         if (ActvCategory != null) {
             category = ActvCategory.getText().toString().trim();
         }
 
-        if (title.isEmpty() || description.isEmpty() || ingredients.isEmpty() || instructions.isEmpty()) {
+        if (title.isEmpty() || description.isEmpty() || ingredients.isEmpty() || instructions.isEmpty() || prepTime.isEmpty()) {
             Toast.makeText(this, "Please fill all fields", Toast.LENGTH_SHORT).show();
             return;
         }
@@ -259,6 +271,7 @@ public class AddRecipeActivity extends AppCompatActivity {
 
         String imageBase64 = ImageUtil.convertTo64Base(IvRecipePreview);
 
+        // שימוש במבנה החדש שכולל HashMap ריק להצבעות
         Recipe newRecipe = new Recipe(
                 recipeId,
                 title,
@@ -267,11 +280,14 @@ public class AddRecipeActivity extends AppCompatActivity {
                 instructions,
                 imageBase64,
                 currentUser.getId(),
-                category, // הקטגוריה שנבחרה נכנסת לכאן
+                category,
                 prepTime,
                 difficulty,
                 false,
-                null
+                null,
+                0f,
+                0,
+                new HashMap<>() // המשתנה החדש של הרשימה הריקה
         );
         newRecipe.setApproved(false);
         newRecipe.setAdminNotes("");

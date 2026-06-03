@@ -4,6 +4,7 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.RatingBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -17,8 +18,11 @@ import com.example.ofek.models.User;
 import com.example.ofek.services.DatabaseService;
 import com.example.ofek.utils.ImageUtil;
 import com.example.ofek.utils.SharedPreferencesUtil;
+import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.textfield.TextInputEditText;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.function.UnaryOperator;
 
 public class RecipeReviewActivity extends AppCompatActivity {
@@ -26,9 +30,15 @@ public class RecipeReviewActivity extends AppCompatActivity {
     private TextView TvTitle, TvDescription, TvIngredients, TvInstructions, TvTime, TvDifficulty;
     private Button BtnApprove, BtnReject, BtnRemove;
     private View LayoutPendingButtons;
-    private ImageView imageView;
+    private ImageView IvRecipeImage;
     private TextInputEditText EtAdminNotes;
     private View AdminPanel;
+
+    // משתני הדירוג
+    private RatingBar RbRecipeRatingDisplay, RbUserRating;
+    private TextView TvRatingCount, TvUserRatingTitle;
+    private MaterialCardView CardUserRating;
+
     private Recipe currentRecipe;
     private String recipeId;
     private User currentUser;
@@ -49,18 +59,27 @@ public class RecipeReviewActivity extends AppCompatActivity {
         }
 
         initializeViews();
+        loadRecipeData();
+    }
+
+    private void loadRecipeData() {
         DatabaseService.getInstance().getRecipe(recipeId, new DatabaseService.DatabaseCallback<Recipe>() {
             @Override
             public void onCompleted(@Nullable Recipe recipe) {
-                currentRecipe = recipe;
-                displayRecipeData();
-                setupAdminPanel();
-                setupClickListeners();
+                if (recipe != null) {
+                    currentRecipe = recipe;
+                    displayRecipeData();
+                    setupAdminPanel();
+                    setupClickListeners();
+                } else {
+                    Toast.makeText(RecipeReviewActivity.this, "Recipe not found", Toast.LENGTH_SHORT).show();
+                    finish();
+                }
             }
 
             @Override
             public void onFailed(Exception e) {
-
+                Toast.makeText(RecipeReviewActivity.this, "Error loading recipe", Toast.LENGTH_SHORT).show();
             }
         });
     }
@@ -79,12 +98,16 @@ public class RecipeReviewActivity extends AppCompatActivity {
         LayoutPendingButtons = findViewById(R.id.LayoutPendingButtons);
         EtAdminNotes = findViewById(R.id.EtAdminNotes);
         AdminPanel = findViewById(R.id.AdminPanel);
-        imageView = findViewById(R.id.recipe_review_view);
+        IvRecipeImage = findViewById(R.id.IvRecipeImage);
 
-        if (currentUser.isAdmin()) {
-            // הפאנל יוצג תמיד כדי שהמנהל יוכל לבדוק
-            AdminPanel.setVisibility(View.VISIBLE);
-        }
+        // חיבור רכיבי הדירוג
+        RbRecipeRatingDisplay = findViewById(R.id.RbRecipeRatingDisplay);
+        TvRatingCount = findViewById(R.id.TvRatingCount);
+        RbUserRating = findViewById(R.id.RbUserRating);
+        CardUserRating = findViewById(R.id.CardUserRating);
+        TvUserRatingTitle = findViewById(R.id.TvUserRatingTitle);
+
+        AdminPanel.setVisibility(View.GONE);
     }
 
     private void displayRecipeData() {
@@ -95,19 +118,53 @@ public class RecipeReviewActivity extends AppCompatActivity {
 
         TvTime.setText("🕒 " + currentRecipe.getPreparationTime());
         TvDifficulty.setText("🔥 " + currentRecipe.getDifficulty());
-        if (currentRecipe.getImageBase64() != null)
-            imageView.setImageBitmap(ImageUtil.convertFrom64base(currentRecipe.getImageBase64()));
+
+        // מציג את הממוצע ואת כמות המדרגים למעלה
+        RbRecipeRatingDisplay.setRating(currentRecipe.getRating());
+        TvRatingCount.setText("(" + currentRecipe.getNumRatings() + " ratings)");
+
+        if (currentRecipe.getImageBase64() != null && !currentRecipe.getImageBase64().isEmpty()) {
+            IvRecipeImage.setImageBitmap(ImageUtil.convertFrom64base(currentRecipe.getImageBase64()));
+        }
+
+        // --- לוגיקת הצגת כרטיסיית הדירוג למשתמש ---
+        if (!currentRecipe.isApproved()) {
+            // אם המתכון לא מאושר - מסתירים את אפשרות ההצבעה לחלוטין מכולם
+            CardUserRating.setVisibility(View.GONE);
+        } else {
+            CardUserRating.setVisibility(View.VISIBLE);
+
+            // בדיקה אם המשתמש כבר דירג בעבר
+            if (currentRecipe.getRaters() != null && currentRecipe.getRaters().containsKey(currentUser.getId())) {
+                TvUserRatingTitle.setText("Your Rating:");
+                RbUserRating.setRating(currentRecipe.getRaters().get(currentUser.getId()));
+                RbUserRating.setIsIndicator(true); // נועל את המד כדי שלא ישנו
+            } else {
+                TvUserRatingTitle.setText("Rate this recipe:");
+                RbUserRating.setRating(0);
+                RbUserRating.setIsIndicator(false); // מאפשר בחירה
+            }
+        }
     }
 
     private void setupAdminPanel() {
         if (currentRecipe == null) return;
 
+        if (currentUser == null || !currentUser.isAdmin()) {
+            AdminPanel.setVisibility(View.GONE);
+            return;
+        }
+
         if (currentRecipe.isApproved()) {
-            // המתכון כבר מאושר: מסתירים את שורת Approve/Reject, מציגים את כפתור ההסרה הגדול
+            AdminPanel.setVisibility(View.VISIBLE);
             LayoutPendingButtons.setVisibility(View.GONE);
             BtnRemove.setVisibility(View.VISIBLE);
+
+        } else if (currentRecipe.getAdminNotes() != null && !currentRecipe.getAdminNotes().trim().isEmpty()) {
+            AdminPanel.setVisibility(View.GONE);
+
         } else {
-            // המתכון ממתין לאישור: מציגים את Approve/Reject, מסתירים את ההסרה
+            AdminPanel.setVisibility(View.VISIBLE);
             LayoutPendingButtons.setVisibility(View.VISIBLE);
             BtnRemove.setVisibility(View.GONE);
         }
@@ -116,84 +173,122 @@ public class RecipeReviewActivity extends AppCompatActivity {
     private void setupClickListeners() {
         BtnApprove.setOnClickListener(v -> approveRecipe());
         BtnReject.setOnClickListener(v -> handleRejectClick());
-
-        // התיקון כאן: מפעיל חלונית ששואלת האם למחוק את המתכון לצמיתות
         BtnRemove.setOnClickListener(v -> showDeleteConfirmationDialog());
+
+        RbUserRating.setOnRatingBarChangeListener((ratingBar, rating, fromUser) -> {
+            if (fromUser) {
+                submitRecipeRating(rating);
+            }
+        });
     }
 
-    private void approveRecipe() {
+    private void submitRecipeRating(float newRating) {
         if (currentRecipe == null) return;
-
-        currentRecipe.setApproved(true);
-        currentRecipe.setAdminNotes("");
+        RbUserRating.setIsIndicator(true); // נועל מיד למניעת לחיצות כפולות
 
         DatabaseService.getInstance().updateRecipes(currentRecipe.getId(), new UnaryOperator<Recipe>() {
             @Override
             public Recipe apply(Recipe recipe) {
                 if (recipe != null) {
-                    recipe.setApproved(currentRecipe.isApproved());
-                    recipe.setAdminNotes(currentRecipe.getAdminNotes());
+                    Map<String, Float> raters = recipe.getRaters();
+                    if (raters == null) {
+                        raters = new HashMap<>();
+                    }
+
+                    // מוודאים שוב מול השרת שהמשתמש באמת לא דירג
+                    if (!raters.containsKey(currentUser.getId())) {
+                        raters.put(currentUser.getId(), newRating);
+                        recipe.setRaters(raters);
+                        recipe.setNumRatings(raters.size());
+
+                        // חישוב ממוצע חדש ומדויק
+                        float sum = 0;
+                        for (Float r : raters.values()) {
+                            sum += r;
+                        }
+                        recipe.setRating(sum / raters.size());
+                    }
                 }
                 return recipe;
             }
         }, new DatabaseService.DatabaseCallback<Recipe>() {
             @Override
             public void onCompleted(@Nullable Recipe serverRecipe) {
-                Toast.makeText(RecipeReviewActivity.this, "Recipe Approved Successfully!", Toast.LENGTH_SHORT).show();
-                finish();
+                if(serverRecipe != null) {
+                    Toast.makeText(RecipeReviewActivity.this, "Thank you for rating!", Toast.LENGTH_SHORT).show();
+                    // עדכון התצוגה המקומית מיד לאחר השמירה בשרת
+                    currentRecipe = serverRecipe;
+                    RbRecipeRatingDisplay.setRating(currentRecipe.getRating());
+                    TvRatingCount.setText("(" + currentRecipe.getNumRatings() + " ratings)");
+                    TvUserRatingTitle.setText("Your Rating:");
+                }
             }
 
             @Override
             public void onFailed(Exception e) {
-                Toast.makeText(RecipeReviewActivity.this, "Error approving recipe: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-
+                Toast.makeText(RecipeReviewActivity.this, "Error saving rating", Toast.LENGTH_SHORT).show();
+                RbUserRating.setIsIndicator(false); // משחרר את הנעילה במקרה של שגיאה
             }
         });
+    }
 
+    private void approveRecipe() {
+        if (currentRecipe == null) return;
+        currentRecipe.setApproved(true);
+        currentRecipe.setAdminNotes("");
+
+        DatabaseService.getInstance().updateRecipes(currentRecipe.getId(), recipe -> {
+            if (recipe != null) {
+                recipe.setApproved(currentRecipe.isApproved());
+                recipe.setAdminNotes(currentRecipe.getAdminNotes());
+            }
+            return recipe;
+        }, new DatabaseService.DatabaseCallback<Recipe>() {
+            @Override
+            public void onCompleted(@Nullable Recipe serverRecipe) {
+                Toast.makeText(RecipeReviewActivity.this, "Recipe Approved!", Toast.LENGTH_SHORT).show();
+                finish();
+            }
+            @Override
+            public void onFailed(Exception e) {
+                Toast.makeText(RecipeReviewActivity.this, "Error approving recipe", Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
     private void handleRejectClick() {
         String reason = EtAdminNotes.getText().toString().trim();
-
         if (reason.isEmpty()) {
-            Toast.makeText(this, "Please enter a reason in the notes field", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Please enter a reason", Toast.LENGTH_SHORT).show();
             return;
         }
-
         rejectRecipe(reason);
     }
 
     private void rejectRecipe(String reason) {
         if (currentRecipe == null) return;
-
         currentRecipe.setApproved(false);
         currentRecipe.setAdminNotes(reason);
 
-        DatabaseService.getInstance().updateRecipes(currentRecipe.getId(), new UnaryOperator<Recipe>() {
-            @Override
-            public Recipe apply(Recipe recipe) {
-                if (recipe != null) {
-                    recipe.setApproved(currentRecipe.isApproved());
-                    recipe.setAdminNotes(currentRecipe.getAdminNotes());
-                }
-                return recipe;
+        DatabaseService.getInstance().updateRecipes(currentRecipe.getId(), recipe -> {
+            if (recipe != null) {
+                recipe.setApproved(currentRecipe.isApproved());
+                recipe.setAdminNotes(currentRecipe.getAdminNotes());
             }
+            return recipe;
         }, new DatabaseService.DatabaseCallback<Recipe>() {
             @Override
             public void onCompleted(@Nullable Recipe serverRecipe) {
-                Toast.makeText(RecipeReviewActivity.this, "Recipe returned to user.", Toast.LENGTH_LONG).show();
+                Toast.makeText(RecipeReviewActivity.this, "Recipe returned.", Toast.LENGTH_LONG).show();
                 finish();
             }
-
             @Override
             public void onFailed(Exception e) {
-                Toast.makeText(RecipeReviewActivity.this, "Error returning recipe: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-
+                Toast.makeText(RecipeReviewActivity.this, "Error returning recipe", Toast.LENGTH_SHORT).show();
             }
         });
     }
 
-    // פונקציה חדשה: מציגה חלונית אישור לפני המחיקה
     private void showDeleteConfirmationDialog() {
         new AlertDialog.Builder(this)
                 .setTitle("Delete Recipe")
@@ -203,23 +298,18 @@ public class RecipeReviewActivity extends AppCompatActivity {
                 .show();
     }
 
-    // פונקציה חדשה: מוחקת את המתכון מ-Firebase
     private void deleteRecipeFromFirebase() {
         if (currentRecipe == null) return;
-
         DatabaseService.getInstance().deleteRecipe(currentRecipe.getId(), new DatabaseService.DatabaseCallback<Void>() {
             @Override
             public void onCompleted(@Nullable Void v) {
-                Toast.makeText(RecipeReviewActivity.this, "Recipe deleted permanently.", Toast.LENGTH_SHORT).show();
-                finish(); // סוגר את המסך וחוזר למסך הקודם
+                Toast.makeText(RecipeReviewActivity.this, "Recipe deleted.", Toast.LENGTH_SHORT).show();
+                finish();
             }
-
             @Override
             public void onFailed(Exception e) {
-                Toast.makeText(RecipeReviewActivity.this, "Error deleting recipe: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-
+                Toast.makeText(RecipeReviewActivity.this, "Error deleting recipe", Toast.LENGTH_SHORT).show();
             }
         });
-
     }
 }

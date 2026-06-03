@@ -100,7 +100,8 @@ public class MyRecipesActivity extends AppCompatActivity {
                     .setMessage("Admin rejected this recipe.\nReason: " + recipe.getAdminNotes() + "\n\nWhat would you like to do?")
                     .setPositiveButton("Fix Now", (dialog, which) -> {
                         Intent intent = new Intent(MyRecipesActivity.this, AddRecipeActivity.class);
-                        intent.putExtra("RECIPE_TO_EDIT", recipe);
+                        // התיקון: מעבירים את ה-ID בדיוק בשם ש-AddRecipeActivity מחפש
+                        intent.putExtra("RECIPE_ID_TO_EDIT", recipe.getId());
                         startActivity(intent);
                     })
                     .setNeutralButton("View Recipe", (dialog, which) -> {
@@ -118,19 +119,20 @@ public class MyRecipesActivity extends AppCompatActivity {
     // פונקציית עזר שחוסכת קוד כפול - מקפיצה את הדיאלוג של בחירה בין צפייה לעריכה
     private void showRecipeOptionsDialog(Recipe recipe, String message) {
         new AlertDialog.Builder(this)
-            .setTitle(recipe.getTitle())
-            .setMessage(message)
-            .setPositiveButton("View", (dialog, which) -> {
-                Intent intent = new Intent(MyRecipesActivity.this, RecipeReviewActivity.class);
-                intent.putExtra("recipe_id", recipe.getId());
-                startActivity(intent);
-            })
-            .setNegativeButton("Edit", (dialog, which) -> {
-                Intent intent = new Intent(MyRecipesActivity.this, AddRecipeActivity.class);
-                intent.putExtra("RECIPE_TO_EDIT", recipe);
-                startActivity(intent);
-            })
-            .setNeutralButton("Cancel", null)
-            .show();
+                .setTitle(recipe.getTitle())
+                .setMessage(message)
+                .setPositiveButton("View", (dialog, which) -> {
+                    Intent intent = new Intent(MyRecipesActivity.this, RecipeReviewActivity.class);
+                    intent.putExtra("recipe_id", recipe.getId());
+                    startActivity(intent);
+                })
+                .setNegativeButton("Edit", (dialog, which) -> {
+                    Intent intent = new Intent(MyRecipesActivity.this, AddRecipeActivity.class);
+                    // התיקון: מעבירים את ה-ID בדיוק בשם ש-AddRecipeActivity מחפש
+                    intent.putExtra("RECIPE_ID_TO_EDIT", recipe.getId());
+                    startActivity(intent);
+                })
+                .setNeutralButton("Cancel", null)
+                .show();
     }
 }

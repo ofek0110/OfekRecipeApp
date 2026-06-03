@@ -1,8 +1,9 @@
 package com.example.ofek.models;
 
 import com.google.firebase.database.Exclude;
-
 import java.io.Serializable;
+import java.util.HashMap;
+import java.util.Map;
 
 public class Recipe implements Serializable {
     private String id;
@@ -14,19 +15,26 @@ public class Recipe implements Serializable {
     private String userId;
     private String category;
     private String preparationTime;
-    private String difficulty; // שדה חדש לרמת קושי
+    private String difficulty;
     private boolean isApproved;
     private String adminNotes;
 
-    // בנאי ריק (חובה עבור Firebase)
+    // נתוני הדירוג
+    private float rating;
+    private int numRatings;
+    // המשתנה החדש: שומר מי דירג כדי שלא ידרגו פעמיים (מפתח: מזהה משתמש, ערך: הדירוג)
+    private Map<String, Float> raters;
+
     public Recipe() {
+        this.raters = new HashMap<>();
     }
 
     public Recipe(String id, String title, String description,
                   String ingredients, String instructions,
                   String imageBase64, String userId, String category,
                   String preparationTime, String difficulty,
-                  boolean isApproved, String adminNotes) {
+                  boolean isApproved, String adminNotes,
+                  float rating, int numRatings, Map<String, Float> raters) {
         this.id = id;
         this.title = title;
         this.description = description;
@@ -39,106 +47,44 @@ public class Recipe implements Serializable {
         this.difficulty = difficulty;
         this.isApproved = isApproved;
         this.adminNotes = adminNotes;
+        this.rating = rating;
+        this.numRatings = numRatings;
+        this.raters = raters != null ? raters : new HashMap<>();
     }
 
     // --- Getters and Setters ---
+    public String getId() { return id; }
+    public void setId(String id) { this.id = id; }
+    public String getTitle() { return title; }
+    public void setTitle(String title) { this.title = title; }
+    public String getDescription() { return description; }
+    public void setDescription(String description) { this.description = description; }
+    public String getIngredients() { return ingredients; }
+    public void setIngredients(String ingredients) { this.ingredients = ingredients; }
+    public String getInstructions() { return instructions; }
+    public void setInstructions(String instructions) { this.instructions = instructions; }
+    public String getImageBase64() { return imageBase64; }
+    public void setImageBase64(String imageBase64) { this.imageBase64 = imageBase64; }
+    public String getUserId() { return userId; }
+    public void setUserId(String userId) { this.userId = userId; }
+    public String getCategory() { return category; }
+    public void setCategory(String category) { this.category = category; }
+    public String getPreparationTime() { return preparationTime; }
+    public void setPreparationTime(String preparationTime) { this.preparationTime = preparationTime; }
+    public String getDifficulty() { return difficulty; }
+    public void setDifficulty(String difficulty) { this.difficulty = difficulty; }
+    public boolean isApproved() { return isApproved; }
+    public void setApproved(boolean approved) { this.isApproved = approved; }
+    public String getAdminNotes() { return adminNotes; }
+    public void setAdminNotes(String adminNotes) { this.adminNotes = adminNotes; }
 
-    public String getId() {
-        return id;
-    }
+    public float getRating() { return rating; }
+    public void setRating(float rating) { this.rating = rating; }
+    public int getNumRatings() { return numRatings; }
+    public void setNumRatings(int numRatings) { this.numRatings = numRatings; }
 
-    public void setId(String id) {
-        this.id = id;
-    }
-
-    public String getTitle() {
-        return title;
-    }
-
-    public void setTitle(String title) {
-        this.title = title;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    public String getIngredients() {
-        return ingredients;
-    }
-
-    public void setIngredients(String ingredients) {
-        this.ingredients = ingredients;
-    }
-
-    public String getInstructions() {
-        return instructions;
-    }
-
-    public void setInstructions(String instructions) {
-        this.instructions = instructions;
-    }
-
-    public String getImageBase64() {
-        return imageBase64;
-    }
-
-    public void setImageBase64(String imageBase64) {
-        this.imageBase64 = imageBase64;
-    }
-
-    public String getUserId() {
-        return userId;
-    }
-
-    public void setUserId(String userId) {
-        this.userId = userId;
-    }
-
-    public String getCategory() {
-        return category;
-    }
-
-    public void setCategory(String category) {
-        this.category = category;
-    }
-
-    public String getPreparationTime() {
-        return preparationTime;
-    }
-
-    public void setPreparationTime(String preparationTime) {
-        this.preparationTime = preparationTime;
-    }
-
-    public String getDifficulty() {
-        return difficulty;
-    }
-
-    public void setDifficulty(String difficulty) {
-        this.difficulty = difficulty;
-    }
-
-    public boolean isApproved() {
-        return isApproved;
-    }
-
-    public void setApproved(boolean approved) {
-        isApproved = approved;
-    }
-
-    public String getAdminNotes() {
-        return adminNotes;
-    }
-
-    public void setAdminNotes(String adminNotes) {
-        this.adminNotes = adminNotes;
-    }
-
+    public Map<String, Float> getRaters() { return raters; }
+    public void setRaters(Map<String, Float> raters) { this.raters = raters; }
 
     @Exclude
     public boolean isPending() {
