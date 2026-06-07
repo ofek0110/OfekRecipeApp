@@ -83,13 +83,13 @@
                 android:orientation="horizontal"
                 android:clipChildren="false"
                 android:clipToPadding="false"
-                android:weightSum="2">
+                android:weightSum="3">
 
                 <FrameLayout
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:layout_marginEnd="8dp">
+                    android:layout_marginEnd="4dp">
 
                     <TextView
                         android:id="@+id/BtnUsers"
@@ -101,6 +101,29 @@
                         android:text="Users"
                         android:textColor="@color/white"
                         android:gravity="center"
+                        android:textSize="12sp"
+                        android:textStyle="bold"
+                        android:clickable="true"
+                        android:focusable="true" />
+                </FrameLayout>
+
+                <FrameLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginHorizontal="4dp">
+
+                    <TextView
+                        android:id="@+id/BtnManageRecipes"
+                        android:layout_width="match_parent"
+                        android:layout_height="40dp"
+                        android:layout_marginTop="12dp"
+                        android:background="@drawable/bg_tag_rounded"
+                        android:backgroundTint="#4CAEAA"
+                        android:text="Recipes"
+                        android:textColor="@color/white"
+                        android:gravity="center"
+                        android:textSize="12sp"
                         android:textStyle="bold"
                         android:clickable="true"
                         android:focusable="true" />
@@ -112,7 +135,7 @@
                     android:layout_weight="1"
                     android:clipChildren="false"
                     android:clipToPadding="false"
-                    android:layout_marginStart="8dp">
+                    android:layout_marginStart="4dp">
 
                     <TextView
                         android:id="@+id/BtnRequests"
@@ -124,6 +147,7 @@
                         android:text="Requests"
                         android:textColor="#FFFFFF"
                         android:gravity="center"
+                        android:textSize="12sp"
                         android:textStyle="bold"
                         android:clickable="true"
                         android:focusable="true" />
@@ -179,175 +203,169 @@
                         android:layout_centerVertical="true" />
                 </RelativeLayout>
 
-                <HorizontalScrollView
+                <!-- הקטגוריות מוגדלות (72dp) וממורכזות ללא גלילה -->
+                <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:scrollbars="none"
-                    android:clipToPadding="false"
-                    android:paddingHorizontal="24dp">
+                    android:orientation="horizontal"
+                    android:gravity="center"
+                    android:paddingHorizontal="8dp">
 
                     <LinearLayout
+                        android:id="@+id/CatBreakfast"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:orientation="horizontal">
-
-                        <LinearLayout
-                            android:id="@+id/CatBreakfast"
+                        android:orientation="vertical"
+                        android:gravity="center"
+                        android:layout_marginHorizontal="4dp">
+                        <com.google.android.material.card.MaterialCardView
+                            android:id="@+id/CardBreakfast"
+                            android:layout_width="72dp"
+                            android:layout_height="72dp"
+                            app:cardCornerRadius="20dp"
+                            app:cardElevation="0dp"
+                            app:cardBackgroundColor="#E0F2F1"
+                            android:layout_marginBottom="8dp">
+                            <ImageView
+                                android:layout_width="match_parent"
+                                android:layout_height="match_parent"
+                                android:padding="18dp"
+                                android:src="@drawable/ic_breakfast"
+                                app:tint="#0F172A" />
+                        </com.google.android.material.card.MaterialCardView>
+                        <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:orientation="vertical"
-                            android:gravity="center"
-                            android:layout_marginEnd="16dp">
-                            <com.google.android.material.card.MaterialCardView
-                                android:id="@+id/CardBreakfast"
-                                android:layout_width="64dp"
-                                android:layout_height="64dp"
-                                app:cardCornerRadius="16dp"
-                                app:cardElevation="0dp"
-                                app:cardBackgroundColor="#E0F2F1"
-                                android:layout_marginBottom="8dp">
-                                <ImageView
-                                    android:layout_width="match_parent"
-                                    android:layout_height="match_parent"
-                                    android:padding="16dp"
-                                    android:src="@drawable/ic_breakfast"
-                                    app:tint="#0F172A" />
-                            </com.google.android.material.card.MaterialCardView>
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="Breakfast"
-                                android:textSize="12sp"
-                                android:textStyle="bold"
-                                android:textColor="#0F172A" />
-                        </LinearLayout>
-
-                        <LinearLayout
-                            android:id="@+id/CatLunch"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:orientation="vertical"
-                            android:gravity="center"
-                            android:layout_marginEnd="16dp">
-                            <com.google.android.material.card.MaterialCardView
-                                android:id="@+id/CardLunch"
-                                android:layout_width="64dp"
-                                android:layout_height="64dp"
-                                app:cardCornerRadius="16dp"
-                                app:cardElevation="0dp"
-                                app:cardBackgroundColor="#FFEDD5"
-                                android:layout_marginBottom="8dp">
-                                <ImageView
-                                    android:layout_width="match_parent"
-                                    android:layout_height="match_parent"
-                                    android:padding="16dp"
-                                    android:src="@drawable/ic_lunch"
-                                    app:tint="#0F172A" />
-                            </com.google.android.material.card.MaterialCardView>
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="Lunch"
-                                android:textSize="12sp"
-                                android:textStyle="bold"
-                                android:textColor="#0F172A" />
-                        </LinearLayout>
-
-                        <LinearLayout
-                            android:id="@+id/CatVegan"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:orientation="vertical"
-                            android:gravity="center"
-                            android:layout_marginEnd="16dp">
-                            <com.google.android.material.card.MaterialCardView
-                                android:id="@+id/CardVegan"
-                                android:layout_width="64dp"
-                                android:layout_height="64dp"
-                                app:cardCornerRadius="16dp"
-                                app:cardElevation="0dp"
-                                app:cardBackgroundColor="#DCFCE7"
-                                android:layout_marginBottom="8dp">
-                                <ImageView
-                                    android:layout_width="match_parent"
-                                    android:layout_height="match_parent"
-                                    android:padding="16dp"
-                                    android:src="@drawable/ic_vegan"
-                                    app:tint="#0F172A" />
-                            </com.google.android.material.card.MaterialCardView>
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="Vegan"
-                                android:textSize="12sp"
-                                android:textStyle="bold"
-                                android:textColor="#0F172A" />
-                        </LinearLayout>
-
-                        <LinearLayout
-                            android:id="@+id/CatDesserts"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:orientation="vertical"
-                            android:gravity="center"
-                            android:layout_marginEnd="16dp">
-                            <com.google.android.material.card.MaterialCardView
-                                android:id="@+id/CardDesserts"
-                                android:layout_width="64dp"
-                                android:layout_height="64dp"
-                                app:cardCornerRadius="16dp"
-                                app:cardElevation="0dp"
-                                app:cardBackgroundColor="#FCE7F3"
-                                android:layout_marginBottom="8dp">
-                                <ImageView
-                                    android:layout_width="match_parent"
-                                    android:layout_height="match_parent"
-                                    android:padding="16dp"
-                                    android:src="@drawable/ic_dessert"
-                                    app:tint="#0F172A" />
-                            </com.google.android.material.card.MaterialCardView>
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="Desserts"
-                                android:textSize="12sp"
-                                android:textStyle="bold"
-                                android:textColor="#0F172A" />
-                        </LinearLayout>
-
-                        <LinearLayout
-                            android:id="@+id/CatDinner"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:orientation="vertical"
-                            android:gravity="center"
-                            android:layout_marginEnd="16dp">
-                            <com.google.android.material.card.MaterialCardView
-                                android:id="@+id/CardDinner"
-                                android:layout_width="64dp"
-                                android:layout_height="64dp"
-                                app:cardCornerRadius="16dp"
-                                app:cardElevation="0dp"
-                                app:cardBackgroundColor="#FEF9C3"
-                                android:layout_marginBottom="8dp">
-                                <ImageView
-                                    android:layout_width="match_parent"
-                                    android:layout_height="match_parent"
-                                    android:padding="16dp"
-                                    android:src="@drawable/ic_dinner"
-                                    app:tint="#0F172A" />
-                            </com.google.android.material.card.MaterialCardView>
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="Dinner"
-                                android:textSize="12sp"
-                                android:textStyle="bold"
-                                android:textColor="#0F172A" />
-                        </LinearLayout>
-
+                            android:text="Breakfast"
+                            android:textSize="11sp"
+                            android:textStyle="bold"
+                            android:textColor="#0F172A" />
                     </LinearLayout>
-                </HorizontalScrollView>
+
+                    <LinearLayout
+                        android:id="@+id/CatLunch"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:gravity="center"
+                        android:layout_marginHorizontal="4dp">
+                        <com.google.android.material.card.MaterialCardView
+                            android:id="@+id/CardLunch"
+                            android:layout_width="72dp"
+                            android:layout_height="72dp"
+                            app:cardCornerRadius="20dp"
+                            app:cardElevation="0dp"
+                            app:cardBackgroundColor="#FFEDD5"
+                            android:layout_marginBottom="8dp">
+                            <ImageView
+                                android:layout_width="match_parent"
+                                android:layout_height="match_parent"
+                                android:padding="18dp"
+                                android:src="@drawable/ic_lunch"
+                                app:tint="#0F172A" />
+                        </com.google.android.material.card.MaterialCardView>
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Lunch"
+                            android:textSize="11sp"
+                            android:textStyle="bold"
+                            android:textColor="#0F172A" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:id="@+id/CatVegan"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:gravity="center"
+                        android:layout_marginHorizontal="4dp">
+                        <com.google.android.material.card.MaterialCardView
+                            android:id="@+id/CardVegan"
+                            android:layout_width="72dp"
+                            android:layout_height="72dp"
+                            app:cardCornerRadius="20dp"
+                            app:cardElevation="0dp"
+                            app:cardBackgroundColor="#DCFCE7"
+                            android:layout_marginBottom="8dp">
+                            <ImageView
+                                android:layout_width="match_parent"
+                                android:layout_height="match_parent"
+                                android:padding="18dp"
+                                android:src="@drawable/ic_vegan"
+                                app:tint="#0F172A" />
+                        </com.google.android.material.card.MaterialCardView>
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Vegan"
+                            android:textSize="11sp"
+                            android:textStyle="bold"
+                            android:textColor="#0F172A" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:id="@+id/CatDesserts"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:gravity="center"
+                        android:layout_marginHorizontal="4dp">
+                        <com.google.android.material.card.MaterialCardView
+                            android:id="@+id/CardDesserts"
+                            android:layout_width="72dp"
+                            android:layout_height="72dp"
+                            app:cardCornerRadius="20dp"
+                            app:cardElevation="0dp"
+                            app:cardBackgroundColor="#FCE7F3"
+                            android:layout_marginBottom="8dp">
+                            <ImageView
+                                android:layout_width="match_parent"
+                                android:layout_height="match_parent"
+                                android:padding="18dp"
+                                android:src="@drawable/ic_dessert"
+                                app:tint="#0F172A" />
+                        </com.google.android.material.card.MaterialCardView>
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Desserts"
+                            android:textSize="11sp"
+                            android:textStyle="bold"
+                            android:textColor="#0F172A" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:id="@+id/CatDinner"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:gravity="center"
+                        android:layout_marginHorizontal="4dp">
+                        <com.google.android.material.card.MaterialCardView
+                            android:id="@+id/CardDinner"
+                            android:layout_width="72dp"
+                            android:layout_height="72dp"
+                            app:cardCornerRadius="20dp"
+                            app:cardElevation="0dp"
+                            app:cardBackgroundColor="#FEF9C3"
+                            android:layout_marginBottom="8dp">
+                            <ImageView
+                                android:layout_width="match_parent"
+                                android:layout_height="match_parent"
+                                android:padding="18dp"
+                                android:src="@drawable/ic_dinner"
+                                app:tint="#0F172A" />
+                        </com.google.android.material.card.MaterialCardView>
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Dinner"
+                            android:textSize="11sp"
+                            android:textStyle="bold"
+                            android:textColor="#0F172A" />
+                    </LinearLayout>
+                </LinearLayout>
             </LinearLayout>
 
             <TextView

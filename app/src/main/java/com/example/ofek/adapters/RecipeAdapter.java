@@ -16,12 +16,15 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.ofek.R;
 import com.example.ofek.models.FavoriteRecipe;
 import com.example.ofek.models.Recipe;
+import com.example.ofek.models.User;
 import com.example.ofek.services.DatabaseService;
 import com.example.ofek.utils.ImageUtil;
 
 import org.jetbrains.annotations.NotNull;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class RecipeAdapter extends RecyclerView.Adapter<RecipeAdapter.RecipeViewHolder> {
 
@@ -29,6 +32,7 @@ public class RecipeAdapter extends RecyclerView.Adapter<RecipeAdapter.RecipeView
     private final OnRecipeClickListener listener;
     private final String currentUserId;
     private final boolean showStatus;
+    private final Map<String, String> userNamesCache = new HashMap<>();
 
     public interface OnRecipeClickListener {
         void onRecipeClick(Recipe recipe);
@@ -61,9 +65,7 @@ public class RecipeAdapter extends RecyclerView.Adapter<RecipeAdapter.RecipeView
         holder.TvDifficulty.setText(recipe.getDifficulty());
         holder.TvCategoryTag.setText(recipe.getCategory());
 
-        // הצגת הדירוג
         if (recipe.getNumRatings() > 0) {
-            // מציג ציון ממוצע עם ספרה עשרונית אחת, למשל: 4.5
             holder.TvItemRating.setText(String.format(java.util.Locale.US, "%.1f", recipe.getRating()));
         } else {
             holder.TvItemRating.setText("New");
@@ -81,15 +83,47 @@ public class RecipeAdapter extends RecyclerView.Adapter<RecipeAdapter.RecipeView
                 holder.TvStatus.setText("Pending");
                 holder.TvStatus.setTextColor(Color.parseColor("#D97706"));
             }
+            
+            // Show author name for admin management
+            holder.TvAuthorName.setVisibility(View.VISIBLE);
+            fetchAuthorName(recipe.getUserId(), holder.TvAuthorName);
         } else {
             holder.TvStatus.setVisibility(View.GONE);
+            holder.TvAuthorName.setVisibility(View.GONE);
         }
 
-        if (recipe.getImageBase64() != null)
+        if (recipe.getImageBase64() != null && !recipe.getImageBase64().isEmpty())
             holder.IvImage.setImageBitmap(ImageUtil.convertFrom64base(recipe.getImageBase64()));
+        else
+            holder.IvImage.setImageResource(R.drawable.ic_launcher_background);
 
         checkIfFavorite(recipe.getId(), holder.IvFavoriteIcon);
         holder.FlFavoriteBtn.setOnClickListener(v -> toggleFavorite(recipe.getId(), holder.IvFavoriteIcon));
+    }
+
+    private void fetchAuthorName(String userId, TextView tvAuthor) {
+        if (userNamesCache.containsKey(userId)) {
+            tvAuthor.setText("by " + userNamesCache.get(userId));
+            return;
+        }
+
+        DatabaseService.getInstance().getUser(userId, new DatabaseService.DatabaseCallback<User>() {
+            @Override
+            public void onCompleted(@Nullable User user) {
+                if (user != null) {
+                    String fullName = user.getFirstname() + " " + user.getLastname();
+                    userNamesCache.put(userId, fullName);
+                    tvAuthor.setText("by " + fullName);
+                } else {
+                    tvAuthor.setText("by Unknown");
+                }
+            }
+
+            @Override
+            public void onFailed(Exception e) {
+                tvAuthor.setText("by Error");
+            }
+        });
     }
 
     @Override
@@ -101,19 +135,15 @@ public class RecipeAdapter extends RecyclerView.Adapter<RecipeAdapter.RecipeView
         DatabaseService.getInstance().getFavoriteRecipeByUserAndRecipe(this.currentUserId, recipeId, new DatabaseService.DatabaseCallback<FavoriteRecipe>() {
             @Override
             public void onCompleted(@Nullable FavoriteRecipe favoriteRecipe) {
-                if (favoriteRecipe == null)
-                {
+                if (favoriteRecipe == null) {
                     heartIcon.setAlpha(0.3f);
-                }
-                else {
+                } else {
                     heartIcon.setAlpha(1.0f);
                 }
             }
 
             @Override
-            public void onFailed(Exception e) {
-
-            }
+            public void onFailed(Exception e) {}
         });
     }
 
@@ -121,66 +151,64 @@ public class RecipeAdapter extends RecyclerView.Adapter<RecipeAdapter.RecipeView
         DatabaseService.getInstance().getFavoriteRecipeByUserAndRecipe(this.currentUserId, recipeId, new DatabaseService.DatabaseCallback<FavoriteRecipe>() {
             @Override
             public void onCompleted(FavoriteRecipe favoriteRecipe) {
-                Log.e("TAG", "onCompleted: " + favoriteRecipe);
-                if (favoriteRecipe != null) // exist
-                {
+                if (favoriteRecipe != null) {
                     DatabaseService.getInstance().deleteFavoriteRecipe(favoriteRecipe.getId(), new DatabaseService.DatabaseCallback<Void>() {
                         @Override
                         public void onCompleted(@Nullable Void object) {
                             heartIcon.setAlpha(0.3f);
                         }
-
                         @Override
-                        public void onFailed(Exception e) {
-
-                        }
+                        public void onFailed(Exception e) {}
                     });
                 } else {
                     String id = DatabaseService.getInstance().generateFavoriteRecipeId();
-                    FavoriteRecipe favoriteRecipe1 = new FavoriteRecipe(id, recipeId, currentUserId);
-                    DatabaseService.getInstance().createNewFavoriteRecipe(favoriteRecipe1, new DatabaseService.DatabaseCallback<Void>() {
+                    FavoriteRecipe fav = new FavoriteRecipe(id, recipeId, currentUserId);
+                    DatabaseService.getInstance().createNewFavoriteRecipe(fav, new DatabaseService.DatabaseCallback<Void>() {
                         @Override
                         public void onCompleted(@Nullable Void object) {
                             heartIcon.setAlpha(1.0f);
                         }
-
                         @Override
-                        public void onFailed(Exception e) {
-
-                        }
+                        public void onFailed(Exception e) {}
                     });
                 }
             }
 
             @Override
-            public void onFailed(Exception e) {
-
-            }
+            public void onFailed(Exception e) {}
         });
     }
 
     class RecipeViewHolder extends RecyclerView.ViewHolder {
-        // הוספנו את TvItemRating לכאן
-        TextView TvTitle, TvPrepTime, TvDifficulty, TvCategoryTag, TvStatus, TvItemRating;
+        TextView TvTitle, TvPrepTime, TvDifficulty, TvCategoryTag, TvStatus, TvItemRating, TvAuthorName;
         ImageView IvImage, IvFavoriteIcon;
         FrameLayout FlFavoriteBtn;
 
         public RecipeViewHolder(@NonNull View itemView) {
             super(itemView);
             TvTitle = itemView.findViewById(R.id.TvRecipeTitle);
+            TvAuthorName = itemView.findViewById(R.id.TvAuthorName);
             TvPrepTime = itemView.findViewById(R.id.TvPrepTime);
             TvDifficulty = itemView.findViewById(R.id.TvDifficulty);
             TvCategoryTag = itemView.findViewById(R.id.TvCategoryTag);
             TvStatus = itemView.findViewById(R.id.TvStatus);
-            TvItemRating = itemView.findViewById(R.id.TvItemRating); // החיבור ל-XML
+            TvItemRating = itemView.findViewById(R.id.TvItemRating);
 
             IvImage = itemView.findViewById(R.id.IvRecipeImage);
             FlFavoriteBtn = itemView.findViewById(R.id.FlFavoriteBtn);
             IvFavoriteIcon = itemView.findViewById(R.id.IvFavoriteIcon);
 
-            itemView.setOnClickListener(v -> listener.onRecipeClick(recipeList.get(getAdapterPosition())));
+            itemView.setOnClickListener(v -> {
+                int pos = getAdapterPosition();
+                if (pos != RecyclerView.NO_POSITION) {
+                    listener.onRecipeClick(recipeList.get(pos));
+                }
+            });
             itemView.setOnLongClickListener(v -> {
-                listener.onLongRecipeClick(recipeList.get(getAdapterPosition()));
+                int pos = getAdapterPosition();
+                if (pos != RecyclerView.NO_POSITION) {
+                    listener.onLongRecipeClick(recipeList.get(pos));
+                }
                 return true;
             });
         }

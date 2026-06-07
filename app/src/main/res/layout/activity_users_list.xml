@@ -20,7 +20,7 @@
             android:background="?attr/colorPrimary"
             app:popupTheme="@style/ThemeOverlay.AppCompat.Light"
             app:title="All Users"
-            app:navigationIcon="?attr/homeAsUpIndicator" />
+             />
 
     </com.google.android.material.appbar.AppBarLayout>
 

@@ -359,15 +359,20 @@ public class DatabaseService {
         getData(RECIPES_PATH + "/" + rid, Recipe.class, callback);
     }
 
-    /// get all the users from the database
+    /// get all the recipes from the database
     /// @param callback the callback to call when the operation is completed
     ///              the callback will receive a list of recipe objects
     ///            if the operation fails, the callback will receive an exception
     /// @see DatabaseCallback
     /// @see List
-    /// @see User
+    /// @see Recipe
     public void getRecipeList(@NotNull final DatabaseCallback<List<Recipe>> callback) {
         getDataList(RECIPES_PATH, Recipe.class, callback);
+    }
+
+    /// alias for getRecipeList to match the requirement
+    public void getAllRecipes(@NotNull final DatabaseCallback<List<Recipe>> callback) {
+        getRecipeList(callback);
     }
 
     /// delete a user from the database

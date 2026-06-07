@@ -1,5 +1,6 @@
 package com.example.ofek.adapters;
 
+import android.content.Intent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -11,6 +12,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.ofek.R;
 import com.example.ofek.models.User;
+import com.example.ofek.screens.UserProfile;
 import com.google.android.material.chip.Chip;
 
 import java.util.ArrayList;
@@ -66,6 +68,12 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.ViewHolder> {
         }
 
         holder.itemView.setOnClickListener(v -> {
+            // Direct navigation to UserProfile as requested
+            Intent intent = new Intent(v.getContext(), UserProfile.class);
+            intent.putExtra("USER_UID", user.getId());
+            v.getContext().startActivity(intent);
+            
+            // Also notify listener if needed
             if (onUserClickListener != null) {
                 onUserClickListener.onUserClick(user);
             }

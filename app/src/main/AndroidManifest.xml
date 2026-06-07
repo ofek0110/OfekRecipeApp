@@ -61,16 +61,15 @@
             android:theme="@style/Theme.OfekRecipeApp" />
 
         <activity
-            android:name=".screens.LoginActivity"
-            android:exported="false" />
-
-        <activity
-            android:name=".screens.SignUpActivity"
-            android:exported="false" />
-
-        <activity
             android:name=".screens.LandingActivity"
             android:exported="false" />
+
+        <activity
+            android:name=".screens.AdminRecipeManagerActivity"
+            android:exported="false"
+            android:label="Manage All Recipes" />
+
+       
 
     </application>
 

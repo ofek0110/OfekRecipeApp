@@ -21,13 +21,14 @@ import com.example.ofek.services.DatabaseService;
 import com.example.ofek.utils.SharedPreferencesUtil;
 import com.example.ofek.utils.Validator;
 
+import java.util.Objects;
 import java.util.function.UnaryOperator;
 
 public class ProfileFragment extends Fragment implements View.OnClickListener {
 
     private EditText etUserFirstName, etUserLastName, etUserEmail, etUserPhone, etUserPassword;
     private TextView tvUserDisplayName, tvUserDisplayEmail;
-    private Button btnUpdateProfile, btnSignOut;
+    private Button btnUpdateProfile, btnSignOut, btnAdminManageRecipes;
     private View adminBadge;
 
     private String selectedUid;
@@ -56,12 +57,12 @@ public class ProfileFragment extends Fragment implements View.OnClickListener {
         if (getArguments() != null) {
             selectedUid = getArguments().getString("USER_UID");
         }
-        
+
         if (selectedUid == null) {
             selectedUid = currentUser.getId();
         }
-        
-        isCurrentUser = selectedUid.equals(currentUser.getId());
+
+        isCurrentUser = Objects.equals(selectedUid, currentUser.getId());
 
         if (!currentUser.isAdmin() && !isCurrentUser) {
             Toast.makeText(requireContext(), "You are not authorized to view this profile", Toast.LENGTH_SHORT).show();
@@ -82,10 +83,12 @@ public class ProfileFragment extends Fragment implements View.OnClickListener {
         tvUserDisplayEmail = view.findViewById(R.id.tv_user_display_email);
         btnUpdateProfile = view.findViewById(R.id.btn_edit_profile);
         btnSignOut = view.findViewById(R.id.btn_sign_out);
+
         adminBadge = view.findViewById(R.id.admin_badge);
 
         btnUpdateProfile.setOnClickListener(this);
         btnSignOut.setOnClickListener(this);
+        btnAdminManageRecipes.setOnClickListener(this);
     }
 
     @Override
@@ -100,11 +103,26 @@ public class ProfileFragment extends Fragment implements View.OnClickListener {
 
     private void showUserProfile() {
         if (selectedUid == null) return;
-        
+
         databaseService.getUser(selectedUid, new DatabaseService.DatabaseCallback<User>() {
             @Override
             public void onCompleted(User user) {
                 if (!isAdded()) return;
+
+                if (user == null) {
+                    Toast.makeText(requireContext(), "Error: User not found", Toast.LENGTH_LONG).show();
+                    if (isCurrentUser) {
+                        SharedPreferencesUtil.signOutUser(requireContext());
+                        Intent intent = new Intent(requireActivity(), LandingActivity.class);
+                        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                        startActivity(intent);
+                        requireActivity().finish();
+                    } else {
+                        requireActivity().finish();
+                    }
+                    return;
+                }
+
                 selectedUser = user;
                 etUserFirstName.setText(user.getFirstname());
                 etUserLastName.setText(user.getLastname());
@@ -116,11 +134,21 @@ public class ProfileFragment extends Fragment implements View.OnClickListener {
                 tvUserDisplayEmail.setText(user.getEmail());
 
                 adminBadge.setVisibility(user.isAdmin() ? View.VISIBLE : View.GONE);
+                
+                // Show admin management button only if user is admin
+                if (user.isAdmin() && isCurrentUser) {
+                    btnAdminManageRecipes.setVisibility(View.VISIBLE);
+                } else {
+                    btnAdminManageRecipes.setVisibility(View.GONE);
+                }
             }
 
             @Override
             public void onFailed(Exception e) {
                 Log.e("ProfileFragment", "Error getting user profile", e);
+                if (isAdded()) {
+                    Toast.makeText(requireContext(), "Network error loading data", Toast.LENGTH_SHORT).show();
+                }
             }
         });
 

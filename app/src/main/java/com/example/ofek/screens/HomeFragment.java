@@ -32,7 +32,6 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.function.Predicate;
 
 public class HomeFragment extends Fragment {
 
@@ -42,7 +41,7 @@ public class HomeFragment extends Fragment {
     private List<Recipe> filteredList = new ArrayList<>();
     private EditText etSearch;
     private LinearLayout headerButtons;
-    private TextView btnUsers, btnRequests, tvRequestsBadge;
+    private TextView btnUsers, btnRequests, btnManageRecipes, tvRequestsBadge;
     private FloatingActionButton fabAddRecipe;
     private ImageView ivMyRecipes;
 
@@ -72,6 +71,7 @@ public class HomeFragment extends Fragment {
         headerButtons = view.findViewById(R.id.HeaderButtons);
         btnUsers = view.findViewById(R.id.BtnUsers);
         btnRequests = view.findViewById(R.id.BtnRequests);
+        btnManageRecipes = view.findViewById(R.id.BtnManageRecipes);
         tvRequestsBadge = view.findViewById(R.id.TvRequestsBadge);
         fabAddRecipe = view.findViewById(R.id.FabAddRecipe);
         ivMyRecipes = view.findViewById(R.id.IvMyRecipes);
@@ -101,6 +101,7 @@ public class HomeFragment extends Fragment {
         fabAddRecipe.setOnClickListener(v -> startActivity(new Intent(requireContext(), AddRecipeActivity.class)));
         btnUsers.setOnClickListener(v -> startActivity(new Intent(requireContext(), UsersList.class)));
         btnRequests.setOnClickListener(v -> startActivity(new Intent(requireContext(), RecipeRequestsActivity.class)));
+        btnManageRecipes.setOnClickListener(v -> startActivity(new Intent(requireContext(), AdminRecipeManagerActivity.class)));
 
         etSearch.addTextChangedListener(new TextWatcher() {
             @Override
@@ -112,8 +113,6 @@ public class HomeFragment extends Fragment {
             @Override
             public void afterTextChanged(Editable s) {}
         });
-
-
     }
 
     @Override
@@ -179,7 +178,7 @@ public class HomeFragment extends Fragment {
             public void onCompleted(@Nullable List<Recipe> recipes) {
                 if (!isAdded()) return;
                 recipeList.clear();
-                assert recipes != null;
+                if (recipes == null) return;
 
                 int pendingCount = (int) recipes.stream().filter(Recipe::isPending).count();
 

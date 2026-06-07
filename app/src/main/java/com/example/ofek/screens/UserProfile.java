@@ -45,11 +45,15 @@ public class UserProfile extends AppCompatActivity implements View.OnClickListen
         EdgeToEdge.enable(this);
         setContentView(R.layout.fragment_profile);
 
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(android.R.id.content), (v, insets) -> {
-            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
-            return insets;
-        });
+        // Ensure the root view has an ID or use android.R.id.content
+        View mainView = findViewById(android.R.id.content);
+        if (mainView != null) {
+            ViewCompat.setOnApplyWindowInsetsListener(mainView, (v, insets) -> {
+                Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+                v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
+                return insets;
+            });
+        }
 
         databaseService = DatabaseService.getInstance();
         currentUser = SharedPreferencesUtil.getUser(this);
@@ -82,35 +86,39 @@ public class UserProfile extends AppCompatActivity implements View.OnClickListen
         btnDeleteUser = findViewById(R.id.btn_delete_user);
         adminBadge = findViewById(R.id.admin_badge);
 
-        btnUpdateProfile.setOnClickListener(this);
-        btnSignOut.setOnClickListener(this);
-        btnDeleteUser.setOnClickListener(this);
+        if (btnUpdateProfile != null) btnUpdateProfile.setOnClickListener(this);
+        if (btnSignOut != null) btnSignOut.setOnClickListener(this);
+        if (btnDeleteUser != null) btnDeleteUser.setOnClickListener(this);
 
         // Hide sign out if viewing another user's profile
-        if (!isCurrentUser) {
+        if (!isCurrentUser && btnSignOut != null) {
             btnSignOut.setVisibility(View.GONE);
         }
 
-        // Hide bottom navigation if it exists in the layout
+        // Hide bottom navigation if it exists in the activity layout
         View nav = findViewById(R.id.bottomNavigation);
         if (nav != null) nav.setVisibility(View.GONE);
     }
 
     @Override
     public void onClick(View v) {
-        if (v.getId() == R.id.btn_edit_profile) {
+        int id = v.getId();
+        if (id == R.id.btn_edit_profile) {
             updateUserProfile();
-        } else if (v.getId() == R.id.btn_sign_out) {
+        } else if (id == R.id.btn_sign_out) {
             signOut();
-        } else if (v.getId() == R.id.btn_delete_user) {
+        } else if (id == R.id.btn_delete_user) {
             confirmAndDeleteUser();
         }
     }
 
     private void showUserProfile() {
+        if (selectedUid == null) return;
+
         databaseService.getUser(selectedUid, new DatabaseService.DatabaseCallback<User>() {
             @Override
             public void onCompleted(User user) {
+                if (user == null) return;
                 selectedUser = user;
                 etUserFirstName.setText(user.getFirstname());
                 etUserLastName.setText(user.getLastname());
@@ -121,7 +129,9 @@ public class UserProfile extends AppCompatActivity implements View.OnClickListen
                 tvUserDisplayName.setText(user.getFirstname() + " " + user.getLastname());
                 tvUserDisplayEmail.setText(user.getEmail());
 
-                adminBadge.setVisibility(user.isAdmin() ? View.VISIBLE : View.GONE);
+                if (adminBadge != null) {
+                    adminBadge.setVisibility(user.isAdmin() ? View.VISIBLE : View.GONE);
+                }
             }
 
             @Override
@@ -130,61 +140,43 @@ public class UserProfile extends AppCompatActivity implements View.OnClickListen
             }
         });
 
-        // ניהול הרשאות עריכה ומחיקה
-        if (!isCurrentUser) {
-            if (currentUser.isAdmin()) {
-                // המנהל מקבל גישה חופשית לעריכת כל השדות של המשתמש האחר
-                etUserFirstName.setEnabled(true);
-                etUserLastName.setEnabled(true);
-                etUserPhone.setEnabled(true);
-                etUserEmail.setEnabled(true);
-                etUserPassword.setEnabled(true);
-                btnUpdateProfile.setVisibility(View.VISIBLE);
-                btnDeleteUser.setVisibility(View.VISIBLE); // הצגת כפתור המחיקה למנהל בלבד
+        // Visibility Logic
+        if (btnDeleteUser != null) {
+            if (currentUser.isAdmin() && !isCurrentUser) {
+                btnDeleteUser.setVisibility(View.VISIBLE);
             } else {
-                // משתמש רגיל לא יכול לערוך שום שדה של משתמש אחר
-                etUserFirstName.setEnabled(false);
-                etUserLastName.setEnabled(false);
-                etUserPhone.setEnabled(false);
-                etUserEmail.setEnabled(false);
-                etUserPassword.setEnabled(false);
-                btnUpdateProfile.setVisibility(View.GONE);
                 btnDeleteUser.setVisibility(View.GONE);
             }
-        } else {
-            // המשתמש הנוכחי עורך את עצמו
-            etUserFirstName.setEnabled(true);
-            etUserLastName.setEnabled(true);
-            etUserPhone.setEnabled(true);
-            etUserEmail.setEnabled(true);
-            etUserPassword.setEnabled(true);
-            btnUpdateProfile.setVisibility(View.VISIBLE);
-            btnDeleteUser.setVisibility(View.GONE); // מניעת מחיקה עצמית מכאן
+        }
+        
+        // Editing Permissions
+        if (!isCurrentUser && !currentUser.isAdmin()) {
+            etUserFirstName.setEnabled(false);
+            etUserLastName.setEnabled(false);
+            etUserPhone.setEnabled(false);
+            etUserEmail.setEnabled(false);
+            etUserPassword.setEnabled(false);
+            if (btnUpdateProfile != null) btnUpdateProfile.setVisibility(View.GONE);
         }
     }
 
     private void confirmAndDeleteUser() {
-        if (selectedUid == null) return;
-
         new AlertDialog.Builder(this)
                 .setTitle("Delete User")
-                .setMessage("Are you sure you want to completely delete this user from the database?")
-                .setPositiveButton("Delete", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        databaseService.deleteUser(selectedUid, new DatabaseService.DatabaseCallback<Void>() {
-                            @Override
-                            public void onCompleted(Void object) {
-                                Toast.makeText(UserProfile.this, "User deleted successfully", Toast.LENGTH_SHORT).show();
-                                finish(); // סגירת המסך וחזרה לרשימה לאחר מחיקה
-                            }
+                .setMessage("Are you sure you want to completely delete this user? This action cannot be undone.")
+                .setPositiveButton("Delete", (dialog, which) -> {
+                    databaseService.deleteUser(selectedUid, new DatabaseService.DatabaseCallback<Void>() {
+                        @Override
+                        public void onCompleted(Void object) {
+                            Toast.makeText(UserProfile.this, "User deleted successfully", Toast.LENGTH_SHORT).show();
+                            finish();
+                        }
 
-                            @Override
-                            public void onFailed(Exception e) {
-                                Toast.makeText(UserProfile.this, "Failed to delete user", Toast.LENGTH_SHORT).show();
-                            }
-                        });
-                    }
+                        @Override
+                        public void onFailed(Exception e) {
+                            Toast.makeText(UserProfile.this, "Failed to delete user", Toast.LENGTH_SHORT).show();
+                        }
+                    });
                 })
                 .setNegativeButton("Cancel", null)
                 .show();
@@ -201,24 +193,15 @@ public class UserProfile extends AppCompatActivity implements View.OnClickListen
 
         if (!isValid(firstName, lastName, phone, email, password)) return;
 
-        selectedUser.setFirstname(firstName);
-        selectedUser.setLastname(lastName);
-        selectedUser.setPhone(phone);
-        selectedUser.setEmail(email);
-        selectedUser.setPassword(password);
-
-        databaseService.updateUser(selectedUid, new UnaryOperator<User>() {
-            @Override
-            public User apply(User user) {
-                if (user != null) {
-                    user.setFirstname(selectedUser.getFirstname());
-                    user.setLastname(selectedUser.getLastname());
-                    user.setPhone(selectedUser.getPhone());
-                    user.setEmail(selectedUser.getEmail());
-                    user.setPassword(selectedUser.getPassword());
-                }
-                return user;
+        databaseService.updateUser(selectedUid, user -> {
+            if (user != null) {
+                user.setFirstname(firstName);
+                user.setLastname(lastName);
+                user.setPhone(phone);
+                user.setEmail(email);
+                user.setPassword(password);
             }
+            return user;
         }, new DatabaseService.DatabaseCallback<User>() {
             @Override
             public void onCompleted(User user) {
@@ -244,9 +227,9 @@ public class UserProfile extends AppCompatActivity implements View.OnClickListen
 
     private void signOut() {
         SharedPreferencesUtil.signOutUser(this);
-        Intent landingIntent = new Intent(this, LandingActivity.class);
-        landingIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-        startActivity(landingIntent);
+        Intent intent = new Intent(this, LandingActivity.class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        startActivity(intent);
         finish();
     }
 }
