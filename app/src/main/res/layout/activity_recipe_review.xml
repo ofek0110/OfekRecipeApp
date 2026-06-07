@@ -279,6 +279,19 @@
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/BtnDeleteMyRecipe"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:layout_marginBottom="24dp"
+                android:text="Delete My Recipe"
+                android:textColor="#B91C1C"
+                app:backgroundTint="#FEF2F2"
+                app:strokeColor="#EF4444"
+                app:strokeWidth="1dp"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:visibility="gone"/>
+
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/AdminPanel"
                 android:layout_width="match_parent"

@@ -24,7 +24,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
-import java.util.function.Predicate;
 
 public class MyRecipesActivity extends AppCompatActivity {
 
@@ -49,7 +48,6 @@ public class MyRecipesActivity extends AppCompatActivity {
 
         RvMyRecipes.setLayoutManager(new LinearLayoutManager(this));
 
-
         adapter = new RecipeAdapter(currentUser.getId(), true, new RecipeAdapter.OnRecipeClickListener() {
             @Override
             public void onRecipeClick(Recipe recipe) {
@@ -61,15 +59,21 @@ public class MyRecipesActivity extends AppCompatActivity {
         });
 
         RvMyRecipes.setAdapter(adapter);
-        loadMyRecipes();
+        // הסרנו מכאן את loadMyRecipes() כדי שלא יטען פעמיים סתם
+    }
+
+    // --- התיקון המרכזי: טעינה מחדש של הרשימה בכל פעם שחוזרים למסך ---
+    @Override
+    protected void onResume() {
+        super.onResume();
+        loadMyRecipes(); // ירענן את הרשימה באופן אוטומטי מול Firebase
     }
 
     private void loadMyRecipes() {
-
         DatabaseService.getInstance().getRecipeList(new DatabaseService.DatabaseCallback<List<Recipe>>() {
             @Override
             public void onCompleted(List<Recipe> recipes) {
-                recipes.removeIf(recipe -> !Objects.equals(recipe.getUserId(),currentUser.getId()));
+                recipes.removeIf(recipe -> !Objects.equals(recipe.getUserId(), currentUser.getId()));
                 Collections.reverse(recipes);
 
                 if (recipes.isEmpty()) {
@@ -85,7 +89,7 @@ public class MyRecipesActivity extends AppCompatActivity {
 
             @Override
             public void onFailed(Exception e) {
-
+                Toast.makeText(MyRecipesActivity.this, "Error loading recipes", Toast.LENGTH_SHORT).show();
             }
         });
     }
@@ -94,13 +98,11 @@ public class MyRecipesActivity extends AppCompatActivity {
         if (recipe.isApproved()) {
             showRecipeOptionsDialog(recipe, "This recipe is live!\nNote: If you edit it, it will return to pending status and require admin approval again.");
         } else if (recipe.getAdminNotes() != null && !recipe.getAdminNotes().isEmpty()) {
-            // מתכון שנדחה - מציגים את סיבת הדחייה ונותנים אפשרות לצפות או לתקן
             new AlertDialog.Builder(this)
                     .setTitle("Action Required")
                     .setMessage("Admin rejected this recipe.\nReason: " + recipe.getAdminNotes() + "\n\nWhat would you like to do?")
                     .setPositiveButton("Fix Now", (dialog, which) -> {
                         Intent intent = new Intent(MyRecipesActivity.this, AddRecipeActivity.class);
-                        // התיקון: מעבירים את ה-ID בדיוק בשם ש-AddRecipeActivity מחפש
                         intent.putExtra("RECIPE_ID_TO_EDIT", recipe.getId());
                         startActivity(intent);
                     })
@@ -116,7 +118,6 @@ public class MyRecipesActivity extends AppCompatActivity {
         }
     }
 
-    // פונקציית עזר שחוסכת קוד כפול - מקפיצה את הדיאלוג של בחירה בין צפייה לעריכה
     private void showRecipeOptionsDialog(Recipe recipe, String message) {
         new AlertDialog.Builder(this)
                 .setTitle(recipe.getTitle())
@@ -128,7 +129,6 @@ public class MyRecipesActivity extends AppCompatActivity {
                 })
                 .setNegativeButton("Edit", (dialog, which) -> {
                     Intent intent = new Intent(MyRecipesActivity.this, AddRecipeActivity.class);
-                    // התיקון: מעבירים את ה-ID בדיוק בשם ש-AddRecipeActivity מחפש
                     intent.putExtra("RECIPE_ID_TO_EDIT", recipe.getId());
                     startActivity(intent);
                 })

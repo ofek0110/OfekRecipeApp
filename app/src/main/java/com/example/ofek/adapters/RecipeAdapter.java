@@ -61,6 +61,14 @@ public class RecipeAdapter extends RecyclerView.Adapter<RecipeAdapter.RecipeView
         holder.TvDifficulty.setText(recipe.getDifficulty());
         holder.TvCategoryTag.setText(recipe.getCategory());
 
+        // הצגת הדירוג
+        if (recipe.getNumRatings() > 0) {
+            // מציג ציון ממוצע עם ספרה עשרונית אחת, למשל: 4.5
+            holder.TvItemRating.setText(String.format(java.util.Locale.US, "%.1f", recipe.getRating()));
+        } else {
+            holder.TvItemRating.setText("New");
+        }
+
         if (showStatus) {
             holder.TvStatus.setVisibility(View.VISIBLE);
             if (recipe.isApproved()) {
@@ -152,7 +160,8 @@ public class RecipeAdapter extends RecyclerView.Adapter<RecipeAdapter.RecipeView
     }
 
     class RecipeViewHolder extends RecyclerView.ViewHolder {
-        TextView TvTitle, TvPrepTime, TvDifficulty, TvCategoryTag, TvStatus;
+        // הוספנו את TvItemRating לכאן
+        TextView TvTitle, TvPrepTime, TvDifficulty, TvCategoryTag, TvStatus, TvItemRating;
         ImageView IvImage, IvFavoriteIcon;
         FrameLayout FlFavoriteBtn;
 
@@ -163,6 +172,8 @@ public class RecipeAdapter extends RecyclerView.Adapter<RecipeAdapter.RecipeView
             TvDifficulty = itemView.findViewById(R.id.TvDifficulty);
             TvCategoryTag = itemView.findViewById(R.id.TvCategoryTag);
             TvStatus = itemView.findViewById(R.id.TvStatus);
+            TvItemRating = itemView.findViewById(R.id.TvItemRating); // החיבור ל-XML
+
             IvImage = itemView.findViewById(R.id.IvRecipeImage);
             FlFavoriteBtn = itemView.findViewById(R.id.FlFavoriteBtn);
             IvFavoriteIcon = itemView.findViewById(R.id.IvFavoriteIcon);

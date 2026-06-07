@@ -52,6 +52,9 @@ public class AddRecipeActivity extends AppCompatActivity {
     private int selectedHour = 0;
     private int selectedMinute = 0;
 
+    // בודק האם המשתמש שינה את התמונה באופן פעיל כדי למנוע זיהוי שגוי בגלל דחיסת ה-Base64
+    private boolean isImageChanged = false;
+
     private ActivityResultLauncher<Intent> selectImageLauncher;
     private ActivityResultLauncher<Intent> captureImageLauncher;
 
@@ -93,7 +96,9 @@ public class AddRecipeActivity extends AppCompatActivity {
                     if (result.getResultCode() == RESULT_OK && result.getData() != null) {
                         Uri selectedImage = result.getData().getData();
                         IvRecipePreview.setImageURI(selectedImage);
+                        TvAddImageHint.setVisibility(View.GONE);
                         IvRecipePreview.setTag(null);
+                        isImageChanged = true;
                     }
                 });
 
@@ -103,7 +108,9 @@ public class AddRecipeActivity extends AppCompatActivity {
                     if (result.getResultCode() == RESULT_OK && result.getData() != null) {
                         Bitmap bitmap = (Bitmap) result.getData().getExtras().get("data");
                         IvRecipePreview.setImageBitmap(bitmap);
+                        TvAddImageHint.setVisibility(View.GONE);
                         IvRecipePreview.setTag(null);
+                        isImageChanged = true;
                     }
                 });
     }
@@ -225,6 +232,13 @@ public class AddRecipeActivity extends AppCompatActivity {
             ActvCategory.setText(recipeToEdit.getCategory(), false);
         }
 
+        if (recipeToEdit.getImageBase64() != null && !recipeToEdit.getImageBase64().isEmpty()) {
+            IvRecipePreview.setImageBitmap(ImageUtil.convertFrom64base(recipeToEdit.getImageBase64()));
+            TvAddImageHint.setVisibility(View.GONE);
+        } else {
+            TvAddImageHint.setVisibility(View.VISIBLE);
+        }
+
         BtnSubmit.setText("Fix & Resubmit");
 
         if (recipeToEdit.getAdminNotes() != null && !recipeToEdit.getAdminNotes().isEmpty()) {
@@ -262,6 +276,35 @@ public class AddRecipeActivity extends AppCompatActivity {
             return;
         }
 
+        // --- בדיקת שינויים קפדנית כולל ניקוי רווחים והתאמה לברירת מחדל ---
+        if (recipeToEdit != null) {
+            String oldTitle = recipeToEdit.getTitle() != null ? recipeToEdit.getTitle().trim() : "";
+            String oldDesc = recipeToEdit.getDescription() != null ? recipeToEdit.getDescription().trim() : "";
+            String oldIng = recipeToEdit.getIngredients() != null ? recipeToEdit.getIngredients().trim() : "";
+            String oldInst = recipeToEdit.getInstructions() != null ? recipeToEdit.getInstructions().trim() : "";
+            String oldPrep = recipeToEdit.getPreparationTime() != null ? recipeToEdit.getPreparationTime().trim() : "";
+
+            String oldDiff = recipeToEdit.getDifficulty() != null ? recipeToEdit.getDifficulty().trim() : "Medium";
+            String oldCat = recipeToEdit.getCategory() != null ? recipeToEdit.getCategory().trim() : "General";
+
+            if (title.equals(oldTitle) && description.equals(oldDesc) &&
+                    ingredients.equals(oldIng) && instructions.equals(oldInst) &&
+                    prepTime.equals(oldPrep) && difficulty.equals(oldDiff) &&
+                    category.equals(oldCat) && !isImageChanged) {
+
+                Toast.makeText(this, "No changes detected. Please update the recipe before resubmitting.", Toast.LENGTH_LONG).show();
+                return;
+            }
+        }
+
+        // שימוש חסכוני ובטוח במחרוזת ה-Base64 המקורית אם התמונה לא הוחלפה
+        String imageBase64;
+        if (recipeToEdit != null && !isImageChanged) {
+            imageBase64 = recipeToEdit.getImageBase64();
+        } else {
+            imageBase64 = ImageUtil.convertTo64Base(IvRecipePreview);
+        }
+
         String recipeId;
         if (recipeToEdit != null) {
             recipeId = recipeToEdit.getId();
@@ -269,9 +312,6 @@ public class AddRecipeActivity extends AppCompatActivity {
             recipeId = DatabaseService.getInstance().generateRecipeId();
         }
 
-        String imageBase64 = ImageUtil.convertTo64Base(IvRecipePreview);
-
-        // שימוש במבנה החדש שכולל HashMap ריק להצבעות
         Recipe newRecipe = new Recipe(
                 recipeId,
                 title,
@@ -285,9 +325,9 @@ public class AddRecipeActivity extends AppCompatActivity {
                 difficulty,
                 false,
                 null,
-                0f,
-                0,
-                new HashMap<>() // המשתנה החדש של הרשימה הריקה
+                recipeToEdit != null ? recipeToEdit.getRating() : 0f,
+                recipeToEdit != null ? recipeToEdit.getNumRatings() : 0,
+                recipeToEdit != null ? recipeToEdit.getRaters() : new HashMap<>()
         );
         newRecipe.setApproved(false);
         newRecipe.setAdminNotes("");
