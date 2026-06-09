@@ -19,6 +19,9 @@ import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
 
 import com.example.ofek.R;
 import com.example.ofek.adapters.ImageSourceAdapter;
@@ -63,6 +66,12 @@ public class AddRecipeActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_add_recipe);
+
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
+            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
+            return insets;
+        });
 
         currentUser = SharedPreferencesUtil.getUser(this);
         ImageUtil.requestPermission(this);
@@ -321,8 +330,6 @@ public class AddRecipeActivity extends AppCompatActivity {
                 difficulty,
                 false,
                 null,
-                recipeToEdit != null ? recipeToEdit.getRating() : 0f,
-                recipeToEdit != null ? recipeToEdit.getNumRatings() : 0,
                 recipeToEdit != null ? recipeToEdit.getRaters() : new HashMap<>()
         );
         newRecipe.setApproved(false);

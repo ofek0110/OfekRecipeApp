@@ -1,6 +1,5 @@
 package com.example.ofek.screens;
 
-import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
@@ -12,6 +11,9 @@ import android.widget.Toast;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
 
 import com.example.ofek.R;
 import com.example.ofek.models.Recipe;
@@ -23,8 +25,6 @@ import com.google.android.material.button.MaterialButton;
 import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.textfield.TextInputEditText;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.function.UnaryOperator;
 
 // מסך צפייה ופירוט מתכון המשלב תפקיד משולש: דירוג מתכון למשתמש רגיל,
@@ -36,7 +36,7 @@ public class RecipeReviewActivity extends AppCompatActivity {
     private Button BtnApprove, BtnReject, BtnRemove;
     private MaterialButton BtnDeleteMyRecipe;
     private View LayoutPendingButtons;
-    private ImageView IvRecipeImage;
+    private ImageView IvRecipeImage, IvRatingRemove;
     private TextInputEditText EtAdminNotes;
     private View AdminPanel;
 
@@ -52,6 +52,11 @@ public class RecipeReviewActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_recipe_review);
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
+            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
+            return insets;
+        });
 
         currentUser = SharedPreferencesUtil.getUser(this);
 
@@ -66,7 +71,7 @@ public class RecipeReviewActivity extends AppCompatActivity {
 
         initializeViews();
 
-        // שליפת הנתונים המעודכנים של המתכון מ-Firebase
+        // שליפת הנתונים המעודכנת של המתכון מ-Firebase
         loadRecipeData();
     }
 
@@ -115,6 +120,7 @@ public class RecipeReviewActivity extends AppCompatActivity {
         RbUserRating = findViewById(R.id.RbUserRating);
         CardUserRating = findViewById(R.id.CardUserRating);
         TvUserRatingTitle = findViewById(R.id.TvUserRatingTitle);
+        IvRatingRemove = findViewById(R.id.tvRatingRemove);
 
         AdminPanel.setVisibility(View.GONE);
         BtnDeleteMyRecipe.setVisibility(View.GONE);
@@ -130,8 +136,8 @@ public class RecipeReviewActivity extends AppCompatActivity {
         TvTime.setText("🕒 " + currentRecipe.getPreparationTime());
         TvDifficulty.setText("🔥 " + currentRecipe.getDifficulty());
 
-        RbRecipeRatingDisplay.setRating(currentRecipe.getRating());
-        TvRatingCount.setText("(" + currentRecipe.getNumRatings() + " ratings)");
+        RbRecipeRatingDisplay.setRating((float) currentRecipe.getRating());
+        TvRatingCount.setText("(" + currentRecipe.getTotalRaters() + " ratings)");
 
         if (currentRecipe.getImageBase64() != null && !currentRecipe.getImageBase64().isEmpty()) {
             IvRecipeImage.setImageBitmap(ImageUtil.convertFrom64base(currentRecipe.getImageBase64()));
@@ -153,11 +159,13 @@ public class RecipeReviewActivity extends AppCompatActivity {
             if (currentRecipe.getRaters() != null && currentRecipe.getRaters().containsKey(currentUser.getId())) {
                 TvUserRatingTitle.setText("Your Rating:");
                 RbUserRating.setRating(currentRecipe.getRaters().get(currentUser.getId()));
-                RbUserRating.setIsIndicator(true); // הופך את הבר לצפייה בלבד (נעל לשינויים)
+                RbUserRating.setIsIndicator(true); // הופך את הבר לצפייה בלבד (נעול לשינויים)
+                IvRatingRemove.setVisibility(View.VISIBLE);
             } else {
                 TvUserRatingTitle.setText("Rate this recipe:");
                 RbUserRating.setRating(0);
                 RbUserRating.setIsIndicator(false);
+                IvRatingRemove.setVisibility(View.GONE);
             }
         }
     }
@@ -197,6 +205,8 @@ public class RecipeReviewActivity extends AppCompatActivity {
                 submitRecipeRating(rating);
             }
         });
+
+        IvRatingRemove.setOnClickListener(v -> removeRecipeRating());
     }
 
     // region לוגיקת המחיקה של המשתמש (הסרת המתכון לחלוטין מ-Firebase)
@@ -204,12 +214,12 @@ public class RecipeReviewActivity extends AppCompatActivity {
         new AlertDialog.Builder(this)
                 .setTitle("Delete Recipe")
                 .setMessage("Are you sure you want to permanently delete your recipe? This action cannot be undone.")
-                .setPositiveButton("Delete", (dialog, which) -> deleteMyRecipeFromFirebase())
+                .setPositiveButton("Delete", (dialog, which) -> deleteMyRecipeFromDatabase())
                 .setNegativeButton("Cancel", null)
                 .show();
     }
 
-    private void deleteMyRecipeFromFirebase() {
+    private void deleteMyRecipeFromDatabase() {
         if (currentRecipe == null) return;
         DatabaseService.getInstance().deleteRecipe(currentRecipe.getId(), new DatabaseService.DatabaseCallback<Void>() {
             @Override
@@ -235,22 +245,7 @@ public class RecipeReviewActivity extends AppCompatActivity {
             @Override
             public Recipe apply(Recipe recipe) {
                 if (recipe != null) {
-                    Map<String, Float> raters = recipe.getRaters();
-                    if (raters == null) {
-                        raters = new HashMap<>();
-                    }
-
-                    if (!raters.containsKey(currentUser.getId())) {
-                        raters.put(currentUser.getId(), newRating);
-                        recipe.setRaters(raters);
-                        recipe.setNumRatings(raters.size());
-
-                        float sum = 0;
-                        for (Float r : raters.values()) {
-                            sum += r;
-                        }
-                        recipe.setRating(sum / raters.size());
-                    }
+                    recipe.putRater(currentUser.getId(), newRating);
                 }
                 return recipe;
             }
@@ -260,9 +255,7 @@ public class RecipeReviewActivity extends AppCompatActivity {
                 if(serverRecipe != null) {
                     Toast.makeText(RecipeReviewActivity.this, "Thank you for rating!", Toast.LENGTH_SHORT).show();
                     currentRecipe = serverRecipe;
-                    RbRecipeRatingDisplay.setRating(currentRecipe.getRating());
-                    TvRatingCount.setText("(" + currentRecipe.getNumRatings() + " ratings)");
-                    TvUserRatingTitle.setText("Your Rating:");
+                    updateRatingUI();
                 }
             }
 
@@ -272,6 +265,48 @@ public class RecipeReviewActivity extends AppCompatActivity {
                 RbUserRating.setIsIndicator(false);
             }
         });
+    }
+
+    private void removeRecipeRating() {
+        if (currentRecipe == null) return;
+
+        DatabaseService.getInstance().updateRecipes(currentRecipe.getId(), recipe -> {
+            if (recipe != null) {
+                recipe.removeRater(currentUser.getId());
+            }
+            return recipe;
+        }, new DatabaseService.DatabaseCallback<Recipe>() {
+            @Override
+            public void onCompleted(@Nullable Recipe serverRecipe) {
+                if (serverRecipe != null) {
+                    Toast.makeText(RecipeReviewActivity.this, "Rating removed", Toast.LENGTH_SHORT).show();
+                    currentRecipe = serverRecipe;
+                    updateRatingUI();
+                }
+            }
+
+            @Override
+            public void onFailed(Exception e) {
+                Toast.makeText(RecipeReviewActivity.this, "Error removing rating", Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    private void updateRatingUI() {
+        RbRecipeRatingDisplay.setRating((float) currentRecipe.getRating());
+        TvRatingCount.setText("(" + currentRecipe.getTotalRaters() + " ratings)");
+
+        if (currentRecipe.getRaters() != null && currentRecipe.getRaters().containsKey(currentUser.getId())) {
+            TvUserRatingTitle.setText("Your Rating:");
+            RbUserRating.setRating(currentRecipe.getRaters().get(currentUser.getId()));
+            RbUserRating.setIsIndicator(true);
+            IvRatingRemove.setVisibility(View.VISIBLE);
+        } else {
+            TvUserRatingTitle.setText("Rate this recipe:");
+            RbUserRating.setRating(0);
+            RbUserRating.setIsIndicator(false);
+            IvRatingRemove.setVisibility(View.GONE);
+        }
     }
     // endregion
 

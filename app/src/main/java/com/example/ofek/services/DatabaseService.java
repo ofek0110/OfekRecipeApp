@@ -246,10 +246,6 @@ public class DatabaseService {
         getDataList(RECIPES_PATH, Recipe.class, callback);
     }
 
-    public void getAllRecipes(@NotNull final DatabaseCallback<List<Recipe>> callback) {
-        getRecipeList(callback);
-    }
-
     public void deleteRecipe(@NotNull final String rid, @Nullable final DatabaseCallback<Void> callback) {
         deleteData(RECIPES_PATH + "/" + rid, callback);
     }

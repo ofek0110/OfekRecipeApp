@@ -109,7 +109,7 @@ public class Register extends AppCompatActivity implements View.OnClickListener 
         return true;
     }
 
-    // תהליך ההרשמה: מייצר מזהה ייחודי (ID) ובודק מול Firebase האם כתובת האימייל כבר תפוסה במערכת לפני היצירה
+    // תהליך ההרשמה: מייצר מזהה ייחודי (ID) ובודק מול DB האם כתובת האימייל כבר תפוסה במערכת לפני היצירה
     private void registerUser(String email, String password, String fName, String lName, String phone) {
         String uid = databaseService.generateUserId();
         User user = new User(uid, email, fName, lName, password, phone, false);

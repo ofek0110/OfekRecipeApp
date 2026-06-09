@@ -1,10 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:background="#F6F7F7">
+    android:background="#F6F7F7"
+    android:orientation="vertical">
 
     <androidx.cardview.widget.CardView
         android:layout_width="match_parent"
@@ -20,27 +21,27 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
                 android:text="Admin Recipe Management"
-                android:textSize="20sp"
-                android:textStyle="bold"
                 android:textColor="#0F172A"
-                android:layout_marginBottom="16dp" />
+                android:textSize="20sp"
+                android:textStyle="bold" />
 
             <androidx.appcompat.widget.SearchView
                 android:id="@+id/searchView"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                app:iconifiedByDefault="false"
-                app:queryHint="Search recipes..."
+                android:layout_marginBottom="12dp"
                 android:background="@drawable/bg_tag_rounded"
                 android:backgroundTint="#FFFFFF"
-                android:layout_marginBottom="12dp" />
+                app:iconifiedByDefault="false"
+                app:queryHint="Search recipes..." />
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center_vertical">
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
 
                 <TextView
                     android:layout_width="wrap_content"
@@ -61,7 +62,7 @@
         android:id="@+id/rvAdminRecipes"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:padding="8dp"
-        android:clipToPadding="false" />
+        android:clipToPadding="false"
+        android:padding="8dp" />
 
 </LinearLayout>

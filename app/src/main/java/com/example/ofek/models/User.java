@@ -1,11 +1,12 @@
 package com.example.ofek.models;
 
+import androidx.annotation.NonNull;
+
 public class User {
     private String id, email, firstname, lastname, password, phone;
-    private boolean isAdmin, isSupporter;
+    private boolean isAdmin;
 
     public User() {
-        // Required for Firebase
     }
 
     public User(String id, String email, String firstname, String lastname, String password, String phone, boolean isAdmin) {
@@ -67,7 +68,6 @@ public class User {
         this.phone = phone;
     }
 
-    // Firebase will serialize this as a property named "admin"
     public boolean isAdmin() {
         return isAdmin;
     }
@@ -76,8 +76,7 @@ public class User {
         isAdmin = admin;
     }
 
-
-
+    @NonNull
     @Override
     public String toString() {
         return "User{" +

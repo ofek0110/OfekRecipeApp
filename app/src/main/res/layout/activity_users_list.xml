@@ -17,7 +17,7 @@
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
-            android:background="?attr/colorPrimary"
+            android:background="#4CAEAA"
             app:popupTheme="@style/ThemeOverlay.AppCompat.Light"
             app:title="All Users"
              />
@@ -97,7 +97,6 @@
                         android:layout_height="wrap_content"
                         android:text="No Users Found"
                         android:textSize="18sp"
-                        android:textColor="?attr/colorOnSurfaceVariant"
                         android:layout_marginBottom="8dp" />
 
                     <TextView

@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:background="#F6F7F7">
+    android:background="#F6F7F7"
+    android:orientation="vertical">
 
     <RelativeLayout
         android:layout_width="match_parent"
@@ -16,11 +16,11 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_centerVertical="true"
             android:text="My Recipes"
-            android:textSize="28sp"
-            android:textStyle="bold"
             android:textColor="#0F172A"
-            android:layout_centerVertical="true" />
+            android:textSize="28sp"
+            android:textStyle="bold" />
     </RelativeLayout>
 
     <TextView
@@ -38,8 +38,8 @@
         android:id="@+id/RvMyRecipes"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:paddingHorizontal="24dp"
         android:clipToPadding="false"
+        android:paddingHorizontal="24dp"
         android:paddingBottom="32dp" />
 
 </LinearLayout>

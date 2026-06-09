@@ -73,10 +73,6 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.ViewHolder> {
 
         // לחיצה רגילה: מעבירה ישירות למסך הפרופיל של אותו משתמש עם ה-UID שלו
         holder.itemView.setOnClickListener(v -> {
-            Intent intent = new Intent(v.getContext(), UserProfile.class);
-            intent.putExtra("USER_UID", user.getId());
-            v.getContext().startActivity(intent);
-
             if (onUserClickListener != null) {
                 onUserClickListener.onUserClick(user);
             }

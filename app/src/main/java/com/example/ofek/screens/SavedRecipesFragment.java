@@ -74,10 +74,18 @@ public class SavedRecipesFragment extends Fragment {
 
             @Override
             public void onLongRecipeClick(Recipe recipe) {}
+            @Override
+            public void onFavoriteClick(Recipe recipe, boolean isFavorite) {
+                if (!isFavorite)
+                    adapter.removeRecipe(recipe);
+            }
         });
         rvSavedRecipes.setAdapter(adapter);
+    }
 
-        // טעינת רשימת המתכונים השמורים
+    @Override
+    public void onResume() {
+        super.onResume();
         loadSavedRecipes();
     }
 
@@ -103,6 +111,8 @@ public class SavedRecipesFragment extends Fragment {
 
                         savedRecipesList.clear();
                         savedRecipesList.addAll(recipes);
+
+                        Collections.reverse(savedRecipesList);
 
                         // עדכון האדפטר ועדכון ה-UI למקרה שהרשימה ריקה
                         adapter.setRecipeList(savedRecipesList);

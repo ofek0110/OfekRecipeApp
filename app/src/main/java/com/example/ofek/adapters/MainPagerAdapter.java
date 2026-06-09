@@ -15,6 +15,8 @@ public class MainPagerAdapter extends FragmentStateAdapter {
         super(fragmentActivity);
     }
 
+
+    // פה התצוגות מוגדרות למסך הראשי
     @NonNull
     @Override
     public Fragment createFragment(int position) {

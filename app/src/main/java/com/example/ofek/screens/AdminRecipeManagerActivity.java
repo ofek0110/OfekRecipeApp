@@ -10,6 +10,9 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.SearchView;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -41,6 +44,12 @@ public class AdminRecipeManagerActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_admin_recipe_manager);
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
+            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
+            return insets;
+        });
+
 
         // אבטחה ושומרי סף: בדיקה שהמשתמש הנוכחי מחובר והוא אכן אדמין, אחרת נחסום ונזרוק אותו מהמסך
         User currentUser = SharedPreferencesUtil.getUser(this);
@@ -68,6 +77,9 @@ public class AdminRecipeManagerActivity extends AppCompatActivity {
 
             @Override
             public void onLongRecipeClick(Recipe recipe) {}
+
+            @Override
+            public void onFavoriteClick(Recipe recipe, boolean isFavorite) {}
         });
         rvAdminRecipes.setAdapter(adapter);
 

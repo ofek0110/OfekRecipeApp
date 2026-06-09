@@ -8,6 +8,9 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -35,6 +38,12 @@ public class RecipeRequestsActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_recipe_requests);
 
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
+            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
+            return insets;
+        });
+
         // בדיקת אבטחה בסיסית: שליפת המשתמש וסגירת המסך אם אינו מחובר
         currentUser = SharedPreferencesUtil.getUser(this);
         if (currentUser == null) {
@@ -58,6 +67,9 @@ public class RecipeRequestsActivity extends AppCompatActivity {
 
             @Override
             public void onLongRecipeClick(Recipe recipe) { }
+
+            @Override
+            public void onFavoriteClick(Recipe recipe, boolean isFavorite) {}
         });
         RvRequests.setAdapter(adapter);
     }

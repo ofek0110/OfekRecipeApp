@@ -12,7 +12,6 @@ import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -100,6 +99,8 @@ public class HomeFragment extends Fragment {
 
             @Override
             public void onLongRecipeClick(Recipe recipe) {}
+            @Override
+            public void onFavoriteClick(Recipe recipe, boolean isFavorite) {}
         });
         rvRecipes.setAdapter(adapter);
 
@@ -129,8 +130,8 @@ public class HomeFragment extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
-        // בכל פעם שחוזרים למסך, נמשוך מחדש את המתכונים המעודכנים מ-Firebase
-        loadRecipesFromFirebase();
+        // בכל פעם שחוזרים למסך, נמשוך מחדש את המתכונים המעודכנים מ-Database
+        loadRecipes();
     }
 
     // אתחול כרטיסיות הקטגוריות והגדרת מאזיני לחיצה שיפעילו את הסינון המתאים
@@ -173,42 +174,41 @@ public class HomeFragment extends Fragment {
         }
     }
 
-    // מנגנון הסינון המשולב: רץ על הרשימה המקורית ומסנן מתכונים שעומדים גם בתנאי החיפוש החופשי וגם בקטגוריה שנבחרה
+    /// מנגנון הסינון המשולב: רץ על הרשימה המקורית ומסנן מתכונים שעומדים גם בתנאי החיפוש החופשי וגם בקטגוריה שנבחרה
     private void filterRecipes(String text) {
         filteredList.clear();
         for (Recipe recipe : recipeList) {
-            boolean matchesSearch = recipe.getTitle().toLowerCase().contains(text.toLowerCase());
+            boolean matchesSearch = recipe.getTitle().toLowerCase().contains(text.toLowerCase()); // בדיקת התנאי של הכותרת
+            // בדיקת התנאי של הקטגוריה
             boolean matchesCategory = currentCategoryFilter.isEmpty() ||
                     (recipe.getCategory() != null && recipe.getCategory().equalsIgnoreCase(currentCategoryFilter));
-
+            /// בדיקת שני התנאיפ
             if (matchesSearch && matchesCategory) {
                 filteredList.add(recipe);
             }
         }
+
         adapter.setRecipeList(filteredList);
     }
 
-    // שליפת כל המתכונים מ-Firebase, חישוב כמות הבקשות הממתינות (עבור ה-Badge של האדמין), וסינון כך שיוצגו רק מתכונים מאושרים
-    private void loadRecipesFromFirebase() {
+    /// שליפת כל המתכונים מ-Database, חישוב כמות הבקשות הממתינות (עבור ה-Badge של האדמין), וסינון כך שיוצגו רק מתכונים מאושרים
+    private void loadRecipes() {
         DatabaseService.getInstance().getRecipeList(new DatabaseService.DatabaseCallback<List<Recipe>>() {
             @Override
             public void onCompleted(@Nullable List<Recipe> recipes) {
-                if (!isAdded()) return;
-                recipeList.clear();
                 if (recipes == null) return;
+                if (!isAdded()) return;
 
-                // ספירת כמה מתכונים ממתינים לאישור אדמין (Pending)
                 int pendingCount = (int) recipes.stream().filter(Recipe::isPending).count();
 
-                // הסרת כל המתכונים שאינם מאושרים (כדי שהמשתמש הרגיל לא יראה אותם במסך הבית)
                 recipes.removeIf(recipe -> !recipe.isApproved());
 
                 recipeList.clear();
                 recipeList.addAll(recipes);
-                Collections.reverse(recipeList); // הפיכת הרשימה כדי שהמתכונים החדשים ביותר יוצגו ראשונים
+                Collections.reverse(recipeList);
+
                 filterRecipes(etSearch.getText().toString());
 
-                // עדכון בועית ההתראות (Badge) של האדמין עם כמות הבקשות הממתינות לאישור
                 if (pendingCount > 0) {
                     tvRequestsBadge.setVisibility(View.VISIBLE);
                     tvRequestsBadge.setText(pendingCount > 99 ? "99+" : String.valueOf(pendingCount));

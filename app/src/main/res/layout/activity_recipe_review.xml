@@ -1,11 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.coordinatorlayout.widget.CoordinatorLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#F6F7F7">
+    android:background="#F8FAFC"
+    tools:context=".screens.RecipeReviewActivity">
 
     <com.google.android.material.appbar.AppBarLayout
         android:layout_width="match_parent"
@@ -16,8 +17,6 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             app:contentScrim="#4CAEAA"
-            app:expandedTitleMarginBottom="20dp"
-            app:expandedTitleMarginStart="20dp"
             app:layout_scrollFlags="scroll|exitUntilCollapsed">
 
             <ImageView
@@ -25,22 +24,19 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:scaleType="centerCrop"
-                android:src="@drawable/ic_launcher_background"
+                android:src="@drawable/logo"
                 app:layout_collapseMode="parallax" />
 
-            <ImageView
-                android:id="@+id/recipe_review_view"
+            <View
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:background="#33000000"
-                android:scaleType="centerCrop" />
+                android:layout_height="120dp"
+                android:layout_gravity="bottom"
+                android:background="@drawable/bg_header_rounded" />
 
             <androidx.appcompat.widget.Toolbar
-                android:id="@+id/Toolbar"
                 android:layout_width="match_parent"
                 android:layout_height="?attr/actionBarSize"
-                app:layout_collapseMode="pin"
-                app:navigationIcon="?attr/homeAsUpIndicator" />
+                app:layout_collapseMode="pin" />
 
         </com.google.android.material.appbar.CollapsingToolbarLayout>
     </com.google.android.material.appbar.AppBarLayout>
@@ -48,26 +44,23 @@
     <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:clipToPadding="false"
-        android:paddingBottom="80dp"
-        android:layout_marginTop="-30dp"
+        android:layout_marginTop="-40dp"
         app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:paddingHorizontal="24dp">
+            android:paddingHorizontal="20dp">
 
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="16dp"
-                app:cardCornerRadius="16dp"
-                app:cardElevation="0dp"
                 app:cardBackgroundColor="#FFFFFF"
-                app:strokeColor="#E2E8F0"
-                app:strokeWidth="1dp">
+                app:cardCornerRadius="16dp"
+                app:cardElevation="2dp"
+                app:strokeWidth="0dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -79,18 +72,18 @@
                         android:id="@+id/TvReviewTitle"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
+                        android:layout_marginBottom="8dp"
                         android:text="Recipe Title"
-                        android:textSize="26sp"
-                        android:textStyle="bold"
                         android:textColor="#0F172A"
-                        android:layout_marginBottom="4dp"/>
+                        android:textSize="28sp"
+                        android:textStyle="bold" />
 
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:orientation="horizontal"
+                        android:layout_marginBottom="16dp"
                         android:gravity="center_vertical"
-                        android:layout_marginBottom="12dp">
+                        android:orientation="horizontal">
 
                         <RatingBar
                             android:id="@+id/RbRecipeRatingDisplay"
@@ -108,50 +101,50 @@
                             android:layout_height="wrap_content"
                             android:layout_marginStart="8dp"
                             android:text="(0 ratings)"
-                            android:textColor="#94A3B8"
-                            android:textSize="14sp"/>
+                            android:textColor="#64748B"
+                            android:textSize="14sp" />
                     </LinearLayout>
 
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:orientation="horizontal"
-                        android:layout_marginBottom="16dp">
+                        android:layout_marginBottom="20dp"
+                        android:orientation="horizontal">
 
                         <TextView
                             android:id="@+id/TvReviewTime"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="🕒 45 min"
-                            android:textColor="#0F172A"
-                            android:textSize="14sp"
+                            android:layout_marginEnd="12dp"
                             android:background="@drawable/bg_tag_rounded"
-                            android:backgroundTint="#E0F2F1"
+                            android:backgroundTint="#F1F5F9"
                             android:paddingHorizontal="12dp"
                             android:paddingVertical="6dp"
-                            android:layout_marginEnd="8dp"/>
+                            android:text="🕒 45 min"
+                            android:textColor="#0F172A"
+                            android:textSize="14sp" />
 
                         <TextView
                             android:id="@+id/TvReviewDifficulty"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="🔥 Medium"
-                            android:textColor="#0F172A"
-                            android:textSize="14sp"
                             android:background="@drawable/bg_tag_rounded"
                             android:backgroundTint="#FFEDD5"
                             android:paddingHorizontal="12dp"
-                            android:paddingVertical="6dp"/>
+                            android:paddingVertical="6dp"
+                            android:text="🔥 Medium"
+                            android:textColor="#0F172A"
+                            android:textSize="14sp" />
                     </LinearLayout>
 
                     <TextView
                         android:id="@+id/TvReviewDescription"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="A short description of the recipe goes here..."
                         android:lineSpacingExtra="4dp"
+                        android:text="A short description of the recipe goes here..."
                         android:textColor="#94A3B8"
-                        android:textSize="16sp"/>
+                        android:textSize="16sp" />
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
@@ -159,9 +152,9 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="16dp"
+                app:cardBackgroundColor="#FFFFFF"
                 app:cardCornerRadius="16dp"
                 app:cardElevation="0dp"
-                app:cardBackgroundColor="#FFFFFF"
                 app:strokeColor="#E2E8F0"
                 app:strokeWidth="1dp">
 
@@ -174,27 +167,27 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
+                        android:layout_marginBottom="12dp"
                         android:text="Ingredients"
-                        android:textSize="18sp"
-                        android:textStyle="bold"
                         android:textColor="#4CAEAA"
-                        android:layout_marginBottom="12dp"/>
+                        android:textSize="18sp"
+                        android:textStyle="bold" />
 
                     <View
                         android:layout_width="40dp"
                         android:layout_height="3dp"
-                        android:background="#4CAEAA"
+                        android:layout_marginBottom="16dp"
                         android:alpha="0.3"
-                        android:layout_marginBottom="16dp"/>
+                        android:background="#4CAEAA" />
 
                     <TextView
                         android:id="@+id/TvReviewIngredients"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="- Item 1\n- Item 2"
                         android:lineSpacingExtra="8dp"
+                        android:text="- Item 1\n- Item 2"
                         android:textColor="#0F172A"
-                        android:textSize="16sp"/>
+                        android:textSize="16sp" />
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
@@ -202,9 +195,9 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="24dp"
+                app:cardBackgroundColor="#FFFFFF"
                 app:cardCornerRadius="16dp"
                 app:cardElevation="0dp"
-                app:cardBackgroundColor="#FFFFFF"
                 app:strokeColor="#E2E8F0"
                 app:strokeWidth="1dp">
 
@@ -217,27 +210,27 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
+                        android:layout_marginBottom="12dp"
                         android:text="Instructions"
-                        android:textSize="18sp"
-                        android:textStyle="bold"
                         android:textColor="#4CAEAA"
-                        android:layout_marginBottom="12dp"/>
+                        android:textSize="18sp"
+                        android:textStyle="bold" />
 
                     <View
                         android:layout_width="40dp"
                         android:layout_height="3dp"
-                        android:background="#4CAEAA"
+                        android:layout_marginBottom="16dp"
                         android:alpha="0.3"
-                        android:layout_marginBottom="16dp"/>
+                        android:background="#4CAEAA" />
 
                     <TextView
                         android:id="@+id/TvReviewInstructions"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="1. Do this.\n2. Then that."
                         android:lineSpacingExtra="8dp"
+                        android:text="1. Do this.\n2. Then that."
                         android:textColor="#0F172A"
-                        android:textSize="16sp"/>
+                        android:textSize="16sp" />
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
@@ -246,51 +239,72 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="24dp"
+                app:cardBackgroundColor="#FFFFFF"
                 app:cardCornerRadius="16dp"
                 app:cardElevation="0dp"
-                app:cardBackgroundColor="#FFFFFF"
                 app:strokeColor="#E2E8F0"
                 app:strokeWidth="1dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="vertical"
                     android:gravity="center"
+                    android:orientation="vertical"
                     android:padding="24dp">
 
                     <TextView
                         android:id="@+id/TvUserRatingTitle"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
+                        android:layout_marginBottom="8dp"
                         android:text="Rate this recipe:"
-                        android:textSize="18sp"
-                        android:textStyle="bold"
                         android:textColor="#0F172A"
-                        android:layout_marginBottom="8dp"/>
+                        android:textSize="18sp"
+                        android:textStyle="bold" />
 
-                    <RatingBar
-                        android:id="@+id/RbUserRating"
+                    <LinearLayout
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:numStars="5"
-                        android:stepSize="1.0"
-                        android:progressTint="#F59E0B" />
+                        android:gravity="center"
+                        android:orientation="horizontal">
+
+                        <RatingBar
+                            android:id="@+id/RbUserRating"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:numStars="5"
+                            android:progressTint="#F59E0B"
+                            android:stepSize="1.0" />
+
+                        <ImageView
+                            android:id="@+id/tvRatingRemove"
+                            android:layout_width="32dp"
+                            android:layout_height="32dp"
+                            android:layout_marginStart="8dp"
+                            android:background="?attr/selectableItemBackgroundBorderless"
+                            android:clickable="true"
+                            android:contentDescription="Remove Rating"
+                            android:focusable="true"
+                            android:padding="6dp"
+                            android:src="@drawable/ic_close"
+                            android:visibility="gone" />
+                    </LinearLayout>
+
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/BtnDeleteMyRecipe"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
                 android:layout_width="match_parent"
                 android:layout_height="56dp"
                 android:layout_marginBottom="24dp"
                 android:text="Delete My Recipe"
                 android:textColor="#B91C1C"
+                android:visibility="gone"
                 app:backgroundTint="#FEF2F2"
                 app:strokeColor="#EF4444"
-                app:strokeWidth="1dp"
-                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-                android:visibility="gone"/>
+                app:strokeWidth="1dp" />
 
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/AdminPanel"
@@ -300,9 +314,9 @@
                 android:visibility="gone"
                 app:cardBackgroundColor="#FEF2F2"
                 app:cardCornerRadius="16dp"
+                app:cardElevation="0dp"
                 app:strokeColor="#EF4444"
-                app:strokeWidth="1dp"
-                app:cardElevation="0dp">
+                app:strokeWidth="1dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -313,23 +327,23 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
+                        android:layout_marginBottom="16dp"
                         android:text="🔒 Admin Control Panel"
-                        android:textStyle="bold"
                         android:textColor="#B91C1C"
                         android:textSize="16sp"
-                        android:layout_marginBottom="16dp"/>
+                        android:textStyle="bold" />
 
                     <com.google.android.material.textfield.TextInputLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
+                        android:layout_marginBottom="16dp"
                         android:hint="Reason for rejection (Optional)"
-                        app:boxBackgroundColor="#FFFFFF"
-                        android:layout_marginBottom="16dp">
+                        app:boxBackgroundColor="#FFFFFF">
 
                         <com.google.android.material.textfield.TextInputEditText
                             android:id="@+id/EtAdminNotes"
                             android:layout_width="match_parent"
-                            android:layout_height="wrap_content"/>
+                            android:layout_height="wrap_content" />
                     </com.google.android.material.textfield.TextInputLayout>
 
                     <LinearLayout
@@ -341,36 +355,36 @@
 
                         <Button
                             android:id="@+id/BtnReject"
+                            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
                             android:layout_width="0dp"
                             android:layout_height="56dp"
+                            android:layout_marginEnd="8dp"
                             android:layout_weight="1"
                             android:text="Reject"
                             android:textColor="#B91C1C"
                             app:strokeColor="#B91C1C"
-                            app:strokeWidth="1dp"
-                            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-                            android:layout_marginEnd="8dp"/>
+                            app:strokeWidth="1dp" />
 
                         <Button
                             android:id="@+id/BtnApprove"
+                            style="@style/Widget.MaterialComponents.Button.UnelevatedButton"
                             android:layout_width="0dp"
                             android:layout_height="56dp"
                             android:layout_weight="1"
-                            android:text="Approve"
                             android:backgroundTint="#16A34A"
-                            style="@style/Widget.MaterialComponents.Button.UnelevatedButton"/>
+                            android:text="Approve" />
                     </LinearLayout>
 
                     <Button
                         android:id="@+id/BtnRemove"
+                        style="@style/Widget.MaterialComponents.Button.OutlinedButton"
                         android:layout_width="match_parent"
                         android:layout_height="56dp"
                         android:text="Remove &amp; Return to User"
                         android:textColor="#B91C1C"
+                        android:visibility="gone"
                         app:strokeColor="#B91C1C"
-                        app:strokeWidth="1dp"
-                        style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-                        android:visibility="gone"/>
+                        app:strokeWidth="1dp" />
 
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>

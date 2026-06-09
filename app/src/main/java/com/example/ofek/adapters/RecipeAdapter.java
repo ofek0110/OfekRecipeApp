@@ -22,6 +22,7 @@ import com.example.ofek.utils.ImageUtil;
 
 import org.jetbrains.annotations.NotNull;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -33,24 +34,33 @@ public class RecipeAdapter extends RecyclerView.Adapter<RecipeAdapter.RecipeView
     private final OnRecipeClickListener listener;
     private final String currentUserId;
     private final boolean showStatus; // דגל: האם להציג סטטוס מתכון (עבור אדמין או יוצר המתכון)
-    private final Map<String, String> userNamesCache = new HashMap<>(); // קאש לשמות משתמשים כדי לא להעמיס קריאות ל-Firebase
+    private final Map<String, User> usersCache = new HashMap<>(); // קאש לשמות משתמשים כדי לא להעמיס קריאות ל-Firebase
 
     // ממשק להאזנה ללחיצות (רגילה וארוכה) על מתכון ברשימה
     public interface OnRecipeClickListener {
         void onRecipeClick(Recipe recipe);
         void onLongRecipeClick(Recipe recipe);
+        void onFavoriteClick(Recipe recipe, boolean isFavorite);
     }
 
     public RecipeAdapter(@NotNull String currentUserId, boolean showStatus, OnRecipeClickListener listener) {
         this.currentUserId = currentUserId;
         this.showStatus = showStatus;
         this.listener = listener;
+        this.recipeList = new ArrayList<>();
     }
 
     // עדכון הרשימה מחדש ורענון ה-UI
     public void setRecipeList(List<Recipe> recipeList) {
         this.recipeList = recipeList;
+        if (this.recipeList == null) this.recipeList = new ArrayList<>();
         notifyDataSetChanged();
+    }
+    public void removeRecipe(Recipe recipe) {
+        int index = recipeList.indexOf(recipe);
+        if (index == -1) return;
+        recipeList.remove(index);
+        notifyItemRemoved(index);
     }
 
     @NonNull
@@ -72,7 +82,7 @@ public class RecipeAdapter extends RecyclerView.Adapter<RecipeAdapter.RecipeView
         holder.TvCategoryTag.setText(recipe.getCategory());
 
         // הצגת דירוג או סימון כחדש
-        if (recipe.getNumRatings() > 0) {
+        if (recipe.getTotalRaters() > 0) {
             holder.TvItemRating.setText(String.format(java.util.Locale.US, "%.1f", recipe.getRating()));
         } else {
             holder.TvItemRating.setText("New");
@@ -107,13 +117,15 @@ public class RecipeAdapter extends RecyclerView.Adapter<RecipeAdapter.RecipeView
 
         // בדיקה אם המתכון במועדפים ועדכון הלב, פלוס האזנה ללחיצה על הלב
         checkIfFavorite(recipe.getId(), holder.IvFavoriteIcon);
-        holder.FlFavoriteBtn.setOnClickListener(v -> toggleFavorite(recipe.getId(), holder.IvFavoriteIcon));
+        holder.FlFavoriteBtn.setOnClickListener(v -> toggleFavorite(recipe, holder.IvFavoriteIcon));
     }
 
     // משיכת שם המשתמש שיצר את המתכון (משתמש בקאש המקומי למניעת כפילויות)
     private void fetchAuthorName(String userId, TextView tvAuthor) {
-        if (userNamesCache.containsKey(userId)) {
-            tvAuthor.setText("by " + userNamesCache.get(userId));
+        if (usersCache.containsKey(userId)) {
+            User user = usersCache.get(userId);
+            String fullName = user.getFirstname() + " " + user.getLastname();
+            tvAuthor.setText("by " + fullName);
             return;
         }
 
@@ -121,8 +133,8 @@ public class RecipeAdapter extends RecyclerView.Adapter<RecipeAdapter.RecipeView
             @Override
             public void onCompleted(@Nullable User user) {
                 if (user != null) {
+                    usersCache.put(userId, user);
                     String fullName = user.getFirstname() + " " + user.getLastname();
-                    userNamesCache.put(userId, fullName);
                     tvAuthor.setText("by " + fullName);
                 } else {
                     tvAuthor.setText("by Unknown");
@@ -131,14 +143,14 @@ public class RecipeAdapter extends RecyclerView.Adapter<RecipeAdapter.RecipeView
 
             @Override
             public void onFailed(Exception e) {
-                tvAuthor.setText("by Error");
+                tvAuthor.setText("by Unknown");
             }
         });
     }
 
     @Override
     public int getItemCount() {
-        return recipeList != null ? recipeList.size() : 0;
+        return recipeList.size();
     }
 
     // בדיקה מול Firebase אם המתכון מסומן כאהוב ע"י המשתמש הנוכחי ושינוי שקיפות הלב בהתאם
@@ -159,7 +171,8 @@ public class RecipeAdapter extends RecyclerView.Adapter<RecipeAdapter.RecipeView
     }
 
     // הוספה או הסרה של המתכון מהמועדפים בלחיצה (מחיקה או יצירה ב-Firebase)
-    private void toggleFavorite(String recipeId, ImageView heartIcon) {
+    private void toggleFavorite(Recipe recipe, ImageView heartIcon) {
+        String recipeId = recipe.getId();
         DatabaseService.getInstance().getFavoriteRecipeByUserAndRecipe(this.currentUserId, recipeId, new DatabaseService.DatabaseCallback<FavoriteRecipe>() {
             @Override
             public void onCompleted(FavoriteRecipe favoriteRecipe) {
@@ -169,6 +182,7 @@ public class RecipeAdapter extends RecyclerView.Adapter<RecipeAdapter.RecipeView
                         @Override
                         public void onCompleted(@Nullable Void object) {
                             heartIcon.setAlpha(0.3f);
+                            RecipeAdapter.this.listener.onFavoriteClick(recipe, false);
                         }
                         @Override
                         public void onFailed(Exception e) {}
@@ -181,6 +195,7 @@ public class RecipeAdapter extends RecyclerView.Adapter<RecipeAdapter.RecipeView
                         @Override
                         public void onCompleted(@Nullable Void object) {
                             heartIcon.setAlpha(1.0f);
+                            RecipeAdapter.this.listener.onFavoriteClick(recipe, true);
                         }
                         @Override
                         public void onFailed(Exception e) {}

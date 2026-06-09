@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.core.widget.NestedScrollView
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#F6F7F7">
@@ -10,39 +10,39 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:paddingTop="24dp"
         android:paddingHorizontal="24dp"
+        android:paddingTop="24dp"
         android:paddingBottom="40dp">
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginBottom="24dp"
             android:text="Create New Recipe"
-            android:textSize="28sp"
-            android:textStyle="bold"
             android:textColor="#0F172A"
-            android:layout_marginBottom="24dp"/>
+            android:textSize="28sp"
+            android:textStyle="bold" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/BtnViewRejectionReason"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            android:backgroundTint="#FEF2F2"
             android:text="⚠️ View Admin Notes"
             android:textColor="#B91C1C"
-            android:backgroundTint="#FEF2F2"
-            app:strokeColor="#EF4444"
-            app:strokeWidth="1dp"
             android:visibility="gone"
-            android:layout_marginBottom="16dp"/>
+            app:strokeColor="#EF4444"
+            app:strokeWidth="1dp" />
 
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/CardSelectImage"
             android:layout_width="match_parent"
             android:layout_height="200dp"
             android:layout_marginBottom="24dp"
+            app:cardBackgroundColor="#FFFFFF"
             app:cardCornerRadius="16dp"
             app:cardElevation="0dp"
-            app:cardBackgroundColor="#FFFFFF"
             app:strokeColor="#E2E8F0"
             app:strokeWidth="1dp">
 
@@ -54,7 +54,7 @@
                     android:id="@+id/IvRecipePreview"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:scaleType="centerCrop"/>
+                    android:scaleType="centerCrop" />
 
                 <TextView
                     android:id="@+id/TvAddImageHint"
@@ -71,43 +71,45 @@
             style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Recipe Title"
             android:layout_marginBottom="16dp"
+            android:hint="Recipe Title"
             app:boxCornerRadiusBottomEnd="12dp"
             app:boxCornerRadiusBottomStart="12dp"
             app:boxCornerRadiusTopEnd="12dp"
             app:boxCornerRadiusTopStart="12dp">
+
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/EtRecipeTitle"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"/>
+                android:layout_height="wrap_content" />
         </com.google.android.material.textfield.TextInputLayout>
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
+            android:layout_marginBottom="16dp"
             android:baselineAligned="false"
-            android:layout_marginBottom="16dp">
+            android:orientation="horizontal">
 
             <com.google.android.material.textfield.TextInputLayout
                 style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
+                android:layout_marginEnd="8dp"
                 android:layout_weight="1"
                 android:hint="Time"
-                android:layout_marginEnd="8dp"
                 app:boxCornerRadiusBottomEnd="12dp"
                 app:boxCornerRadiusBottomStart="12dp"
                 app:boxCornerRadiusTopEnd="12dp"
                 app:boxCornerRadiusTopStart="12dp">
+
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/EtPrepTime"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:focusable="false"
                     android:clickable="true"
                     android:cursorVisible="false"
+                    android:focusable="false"
                     android:inputType="none" />
             </com.google.android.material.textfield.TextInputLayout>
 
@@ -115,13 +117,14 @@
                 style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
                 android:layout_marginStart="8dp"
+                android:layout_weight="1"
                 android:hint="Difficulty"
                 app:boxCornerRadiusBottomEnd="12dp"
                 app:boxCornerRadiusBottomStart="12dp"
                 app:boxCornerRadiusTopEnd="12dp"
                 app:boxCornerRadiusTopStart="12dp">
+
                 <com.google.android.material.textfield.MaterialAutoCompleteTextView
                     android:id="@+id/ActvDifficulty"
                     android:layout_width="match_parent"
@@ -135,12 +138,13 @@
             style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Category"
             android:layout_marginBottom="16dp"
+            android:hint="Category"
             app:boxCornerRadiusBottomEnd="12dp"
             app:boxCornerRadiusBottomStart="12dp"
             app:boxCornerRadiusTopEnd="12dp"
             app:boxCornerRadiusTopStart="12dp">
+
             <com.google.android.material.textfield.MaterialAutoCompleteTextView
                 android:id="@+id/ActvCategory"
                 android:layout_width="match_parent"
@@ -153,61 +157,64 @@
             style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Short Description"
             android:layout_marginBottom="16dp"
+            android:hint="Short Description"
             app:boxCornerRadiusBottomEnd="12dp"
             app:boxCornerRadiusBottomStart="12dp"
             app:boxCornerRadiusTopEnd="12dp"
             app:boxCornerRadiusTopStart="12dp">
+
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/EtRecipeDescription"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:lines="2"/>
+                android:lines="2" />
         </com.google.android.material.textfield.TextInputLayout>
 
         <com.google.android.material.textfield.TextInputLayout
             style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Ingredients"
             android:layout_marginBottom="16dp"
+            android:hint="Ingredients"
             app:boxCornerRadiusBottomEnd="12dp"
             app:boxCornerRadiusBottomStart="12dp"
             app:boxCornerRadiusTopEnd="12dp"
             app:boxCornerRadiusTopStart="12dp">
+
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/EtRecipeIngredients"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:gravity="top"
-                android:lines="4"/>
+                android:lines="4" />
         </com.google.android.material.textfield.TextInputLayout>
 
         <com.google.android.material.textfield.TextInputLayout
             style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Instructions"
             android:layout_marginBottom="24dp"
+            android:hint="Instructions"
             app:boxCornerRadiusBottomEnd="12dp"
             app:boxCornerRadiusBottomStart="12dp"
             app:boxCornerRadiusTopEnd="12dp"
             app:boxCornerRadiusTopStart="12dp">
+
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/EtRecipeInstructions"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:gravity="top"
-                android:lines="6"/>
+                android:lines="6" />
         </com.google.android.material.textfield.TextInputLayout>
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/BtnSubmitRecipe"
             android:layout_width="match_parent"
             android:layout_height="56dp"
-            android:text="Submit Recipe"
             android:backgroundTint="#4CAEAA"
+            android:text="Submit Recipe"
             android:textAllCaps="false"
             android:textSize="16sp"
             app:cornerRadius="16dp" />

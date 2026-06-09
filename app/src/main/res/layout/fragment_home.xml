@@ -372,12 +372,12 @@
                 android:id="@+id/TvLatestTitle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Recommended recipes"
-                android:textSize="20sp"
-                android:textStyle="bold"
-                android:textColor="#0F172A"
                 android:layout_marginHorizontal="24dp"
-                android:layout_marginBottom="16dp" />
+                android:layout_marginBottom="16dp"
+                android:text="Latest recipes"
+                android:textColor="#0F172A"
+                android:textSize="20sp"
+                android:textStyle="bold" />
 
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/RvRecipes"

@@ -19,9 +19,6 @@ public class Recipe implements Serializable {
     private boolean isApproved;
     private String adminNotes;
 
-    // נתוני הדירוג
-    private float rating;
-    private int numRatings;
     // המשתנה החדש: שומר מי דירג כדי שלא ידרגו פעמיים (מפתח: מזהה משתמש, ערך: הדירוג)
     private Map<String, Float> raters;
 
@@ -34,7 +31,7 @@ public class Recipe implements Serializable {
                   String imageBase64, String userId, String category,
                   String preparationTime, String difficulty,
                   boolean isApproved, String adminNotes,
-                  float rating, int numRatings, Map<String, Float> raters) {
+                  Map<String, Float> raters) {
         this.id = id;
         this.title = title;
         this.description = description;
@@ -47,8 +44,6 @@ public class Recipe implements Serializable {
         this.difficulty = difficulty;
         this.isApproved = isApproved;
         this.adminNotes = adminNotes;
-        this.rating = rating;
-        this.numRatings = numRatings;
         this.raters = raters != null ? raters : new HashMap<>();
     }
 
@@ -77,14 +72,20 @@ public class Recipe implements Serializable {
     public void setApproved(boolean approved) { this.isApproved = approved; }
     public String getAdminNotes() { return adminNotes; }
     public void setAdminNotes(String adminNotes) { this.adminNotes = adminNotes; }
-
-    public float getRating() { return rating; }
-    public void setRating(float rating) { this.rating = rating; }
-    public int getNumRatings() { return numRatings; }
-    public void setNumRatings(int numRatings) { this.numRatings = numRatings; }
-
     public Map<String, Float> getRaters() { return raters; }
     public void setRaters(Map<String, Float> raters) { this.raters = raters; }
+    public void putRater(String userId, float rating) {
+        if (raters == null) {
+            raters = new HashMap<>();
+        }
+        raters.put(userId, rating);
+    }
+
+    public void removeRater(String userId) {
+        if (raters != null) {
+            raters.remove(userId);
+        }
+    }
 
     @Exclude
     public boolean isPending() {
@@ -93,5 +94,17 @@ public class Recipe implements Serializable {
     @Exclude
     public boolean isRejected() {
         return !isApproved && (adminNotes != null && !adminNotes.isEmpty());
+    }
+
+    // calculate the average rating of the recipe
+    @Exclude
+    public double getRating() {
+        return raters.values().stream().mapToDouble(value -> value).average().orElse(0);
+    }
+
+    // calculate the total number of raters
+    @Exclude
+    public int getTotalRaters() {
+        return raters.size();
     }
 }
