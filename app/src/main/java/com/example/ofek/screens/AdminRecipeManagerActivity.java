@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+// מסך מנהל מערכת (אדמין) לניהול, סינון וצפייה בכל המתכונים שקיימים באפליקציה
 public class AdminRecipeManagerActivity extends AppCompatActivity {
 
     private RecyclerView rvAdminRecipes;
@@ -41,6 +42,7 @@ public class AdminRecipeManagerActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_admin_recipe_manager);
 
+        // אבטחה ושומרי סף: בדיקה שהמשתמש הנוכחי מחובר והוא אכן אדמין, אחרת נחסום ונזרוק אותו מהמסך
         User currentUser = SharedPreferencesUtil.getUser(this);
         if (currentUser == null || !currentUser.isAdmin()) {
             Toast.makeText(this, "Unauthorized access", Toast.LENGTH_SHORT).show();
@@ -53,33 +55,41 @@ public class AdminRecipeManagerActivity extends AppCompatActivity {
         searchView = findViewById(R.id.searchView);
         statusSpinner = findViewById(R.id.statusSpinner);
 
+        // הגדרת ה-RecyclerView וחיבור האדפטר. התיקון בוצע בתוך ה-onRecipeClick לשליחת ה-ID המתאים
         rvAdminRecipes.setLayoutManager(new LinearLayoutManager(this));
-        // Using existing RecipeAdapter with showStatus = true
         adapter = new RecipeAdapter(currentUser.getId(), true, new RecipeAdapter.OnRecipeClickListener() {
             @Override
             public void onRecipeClick(Recipe recipe) {
+                // התיקון: שולחים את ה-ID של המתכון תחת המפתח "recipe_id" כדי להתאים לציפיות של RecipeReviewActivity
                 Intent intent = new Intent(AdminRecipeManagerActivity.this, RecipeReviewActivity.class);
-                intent.putExtra("recipe", recipe);
+                intent.putExtra("recipe_id", recipe.getId());
                 startActivity(intent);
             }
 
             @Override
-            public void onLongRecipeClick(Recipe recipe) {
-                // Admin might want to do something special on long click
-            }
+            public void onLongRecipeClick(Recipe recipe) {}
         });
         rvAdminRecipes.setAdapter(adapter);
 
+        // הפעלת מאזיני שינוי קלט עבור תיבת החיפוש ותפריט הסינון (Spinner)
         setupFilters();
+
+
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        // משיכה ראשונית של כל המתכונים מה-DB
         loadAllRecipes();
     }
 
+    // הגדרת מאזינים לחיפוש טקסט חופשי ולבחירת סטטוס מה-Spinner (בכל שינוי נקרא לפונקציית הסינון)
     private void setupFilters() {
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
-            public boolean onQueryTextSubmit(String query) {
-                return false;
-            }
+            public boolean onQueryTextSubmit(String query) { return false; }
 
             @Override
             public boolean onQueryTextChange(String newText) {
@@ -101,8 +111,9 @@ public class AdminRecipeManagerActivity extends AppCompatActivity {
         });
     }
 
+    // שליפת רשימת כל המתכונים הגלובלית מ-Firebase
     private void loadAllRecipes() {
-        databaseService.getAllRecipes(new DatabaseService.DatabaseCallback<List<Recipe>>() {
+        databaseService.getRecipeList(new DatabaseService.DatabaseCallback<List<Recipe>>() {
             @Override
             public void onCompleted(List<Recipe> recipes) {
                 if (recipes != null) {
@@ -118,20 +129,21 @@ public class AdminRecipeManagerActivity extends AppCompatActivity {
         });
     }
 
+    // לוגיקת הסינון: משתמשת ב-Streams כדי לסנן את רשימת כל המתכונים על פי הטקסט שבחיפוש והסטטוס שנבחר (Pending/Approved/Rejected)
     private void applyFilters() {
         filteredRecipes = allRecipes.stream().filter(recipe -> {
             boolean matchesQuery = recipe.getTitle().toLowerCase().contains(currentQuery) ||
                     (recipe.getDescription() != null && recipe.getDescription().toLowerCase().contains(currentQuery));
-            
+
             boolean matchesStatus = true;
             if (currentStatusFilter.equals("Pending")) {
                 matchesStatus = recipe.isPending();
             } else if (currentStatusFilter.equals("Approved")) {
                 matchesStatus = recipe.isApproved();
             } else if (currentStatusFilter.equals("Rejected")) {
-                matchesStatus = recipe.isRejected();
+                matchesStatus = !recipe.isApproved() && !recipe.isPending(); // תנאי מותאם לסטטוס דחוי
             }
-            
+
             return matchesQuery && matchesStatus;
         }).collect(Collectors.toList());
 

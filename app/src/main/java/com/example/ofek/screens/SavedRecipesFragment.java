@@ -31,6 +31,8 @@ import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+// פרגמנט המתכונים השמורים (חלק משלושת מסכי הליבה בקונטיינר הראשי).
+// מציג למשתמש את כל המתכונים שהוא סימן להם לב (מועדפים) ואושרו על ידי האדמין.
 public class SavedRecipesFragment extends Fragment {
 
     private RecyclerView rvSavedRecipes;
@@ -42,6 +44,7 @@ public class SavedRecipesFragment extends Fragment {
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        // ניפוח ה-XML של מסך המתכונים השמורים
         return inflater.inflate(R.layout.fragment_saved_recipes, container, false);
     }
 
@@ -49,14 +52,17 @@ public class SavedRecipesFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
+        // שומר סף: שליפת המשתמש המחובר ועצירה אם אינו קיים
         currentUser = SharedPreferencesUtil.getUser(requireContext());
         if (currentUser == null) {
             return;
         }
 
+        // אתחול רכיבי ה-UI וקישורם ל-XML
         rvSavedRecipes = view.findViewById(R.id.RvSavedRecipes);
         tvEmptySavedState = view.findViewById(R.id.TvEmptySavedState);
 
+        // הגדרת הרשימה (RecyclerView) וחיבור האדפטר עם מאזין לחיצה לצפייה בפרטי המתכון
         rvSavedRecipes.setLayoutManager(new LinearLayoutManager(requireContext()));
         adapter = new RecipeAdapter(currentUser.getId(), false, new RecipeAdapter.OnRecipeClickListener() {
             @Override
@@ -69,45 +75,51 @@ public class SavedRecipesFragment extends Fragment {
             @Override
             public void onLongRecipeClick(Recipe recipe) {}
         });
-
         rvSavedRecipes.setAdapter(adapter);
 
+        // טעינת רשימת המתכונים השמורים
         loadSavedRecipes();
     }
 
+    // פנייה כפולה ל-Firebase:
+    // 1. שליפת רשימת ה-FavoriteRecipe של המשתמש הנוכחי כדי לאסוף את ה-IDs של המתכונים שהוא אהב.
+    // 2. שליפת רשימת המתכונים הכללית, וסינון שלה כך שישארו רק מתכונים מאושרים שה-ID שלהם נמצא ברשימת השמורים.
     private void loadSavedRecipes() {
         if (currentUser == null) return;
         String uid = currentUser.getId();
+
         DatabaseService.getInstance().getFavoriteRecipeByUser(uid, new DatabaseService.DatabaseCallback<List<FavoriteRecipe>>() {
             @Override
             public void onCompleted(List<FavoriteRecipe> favoriteRecipes) {
+                // המרת רשימת המועדפים לסט של מזהי מתכונים (IDs) לצורך חיפוש מהיר
                 Set<String> recipeIds = favoriteRecipes.stream().map(FavoriteRecipe::getRecipeId).collect(Collectors.toSet());
+
                 DatabaseService.getInstance().getRecipeList(new DatabaseService.DatabaseCallback<List<Recipe>>() {
                     @Override
                     public void onCompleted(List<Recipe> recipes) {
+                        // סינון קפדני: משאירים רק מתכונים מאושרים ורק כאלו שהמשתמש שמר במועדפים
                         recipes.removeIf(recipe -> !recipe.isApproved());
                         recipes.removeIf(recipe -> !recipeIds.contains(recipe.getId()));
+
                         savedRecipesList.clear();
                         savedRecipesList.addAll(recipes);
+
+                        // עדכון האדפטר ועדכון ה-UI למקרה שהרשימה ריקה
                         adapter.setRecipeList(savedRecipesList);
                         updateUI(savedRecipesList.isEmpty());
-
                     }
 
                     @Override
-                    public void onFailed(Exception e) {
-
-                    }
+                    public void onFailed(Exception e) {}
                 });
             }
 
             @Override
-            public void onFailed(Exception e) {
-
-            }
+            public void onFailed(Exception e) {}
         });
     }
 
+    // ניהול מצב מסך (Empty State): מציג הודעה מתאימה אם אין מתכונים שמורים, או מציג את הרשימה אם יש תוכן
     private void updateUI(boolean isEmpty) {
         if (isEmpty) {
             tvEmptySavedState.setVisibility(View.VISIBLE);

@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Predicate;
 
+// מסך המציג לאדמין את כל בקשות המתכונים החדשות שממתינות לאישור שלו במערכת
 public class RecipeRequestsActivity extends AppCompatActivity {
 
     private RecyclerView RvRequests;
@@ -34,20 +35,19 @@ public class RecipeRequestsActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_recipe_requests);
 
-        // שליפת המשתמש הנוכחי מה-SharedPreferences
+        // בדיקת אבטחה בסיסית: שליפת המשתמש וסגירת המסך אם אינו מחובר
         currentUser = SharedPreferencesUtil.getUser(this);
         if (currentUser == null) {
             finish();
             return;
         }
 
-        // שימוש ב-IDs עם אותיות גדולות
+        // אתחול רכיבי ה-UI וקישורם ל-XML
         TvPageTitle = findViewById(R.id.tvPageTitle);
         RvRequests = findViewById(R.id.rvRecipeRequests);
 
+        // הגדרת הרשימה (RecyclerView) וחיבור האדפטר עם מאזין לחיצה למעבר למסך הבדיקה
         RvRequests.setLayoutManager(new LinearLayoutManager(this));
-
-        // התיקון כאן: הוספנו את false בתור פרמטר שני
         adapter = new RecipeAdapter(currentUser.getId(), false, new RecipeAdapter.OnRecipeClickListener() {
             @Override
             public void onRecipeClick(Recipe recipe) {
@@ -59,19 +59,18 @@ public class RecipeRequestsActivity extends AppCompatActivity {
             @Override
             public void onLongRecipeClick(Recipe recipe) { }
         });
-
         RvRequests.setAdapter(adapter);
-
     }
 
+    // רענון אוטומטי של רשימת הבקשות בכל פעם שחוזרים למסך זה (למשל לאחר בדיקת מתכון)
     @Override
     protected void onResume() {
         super.onResume();
         loadRequests();
     }
 
+    // פנייה ל-Firebase: שליפת רשימת המתכונים הכללית וסינון שלה כך שישארו רק מתכונים במצב ממתין (Pending)
     private void loadRequests() {
-
         DatabaseService.getInstance().getRecipeList(new DatabaseService.DatabaseCallback<List<Recipe>>() {
             @Override
             public void onCompleted(List<Recipe> recipes) {
@@ -81,7 +80,7 @@ public class RecipeRequestsActivity extends AppCompatActivity {
 
             @Override
             public void onFailed(Exception e) {
-
+                // טיפול בשגיאות תקשורת במידת הצורך
             }
         });
     }

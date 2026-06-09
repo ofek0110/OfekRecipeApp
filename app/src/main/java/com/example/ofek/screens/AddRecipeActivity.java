@@ -36,29 +36,28 @@ import com.google.android.material.textfield.TextInputEditText;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+// מסך ליצירת מתכון חדש או עריכה ותיקון של מתכון קיים שנדחה על ידי האדמין
 public class AddRecipeActivity extends AppCompatActivity {
 
+    // הגדרת משתני ה-UI והמשתנים הגלובליים לניהול המצב (State) במסך
     private TextInputEditText EtTitle, EtDescription, EtIngredients, EtInstructions, EtPrepTime;
     private AutoCompleteTextView ActvDifficulty, ActvCategory;
-
     private Button BtnSubmit;
     private MaterialButton BtnViewRejectionReason;
     private ImageView IvRecipePreview;
     private TextView TvAddImageHint;
     private MaterialCardView CardSelectImage;
-    private User currentUser;
-    private Uri selectedImageUri;
 
+    private User currentUser;
     private int selectedHour = 0;
     private int selectedMinute = 0;
+    private boolean isImageChanged = false; // דגל לבדיקה אם המשתמש החליף את התמונה בזמן העריכה
 
-    // בודק האם המשתמש שינה את התמונה באופן פעיל כדי למנוע זיהוי שגוי בגלל דחיסת ה-Base64
-    private boolean isImageChanged = false;
-
+    // רכיבי מערכת לקבלת תמונות (מצלמה/גלריה) בצורה המודרנית של אנדרואיד
     private ActivityResultLauncher<Intent> selectImageLauncher;
     private ActivityResultLauncher<Intent> captureImageLauncher;
 
-    private Recipe recipeToEdit = null;
+    private Recipe recipeToEdit = null; // ישמור את אובייקט המתכון במידה ונכנסנו למצב עריכה
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -66,13 +65,13 @@ public class AddRecipeActivity extends AppCompatActivity {
         setContentView(R.layout.activity_add_recipe);
 
         currentUser = SharedPreferencesUtil.getUser(this);
-
         ImageUtil.requestPermission(this);
 
         initializeViews();
         setupDropdowns();
         setupClickListeners();
 
+        // בדיקה האם הגענו למסך לצורך עריכת מתכון קיים. אם כן, נשלוף אותו מה-DB ונמלא את הטופס
         if (getIntent().hasExtra("RECIPE_ID_TO_EDIT")) {
             String recipeIdToEdit = getIntent().getStringExtra("RECIPE_ID_TO_EDIT");
             assert recipeIdToEdit != null;
@@ -84,12 +83,11 @@ public class AddRecipeActivity extends AppCompatActivity {
                 }
 
                 @Override
-                public void onFailed(Exception e) {
-
-                }
+                public void onFailed(Exception e) {}
             });
         }
 
+        // הגדרת קולט התשובה (Launcher) עבור בחירת תמונה מהגלריה
         selectImageLauncher = registerForActivityResult(
                 new ActivityResultContracts.StartActivityForResult(),
                 result -> {
@@ -102,6 +100,7 @@ public class AddRecipeActivity extends AppCompatActivity {
                     }
                 });
 
+        // הגדרת קולט התשובה (Launcher) עבור צילום תמונה מהמצלמה
         captureImageLauncher = registerForActivityResult(
                 new ActivityResultContracts.StartActivityForResult(),
                 result -> {
@@ -131,23 +130,16 @@ public class AddRecipeActivity extends AppCompatActivity {
         BtnViewRejectionReason = findViewById(R.id.BtnViewRejectionReason);
     }
 
+    // אכלוס רשימות הבחירה (Spinner/Dropdown) של רמות קושי וקטגוריות עם ערכי ברירת מחדל
     private void setupDropdowns() {
         String[] difficulties = new String[] {"Easy", "Medium", "Hard"};
-        ArrayAdapter<String> difficultyAdapter = new ArrayAdapter<>(
-                this,
-                android.R.layout.simple_dropdown_item_1line,
-                difficulties
-        );
+        ArrayAdapter<String> difficultyAdapter = new ArrayAdapter<>(this, android.R.layout.simple_dropdown_item_1line, difficulties);
         ActvDifficulty.setAdapter(difficultyAdapter);
         ActvDifficulty.setText(difficulties[1], false);
 
         if (ActvCategory != null) {
             String[] categories = new String[] {"Breakfast", "Lunch", "Vegan", "Desserts", "Dinner", "General"};
-            ArrayAdapter<String> categoryAdapter = new ArrayAdapter<>(
-                    this,
-                    android.R.layout.simple_dropdown_item_1line,
-                    categories
-            );
+            ArrayAdapter<String> categoryAdapter = new ArrayAdapter<>(this, android.R.layout.simple_dropdown_item_1line, categories);
             ActvCategory.setAdapter(categoryAdapter);
             ActvCategory.setText(categories[5], false);
         }
@@ -159,6 +151,7 @@ public class AddRecipeActivity extends AppCompatActivity {
         EtPrepTime.setOnClickListener(v -> showTimePickerWheel());
     }
 
+    // פתיחת דיאלוג לבחירת זמן הכנה (שעות ודקות) ועדכון שדה הטקסט בהתאם לבחירה
     private void showTimePickerWheel() {
         android.app.TimePickerDialog timePickerDialog = new android.app.TimePickerDialog(
                 this,
@@ -197,6 +190,7 @@ public class AddRecipeActivity extends AppCompatActivity {
         captureImageLauncher.launch(takePictureIntent);
     }
 
+    // פתיחת תפריט תחתון (Bottom Sheet) שמאפשר למשתמש לבחור בין העלאה מהגלריה לצילום במצלמה
     private void showImageSourceDialog() {
         BottomSheetDialog bottomSheetDialog = new BottomSheetDialog(this);
         View bottomSheetView = getLayoutInflater().inflate(R.layout.bottom_sheet_image_source, null);
@@ -220,6 +214,7 @@ public class AddRecipeActivity extends AppCompatActivity {
         bottomSheetDialog.show();
     }
 
+    // טעינת נתוני המתכון הקיים לתוך שדות הטופס והצגת כפתור לצפייה בהערות הדחייה של האדמין (במצב עריכה)
     private void fillFormForEdit() {
         EtTitle.setText(recipeToEdit.getTitle());
         EtDescription.setText(recipeToEdit.getDescription());
@@ -258,6 +253,7 @@ public class AddRecipeActivity extends AppCompatActivity {
         selectImageLauncher.launch(intent);
     }
 
+    // איסוף הנתונים מהטופס, ביצוע וולידציה כולל בדיקה אם בוצע שינוי כלשהו במצב עריכה, ושמירה ב-Firebase
     private void submitRecipe() {
         String title = EtTitle.getText().toString().trim();
         String description = EtDescription.getText().toString().trim();
@@ -276,14 +272,13 @@ public class AddRecipeActivity extends AppCompatActivity {
             return;
         }
 
-        // --- בדיקת שינויים קפדנית כולל ניקוי רווחים והתאמה לברירת מחדל ---
+        // אם אנחנו במצב עריכה, נבדוק אם המשתמש בכלל שינה משהו לפני שנותנים לו להגיש מחדש
         if (recipeToEdit != null) {
             String oldTitle = recipeToEdit.getTitle() != null ? recipeToEdit.getTitle().trim() : "";
             String oldDesc = recipeToEdit.getDescription() != null ? recipeToEdit.getDescription().trim() : "";
             String oldIng = recipeToEdit.getIngredients() != null ? recipeToEdit.getIngredients().trim() : "";
             String oldInst = recipeToEdit.getInstructions() != null ? recipeToEdit.getInstructions().trim() : "";
             String oldPrep = recipeToEdit.getPreparationTime() != null ? recipeToEdit.getPreparationTime().trim() : "";
-
             String oldDiff = recipeToEdit.getDifficulty() != null ? recipeToEdit.getDifficulty().trim() : "Medium";
             String oldCat = recipeToEdit.getCategory() != null ? recipeToEdit.getCategory().trim() : "General";
 
@@ -297,7 +292,7 @@ public class AddRecipeActivity extends AppCompatActivity {
             }
         }
 
-        // שימוש חסכוני ובטוח במחרוזת ה-Base64 המקורית אם התמונה לא הוחלפה
+        //  אם התמונה לא הוחלפה בעריכה, נשמור על ה-Base64 הקיים כדי לחסוך עיבוד מיותר
         String imageBase64;
         if (recipeToEdit != null && !isImageChanged) {
             imageBase64 = recipeToEdit.getImageBase64();
@@ -312,6 +307,7 @@ public class AddRecipeActivity extends AppCompatActivity {
             recipeId = DatabaseService.getInstance().generateRecipeId();
         }
 
+        // בנייה או עדכון של אובייקט המתכון (הסטטוס מאופס ל-false כדי שיעבור שוב אישור אדמין)
         Recipe newRecipe = new Recipe(
                 recipeId,
                 title,

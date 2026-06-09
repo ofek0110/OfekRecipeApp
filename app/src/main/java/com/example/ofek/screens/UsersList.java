@@ -112,7 +112,7 @@ public class UsersList extends AppCompatActivity {
             }
         });
     }
-
+    // רענון אוטומטי מול Firebase: שליפת רשימת המשתמשים המעודכנת בכל פעם שחוזרים למסך ועדכון תצוגת הרשימה והמונה
     @Override
     protected void onResume() {
         super.onResume();

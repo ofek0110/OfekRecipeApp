@@ -1,5 +1,6 @@
 package com.example.ofek.screens;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
@@ -26,17 +27,19 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.UnaryOperator;
 
+// מסך צפייה ופירוט מתכון המשלב תפקיד משולש: דירוג מתכון למשתמש רגיל,
+// מחיקה עצמית ליוצר המתכון, ופאנל ניהול (אישור/דחייה/הסרה) למנהל המערכת.
 public class RecipeReviewActivity extends AppCompatActivity {
 
+    // אזור הגדרת רכיבי ה-UI והמשתנים הגלובליים לניהול מצב המסך
     private TextView TvTitle, TvDescription, TvIngredients, TvInstructions, TvTime, TvDifficulty;
     private Button BtnApprove, BtnReject, BtnRemove;
-    private MaterialButton BtnDeleteMyRecipe; // הכפתור החדש למשתמש
+    private MaterialButton BtnDeleteMyRecipe;
     private View LayoutPendingButtons;
     private ImageView IvRecipeImage;
     private TextInputEditText EtAdminNotes;
     private View AdminPanel;
 
-    // משתני הדירוג
     private RatingBar RbRecipeRatingDisplay, RbUserRating;
     private TextView TvRatingCount, TvUserRatingTitle;
     private MaterialCardView CardUserRating;
@@ -52,6 +55,7 @@ public class RecipeReviewActivity extends AppCompatActivity {
 
         currentUser = SharedPreferencesUtil.getUser(this);
 
+        // שומר סף: וידאו שקיבלנו מזהה מתכון תקין מהמסך הקודם, אחרת נסגור את המסך
         if (getIntent().hasExtra("recipe_id")) {
             recipeId = getIntent().getStringExtra("recipe_id");
         } else {
@@ -61,9 +65,12 @@ public class RecipeReviewActivity extends AppCompatActivity {
         }
 
         initializeViews();
+
+        // שליפת הנתונים המעודכנים של המתכון מ-Firebase
         loadRecipeData();
     }
 
+    // פנייה ל-Firebase לשליפת אובייקט המתכון והפעלת פונקציות העיצוב והמאזינים
     private void loadRecipeData() {
         DatabaseService.getInstance().getRecipe(recipeId, new DatabaseService.DatabaseCallback<Recipe>() {
             @Override
@@ -97,7 +104,7 @@ public class RecipeReviewActivity extends AppCompatActivity {
         BtnApprove = findViewById(R.id.BtnApprove);
         BtnReject = findViewById(R.id.BtnReject);
         BtnRemove = findViewById(R.id.BtnRemove);
-        BtnDeleteMyRecipe = findViewById(R.id.BtnDeleteMyRecipe); // חיבור הכפתור
+        BtnDeleteMyRecipe = findViewById(R.id.BtnDeleteMyRecipe);
         LayoutPendingButtons = findViewById(R.id.LayoutPendingButtons);
         EtAdminNotes = findViewById(R.id.EtAdminNotes);
         AdminPanel = findViewById(R.id.AdminPanel);
@@ -110,9 +117,10 @@ public class RecipeReviewActivity extends AppCompatActivity {
         TvUserRatingTitle = findViewById(R.id.TvUserRatingTitle);
 
         AdminPanel.setVisibility(View.GONE);
-        BtnDeleteMyRecipe.setVisibility(View.GONE); // מוסתר בהתחלה
+        BtnDeleteMyRecipe.setVisibility(View.GONE);
     }
 
+    // הצגת נתוני המתכון על המסך, וקביעת נראות רכיבים (כפתור מחיקה ליוצר, ומנגנון חסימת כפל דירוגים)
     private void displayRecipeData() {
         TvTitle.setText(currentRecipe.getTitle());
         TvDescription.setText(currentRecipe.getDescription());
@@ -129,13 +137,14 @@ public class RecipeReviewActivity extends AppCompatActivity {
             IvRecipeImage.setImageBitmap(ImageUtil.convertFrom64base(currentRecipe.getImageBase64()));
         }
 
-        // אם המשתמש הנוכחי הוא זה שיצר את המתכון, נציג לו את כפתור המחיקה
+        // זיהוי בעלים: פתיחת כפתור המחיקה רק אם המשתמש המחובר הוא זה שיצר את המתכון
         if (currentUser != null && currentUser.getId().equals(currentRecipe.getUserId())) {
             BtnDeleteMyRecipe.setVisibility(View.VISIBLE);
         } else {
             BtnDeleteMyRecipe.setVisibility(View.GONE);
         }
 
+        // ניהול רכיב הדירוג: חסימת האפשרות לדרג אם המתכון אינו מאושר או אם המשתמש כבר דירג בעבר
         if (!currentRecipe.isApproved()) {
             CardUserRating.setVisibility(View.GONE);
         } else {
@@ -144,7 +153,7 @@ public class RecipeReviewActivity extends AppCompatActivity {
             if (currentRecipe.getRaters() != null && currentRecipe.getRaters().containsKey(currentUser.getId())) {
                 TvUserRatingTitle.setText("Your Rating:");
                 RbUserRating.setRating(currentRecipe.getRaters().get(currentUser.getId()));
-                RbUserRating.setIsIndicator(true);
+                RbUserRating.setIsIndicator(true); // הופך את הבר לצפייה בלבד (נעל לשינויים)
             } else {
                 TvUserRatingTitle.setText("Rate this recipe:");
                 RbUserRating.setRating(0);
@@ -153,6 +162,7 @@ public class RecipeReviewActivity extends AppCompatActivity {
         }
     }
 
+    // הגדרת נראות פאנל הניהול: מציג כפתורי אישור/דחייה או כפתור הסרה מהאוויר, רק אם המשתמש מוגדר כאדמין
     private void setupAdminPanel() {
         if (currentRecipe == null) return;
 
@@ -180,8 +190,6 @@ public class RecipeReviewActivity extends AppCompatActivity {
         BtnApprove.setOnClickListener(v -> approveRecipe());
         BtnReject.setOnClickListener(v -> handleRejectClick());
         BtnRemove.setOnClickListener(v -> handleRemoveClick());
-
-        // מאזין ללחיצה על כפתור המחיקה של היוצר
         BtnDeleteMyRecipe.setOnClickListener(v -> showDeleteMyRecipeDialog());
 
         RbUserRating.setOnRatingBarChangeListener((ratingBar, rating, fromUser) -> {
@@ -191,7 +199,7 @@ public class RecipeReviewActivity extends AppCompatActivity {
         });
     }
 
-    // --- לוגיקת המחיקה של המשתמש ---
+    // region לוגיקת המחיקה של המשתמש (הסרת המתכון לחלוטין מ-Firebase)
     private void showDeleteMyRecipeDialog() {
         new AlertDialog.Builder(this)
                 .setTitle("Delete Recipe")
@@ -216,8 +224,9 @@ public class RecipeReviewActivity extends AppCompatActivity {
             }
         });
     }
+    // endregion
 
-    // --- שאר הפונקציות ---
+    // region לוגיקת דירוג המתכון (חישוב ממוצע משוקלל ועדכון רשימת המדרגים בטרנזקציה)
     private void submitRecipeRating(float newRating) {
         if (currentRecipe == null) return;
         RbUserRating.setIsIndicator(true);
@@ -264,7 +273,9 @@ public class RecipeReviewActivity extends AppCompatActivity {
             }
         });
     }
+    // endregion
 
+    // region לוגיקת האדמין (אישר מתכון, בדיקת הערות, והחזרה לתיקון/סטטוס דחוי)
     private void approveRecipe() {
         if (currentRecipe == null) return;
         currentRecipe.setApproved(true);
@@ -337,4 +348,5 @@ public class RecipeReviewActivity extends AppCompatActivity {
             }
         });
     }
+    // endregion
 }

@@ -21,19 +21,18 @@ import com.example.ofek.services.DatabaseService;
 import com.example.ofek.utils.SharedPreferencesUtil;
 import com.example.ofek.utils.Validator;
 
-import java.util.Objects;
 import java.util.function.UnaryOperator;
 
+// פרגמנט פרופיל המשתמש (חלק משלושת מסכי הליבה בקונטיינר הראשי).
+// מאפשר למשתמש לצפות בפרטים האישיים שלו, לעדכן אותם מול השרת או להתנתק מהחשבון.
 public class ProfileFragment extends Fragment implements View.OnClickListener {
 
     private EditText etUserFirstName, etUserLastName, etUserEmail, etUserPhone, etUserPassword;
     private TextView tvUserDisplayName, tvUserDisplayEmail;
-    private Button btnUpdateProfile, btnSignOut, btnAdminManageRecipes;
+    private Button btnUpdateProfile, btnSignOut;
     private View adminBadge;
 
-    private String selectedUid;
-    private User selectedUser;
-    private boolean isCurrentUser = false;
+    private User currentUser;
     private DatabaseService databaseService;
 
     @Nullable
@@ -47,25 +46,13 @@ public class ProfileFragment extends Fragment implements View.OnClickListener {
         super.onViewCreated(view, savedInstanceState);
 
         databaseService = DatabaseService.getInstance();
-        User currentUser = SharedPreferencesUtil.getUser(requireContext());
 
+        currentUser = SharedPreferencesUtil.getUser(requireContext());
         if (currentUser == null) {
+            Intent intent = new Intent(requireActivity(), LandingActivity.class);
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+            startActivity(intent);
             requireActivity().finish();
-            return;
-        }
-
-        if (getArguments() != null) {
-            selectedUid = getArguments().getString("USER_UID");
-        }
-
-        if (selectedUid == null) {
-            selectedUid = currentUser.getId();
-        }
-
-        isCurrentUser = Objects.equals(selectedUid, currentUser.getId());
-
-        if (!currentUser.isAdmin() && !isCurrentUser) {
-            Toast.makeText(requireContext(), "You are not authorized to view this profile", Toast.LENGTH_SHORT).show();
             return;
         }
 
@@ -83,12 +70,10 @@ public class ProfileFragment extends Fragment implements View.OnClickListener {
         tvUserDisplayEmail = view.findViewById(R.id.tv_user_display_email);
         btnUpdateProfile = view.findViewById(R.id.btn_edit_profile);
         btnSignOut = view.findViewById(R.id.btn_sign_out);
-
         adminBadge = view.findViewById(R.id.admin_badge);
 
         btnUpdateProfile.setOnClickListener(this);
         btnSignOut.setOnClickListener(this);
-        btnAdminManageRecipes.setOnClickListener(this);
     }
 
     @Override
@@ -101,29 +86,23 @@ public class ProfileFragment extends Fragment implements View.OnClickListener {
         }
     }
 
+    // קריאה מהשרת: הוספנו הגנה מפני נתונים ריקים (null) במידה והמשתמש התנתק בזמן הריצה
     private void showUserProfile() {
-        if (selectedUid == null) return;
+        if (currentUser == null) return;
 
-        databaseService.getUser(selectedUid, new DatabaseService.DatabaseCallback<User>() {
+        databaseService.getUser(currentUser.getId(), new DatabaseService.DatabaseCallback<User>() {
             @Override
             public void onCompleted(User user) {
                 if (!isAdded()) return;
 
                 if (user == null) {
                     Toast.makeText(requireContext(), "Error: User not found", Toast.LENGTH_LONG).show();
-                    if (isCurrentUser) {
-                        SharedPreferencesUtil.signOutUser(requireContext());
-                        Intent intent = new Intent(requireActivity(), LandingActivity.class);
-                        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                        startActivity(intent);
-                        requireActivity().finish();
-                    } else {
-                        requireActivity().finish();
-                    }
+                    signOut();
                     return;
                 }
 
-                selectedUser = user;
+                currentUser = user;
+
                 etUserFirstName.setText(user.getFirstname());
                 etUserLastName.setText(user.getLastname());
                 etUserEmail.setText(user.getEmail());
@@ -134,13 +113,6 @@ public class ProfileFragment extends Fragment implements View.OnClickListener {
                 tvUserDisplayEmail.setText(user.getEmail());
 
                 adminBadge.setVisibility(user.isAdmin() ? View.VISIBLE : View.GONE);
-                
-                // Show admin management button only if user is admin
-                if (user.isAdmin() && isCurrentUser) {
-                    btnAdminManageRecipes.setVisibility(View.VISIBLE);
-                } else {
-                    btnAdminManageRecipes.setVisibility(View.GONE);
-                }
             }
 
             @Override
@@ -151,16 +123,9 @@ public class ProfileFragment extends Fragment implements View.OnClickListener {
                 }
             }
         });
-
-        if (!isCurrentUser) {
-            etUserEmail.setEnabled(false);
-            etUserPassword.setEnabled(false);
-        }
     }
 
     private void updateUserProfile() {
-        if (selectedUser == null) return;
-
         String firstName = etUserFirstName.getText().toString();
         String lastName = etUserLastName.getText().toString();
         String phone = etUserPhone.getText().toString();
@@ -169,21 +134,21 @@ public class ProfileFragment extends Fragment implements View.OnClickListener {
 
         if (!isValid(firstName, lastName, phone, email, password)) return;
 
-        selectedUser.setFirstname(firstName);
-        selectedUser.setLastname(lastName);
-        selectedUser.setPhone(phone);
-        selectedUser.setEmail(email);
-        selectedUser.setPassword(password);
+        currentUser.setFirstname(firstName);
+        currentUser.setLastname(lastName);
+        currentUser.setPhone(phone);
+        currentUser.setEmail(email);
+        currentUser.setPassword(password);
 
-        databaseService.updateUser(selectedUid, new UnaryOperator<User>() {
+        databaseService.updateUser(currentUser.getId(), new UnaryOperator<User>() {
             @Override
             public User apply(User user) {
                 if (user != null) {
-                    user.setFirstname(selectedUser.getFirstname());
-                    user.setLastname(selectedUser.getLastname());
-                    user.setPhone(selectedUser.getPhone());
-                    user.setEmail(selectedUser.getEmail());
-                    user.setPassword(selectedUser.getPassword());
+                    user.setFirstname(currentUser.getFirstname());
+                    user.setLastname(currentUser.getLastname());
+                    user.setPhone(currentUser.getPhone());
+                    user.setEmail(currentUser.getEmail());
+                    user.setPassword(currentUser.getPassword());
                 }
                 return user;
             }
@@ -192,6 +157,8 @@ public class ProfileFragment extends Fragment implements View.OnClickListener {
             public void onCompleted(User user) {
                 if (!isAdded()) return;
                 Toast.makeText(requireContext(), "Profile updated successfully", Toast.LENGTH_SHORT).show();
+
+                SharedPreferencesUtil.saveUser(requireContext(), currentUser);
                 showUserProfile();
             }
 
@@ -212,8 +179,11 @@ public class ProfileFragment extends Fragment implements View.OnClickListener {
         return true;
     }
 
+    // התנתקות: מנקה את השאריות מהזיכרון וסוגר את האקטיביטי הנוכחי בצורה בטוחה
     private void signOut() {
         SharedPreferencesUtil.signOutUser(requireContext());
+        currentUser = null;
+
         Intent landingIntent = new Intent(requireActivity(), LandingActivity.class);
         landingIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         startActivity(landingIntent);

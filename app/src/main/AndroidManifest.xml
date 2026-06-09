@@ -24,6 +24,15 @@
         </activity>
 
         <activity
+            android:name=".screens.LandingActivity"
+            android:exported="true"
+            android:theme="@style/Theme.Material3.DayNight.NoActionBar"> <intent-filter>
+            <action android:name="android.intent.action.MAIN" />
+            <category android:name="android.intent.category.LAUNCHER" />
+        </intent-filter>
+        </activity>
+
+        <activity
             android:name=".screens.MyRecipesActivity"
             android:exported="false" />
 
@@ -61,15 +70,11 @@
             android:theme="@style/Theme.OfekRecipeApp" />
 
         <activity
-            android:name=".screens.LandingActivity"
-            android:exported="false" />
-
-        <activity
             android:name=".screens.AdminRecipeManagerActivity"
             android:exported="false"
             android:label="Manage All Recipes" />
 
-       
+
 
     </application>
 

@@ -21,6 +21,7 @@ import com.example.ofek.services.DatabaseService;
 import com.example.ofek.utils.SharedPreferencesUtil;
 import com.example.ofek.utils.Validator;
 
+// מסך הרשמה (Register Activity) המאפשר למשתמשים חדשים ליצור חשבון באפליקציה על ידי הזנת פרטים אישיים ושמירתם בענן ובמכשיר.
 public class Register extends AppCompatActivity implements View.OnClickListener {
     private static final String TAG = "RegisterActivity";
 
@@ -32,6 +33,8 @@ public class Register extends AppCompatActivity implements View.OnClickListener 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        // התאמת התצוגה למסך מלא (EdgeToEdge) וחישוב שולי פסי המערכת
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_register);
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
@@ -42,6 +45,7 @@ public class Register extends AppCompatActivity implements View.OnClickListener 
 
         databaseService = DatabaseService.getInstance();
 
+        // קישור משתני ה-UI לרכיבים הוויזואליים בקובץ ה-XML
         etEmail = findViewById(R.id.et_register_email);
         etPassword = findViewById(R.id.et_register_password);
         etFName = findViewById(R.id.et_register_first_name);
@@ -50,10 +54,12 @@ public class Register extends AppCompatActivity implements View.OnClickListener 
         btnRegister = findViewById(R.id.btn_register_register);
         tvLogin = findViewById(R.id.tv_register_login);
 
+        // הגדרת מאזיני לחיצה באמצעות מימוש ממשק View.OnClickListener במחלקה
         btnRegister.setOnClickListener(this);
         tvLogin.setOnClickListener(this);
     }
 
+    // ניהול אירועי לחיצה: איסוף נתונים והפעלת וולידציה בלחיצה על הרשמה, או סגירת המסך וחזרה למסך הקודם (Login)
     @Override
     public void onClick(View v) {
         if (v.getId() == btnRegister.getId()) {
@@ -73,6 +79,7 @@ public class Register extends AppCompatActivity implements View.OnClickListener 
         }
     }
 
+    // מנגנון וולידציה מקומי: משתמש במחלקת ה-Validator כדי לוודא שכל שדות הטופס מולאו כראוי ועומדים בחוקי הפורמט
     private boolean checkInput(String email, String password, String fName, String lName, String phone) {
         if (!Validator.isEmailValid(email)) {
             etEmail.setError("Invalid email address");
@@ -102,6 +109,7 @@ public class Register extends AppCompatActivity implements View.OnClickListener 
         return true;
     }
 
+    // תהליך ההרשמה: מייצר מזהה ייחודי (ID) ובודק מול Firebase האם כתובת האימייל כבר תפוסה במערכת לפני היצירה
     private void registerUser(String email, String password, String fName, String lName, String phone) {
         String uid = databaseService.generateUserId();
         User user = new User(uid, email, fName, lName, password, phone, false);
@@ -123,12 +131,12 @@ public class Register extends AppCompatActivity implements View.OnClickListener 
         });
     }
 
+    // שמירה בענן ובמכשיר: כותב את אובייקט המשתמש החדש ל-Firebase, שומר אותו ב-SharedPreferences ומעביר אותו למסך הראשי
     private void createUserInDatabase(User user) {
         databaseService.createNewUser(user, new DatabaseService.DatabaseCallback<Void>() {
             @Override
             public void onCompleted(Void object) {
                 SharedPreferencesUtil.saveUser(Register.this, user);
-                // Redirect to MainContainerActivity instead of MainActivity
                 Intent mainIntent = new Intent(Register.this, MainContainerActivity.class);
                 mainIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                 startActivity(mainIntent);

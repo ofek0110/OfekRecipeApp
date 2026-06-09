@@ -33,8 +33,11 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+// מסך הבית של האפליקציה (בנוי כפרגמנט שמתלבש בתוך הקונטיינר הראשי).
+// מציג את כל המתכונים המאושרים, מאפשר חיפוש, סינון לפי קטגוריות, ומכיל את תפריט הניהול של האדמין.
 public class HomeFragment extends Fragment {
 
+    // הגדרת רכיבי ה-UI ומשתנים גלובליים לניהול רשימות המתכונים והסינונים
     private RecyclerView rvRecipes;
     private RecipeAdapter adapter;
     private List<Recipe> recipeList = new ArrayList<>();
@@ -51,6 +54,7 @@ public class HomeFragment extends Fragment {
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        // ניפוח ה-XML של מסך הבית
         return inflater.inflate(R.layout.fragment_home, container, false);
     }
 
@@ -58,6 +62,7 @@ public class HomeFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
+        // בדיקת אבטחה: אם המשתמש לא מחובר, נעיף אותו חזרה למסך ההתחברות
         User currentUser = SharedPreferencesUtil.getUser(requireContext());
         if (currentUser == null) {
             startActivity(new Intent(requireActivity(), LogIn.class));
@@ -66,6 +71,7 @@ public class HomeFragment extends Fragment {
         }
         String currentUserId = currentUser.getId();
 
+        // קישור משתני ה-UI לרכיבים בקובץ ה-XML
         rvRecipes = view.findViewById(R.id.RvRecipes);
         etSearch = view.findViewById(R.id.EtSearch);
         headerButtons = view.findViewById(R.id.HeaderButtons);
@@ -76,14 +82,17 @@ public class HomeFragment extends Fragment {
         fabAddRecipe = view.findViewById(R.id.FabAddRecipe);
         ivMyRecipes = view.findViewById(R.id.IvMyRecipes);
 
+        // בדיקת הרשאות אדמין: אם המשתמש הוא אדמין, נציג לו את כפתורי הניהול העליונים, אחרת נסטיר אותם
         if (!currentUser.isAdmin()) {
             headerButtons.setVisibility(View.GONE);
         }
 
+        // אתחול ה-RecyclerView והגדרת האדפטר של המתכונים
         rvRecipes.setLayoutManager(new LinearLayoutManager(requireContext()));
         adapter = new RecipeAdapter(currentUserId, false, new RecipeAdapter.OnRecipeClickListener() {
             @Override
             public void onRecipeClick(Recipe recipe) {
+                // לחיצה על מתכון פותחת את מסך הפירוט והבדיקה שלו
                 Intent intent = new Intent(requireContext(), RecipeReviewActivity.class);
                 intent.putExtra("recipe_id", recipe.getId());
                 startActivity(intent);
@@ -92,17 +101,19 @@ public class HomeFragment extends Fragment {
             @Override
             public void onLongRecipeClick(Recipe recipe) {}
         });
-
         rvRecipes.setAdapter(adapter);
 
+        // הגדרת מאזיני הלחיצה עבור כרטיסיות הקטגוריות
         setupCategoryFilters(view);
 
+        // הגדרת הניווט ללחיצות על שאר כפתורי המסך (המתכונים שלי, הוספת מתכון, ומסכי האדמין)
         ivMyRecipes.setOnClickListener(v -> startActivity(new Intent(requireContext(), MyRecipesActivity.class)));
         fabAddRecipe.setOnClickListener(v -> startActivity(new Intent(requireContext(), AddRecipeActivity.class)));
         btnUsers.setOnClickListener(v -> startActivity(new Intent(requireContext(), UsersList.class)));
         btnRequests.setOnClickListener(v -> startActivity(new Intent(requireContext(), RecipeRequestsActivity.class)));
         btnManageRecipes.setOnClickListener(v -> startActivity(new Intent(requireContext(), AdminRecipeManagerActivity.class)));
 
+        // האזנה בזמן אמת להקלדה בתיבת החיפוש ועדכון הרשימה בהתאם לטקסט שהוזן
         etSearch.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
@@ -118,9 +129,11 @@ public class HomeFragment extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
+        // בכל פעם שחוזרים למסך, נמשוך מחדש את המתכונים המעודכנים מ-Firebase
         loadRecipesFromFirebase();
     }
 
+    // אתחול כרטיסיות הקטגוריות והגדרת מאזיני לחיצה שיפעילו את הסינון המתאים
     private void setupCategoryFilters(View view) {
         view.findViewById(R.id.CatBreakfast).setOnClickListener(v -> filterByCategory("Breakfast"));
         view.findViewById(R.id.CatLunch).setOnClickListener(v -> filterByCategory("Lunch"));
@@ -136,12 +149,14 @@ public class HomeFragment extends Fragment {
         cardDinner = view.findViewById(R.id.CardDinner);
     }
 
+    // קביעת הקטגוריה הנוכחית שנבחרה והפעלת פונקציות הסינון וצביעת הכרטיסיות
     private void filterByCategory(String category) {
         currentCategoryFilter = category;
         updateCategoryColors(category);
         filterRecipes(etSearch.getText().toString());
     }
 
+    // לוגיקה ויזואלית: מאפסת את צבעי כל הקטגוריות לצבע בהיר ומדגישה בצבע כהה יותר רק את הקטגוריה שנבחרה
     private void updateCategoryColors(String selectedCategory) {
         cardBreakfast.setCardBackgroundColor(Color.parseColor("#E0F2F1"));
         cardLunch.setCardBackgroundColor(Color.parseColor("#FFEDD5"));
@@ -158,6 +173,7 @@ public class HomeFragment extends Fragment {
         }
     }
 
+    // מנגנון הסינון המשולב: רץ על הרשימה המקורית ומסנן מתכונים שעומדים גם בתנאי החיפוש החופשי וגם בקטגוריה שנבחרה
     private void filterRecipes(String text) {
         filteredList.clear();
         for (Recipe recipe : recipeList) {
@@ -172,6 +188,7 @@ public class HomeFragment extends Fragment {
         adapter.setRecipeList(filteredList);
     }
 
+    // שליפת כל המתכונים מ-Firebase, חישוב כמות הבקשות הממתינות (עבור ה-Badge של האדמין), וסינון כך שיוצגו רק מתכונים מאושרים
     private void loadRecipesFromFirebase() {
         DatabaseService.getInstance().getRecipeList(new DatabaseService.DatabaseCallback<List<Recipe>>() {
             @Override
@@ -180,15 +197,18 @@ public class HomeFragment extends Fragment {
                 recipeList.clear();
                 if (recipes == null) return;
 
+                // ספירת כמה מתכונים ממתינים לאישור אדמין (Pending)
                 int pendingCount = (int) recipes.stream().filter(Recipe::isPending).count();
 
+                // הסרת כל המתכונים שאינם מאושרים (כדי שהמשתמש הרגיל לא יראה אותם במסך הבית)
                 recipes.removeIf(recipe -> !recipe.isApproved());
 
                 recipeList.clear();
                 recipeList.addAll(recipes);
-                Collections.reverse(recipeList);
+                Collections.reverse(recipeList); // הפיכת הרשימה כדי שהמתכונים החדשים ביותר יוצגו ראשונים
                 filterRecipes(etSearch.getText().toString());
 
+                // עדכון בועית ההתראות (Badge) של האדמין עם כמות הבקשות הממתינות לאישור
                 if (pendingCount > 0) {
                     tvRequestsBadge.setVisibility(View.VISIBLE);
                     tvRequestsBadge.setText(pendingCount > 99 ? "99+" : String.valueOf(pendingCount));
@@ -198,9 +218,7 @@ public class HomeFragment extends Fragment {
             }
 
             @Override
-            public void onFailed(Exception e) {
-
-            }
+            public void onFailed(Exception e) {}
         });
     }
 }

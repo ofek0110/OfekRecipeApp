@@ -161,7 +161,7 @@ public class SharedPreferencesUtil {
         return null;
     }
 
-
+// גישה מהירה למידע local
 
 
 }

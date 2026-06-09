@@ -25,6 +25,8 @@ import com.example.ofek.utils.Validator;
 
 import java.util.function.UnaryOperator;
 
+// אקטיביטי פרופיל משתמש דינמי המיועד לשני שימושים: הצגת/עדכון הפרופיל האישי של המשתמש הנוכחי,
+// או פתיחת פרופיל של משתמש אחר עבור האדמין (כולל אפשרות למחיקת המשתמש).
 public class UserProfile extends AppCompatActivity implements View.OnClickListener {
 
     private static final String TAG = "UserProfileActivity";
@@ -35,7 +37,7 @@ public class UserProfile extends AppCompatActivity implements View.OnClickListen
 
     String selectedUid;
     User selectedUser;
-    boolean isCurrentUser = false;
+    boolean isCurrentUser = false; // דגל המציין האם המשתמש צופה בפרופיל של עצמו
     DatabaseService databaseService;
     User currentUser;
 
@@ -45,7 +47,7 @@ public class UserProfile extends AppCompatActivity implements View.OnClickListen
         EdgeToEdge.enable(this);
         setContentView(R.layout.fragment_profile);
 
-        // Ensure the root view has an ID or use android.R.id.content
+        // סידור שולי התצוגה (Insets) למניעת חפיפה עם סרגלי המערכת
         View mainView = findViewById(android.R.id.content);
         if (mainView != null) {
             ViewCompat.setOnApplyWindowInsetsListener(mainView, (v, insets) -> {
@@ -63,6 +65,7 @@ public class UserProfile extends AppCompatActivity implements View.OnClickListen
             return;
         }
 
+        // ניתוח ה-Intent: בדיקה האם הגענו לצפות במשתמש ספציפי (דרך ניהול אדמין) או בפרופיל של עצמנו
         selectedUid = getIntent().getStringExtra("USER_UID");
         if (selectedUid == null) {
             selectedUid = currentUser.getId();
@@ -73,6 +76,7 @@ public class UserProfile extends AppCompatActivity implements View.OnClickListen
         showUserProfile();
     }
 
+    // אתחול רכיבי ה-UI, הגדרת מאזיני לחיצה, וביצוע התאמות ויזואליות ראשוניות לפי סוג הפרופיל
     private void initializeViews() {
         etUserFirstName = findViewById(R.id.et_user_first_name);
         etUserLastName = findViewById(R.id.et_user_last_name);
@@ -90,16 +94,15 @@ public class UserProfile extends AppCompatActivity implements View.OnClickListen
         if (btnSignOut != null) btnSignOut.setOnClickListener(this);
         if (btnDeleteUser != null) btnDeleteUser.setOnClickListener(this);
 
-        // Hide sign out if viewing another user's profile
         if (!isCurrentUser && btnSignOut != null) {
             btnSignOut.setVisibility(View.GONE);
         }
 
-        // Hide bottom navigation if it exists in the activity layout
         View nav = findViewById(R.id.bottomNavigation);
         if (nav != null) nav.setVisibility(View.GONE);
     }
 
+    // ניהול מרכזי של אירועי הלחיצה במסך (עדכון, התנתקות, או מחיקה)
     @Override
     public void onClick(View v) {
         int id = v.getId();
@@ -112,6 +115,7 @@ public class UserProfile extends AppCompatActivity implements View.OnClickListen
         }
     }
 
+    // פנייה ל-Firebase לשליפת נתוני הפרופיל שנבחר, אכלוס השדות, והפעלת חוקי הרשאות עריכה/מחיקה (למשל חסימת עריכה לאדמין על פרופיל זר)
     private void showUserProfile() {
         if (selectedUid == null) return;
 
@@ -140,7 +144,7 @@ public class UserProfile extends AppCompatActivity implements View.OnClickListen
             }
         });
 
-        // Visibility Logic
+        // לוגיקת נראות כפתור מחיקה: יוצג רק אם המשתמש המחובר הוא אדמין והוא צופה בפרופיל של מישהו אחר
         if (btnDeleteUser != null) {
             if (currentUser.isAdmin() && !isCurrentUser) {
                 btnDeleteUser.setVisibility(View.VISIBLE);
@@ -148,9 +152,9 @@ public class UserProfile extends AppCompatActivity implements View.OnClickListen
                 btnDeleteUser.setVisibility(View.GONE);
             }
         }
-        
-        // Editing Permissions
-        if (!isCurrentUser && !currentUser.isAdmin()) {
+
+        // הגבלת עריכה: אם זה לא המשתמש עצמו, ננעל את השדות לחלוטין (אדמין יכול למחוק משתמש אחר, אך לא לערוך את פרטיו)
+        if (!isCurrentUser) {
             etUserFirstName.setEnabled(false);
             etUserLastName.setEnabled(false);
             etUserPhone.setEnabled(false);
@@ -160,6 +164,7 @@ public class UserProfile extends AppCompatActivity implements View.OnClickListen
         }
     }
 
+    // מנגנון מחיקה (עבור אדמין): הצגת דיאלוג אזהרה ומחיקה מוחלטת של המשתמש הנוכחי מתיקיית ה-users ב-Firebase
     private void confirmAndDeleteUser() {
         new AlertDialog.Builder(this)
                 .setTitle("Delete User")
@@ -182,6 +187,7 @@ public class UserProfile extends AppCompatActivity implements View.OnClickListen
                 .show();
     }
 
+    // עדכון פרופיל עצמי: איסוף הקלטים, הרצת וולידציה ושליחת השינויים לשרת באמצעות טרנזקציה ב-DatabaseService
     private void updateUserProfile() {
         if (selectedUser == null) return;
 
@@ -216,6 +222,7 @@ public class UserProfile extends AppCompatActivity implements View.OnClickListen
         });
     }
 
+    // וולידציה: שימוש במחלקת ה-Validator כדי לוודא ששדות השם, הטלפון, האימייל והסיסמה תקינים
     private boolean isValid(String firstName, String lastName, String phone, String email, String password) {
         if (!Validator.isNameValid(firstName)) { etUserFirstName.setError("Required"); return false; }
         if (!Validator.isNameValid(lastName)) { etUserLastName.setError("Required"); return false; }
@@ -225,6 +232,7 @@ public class UserProfile extends AppCompatActivity implements View.OnClickListen
         return true;
     }
 
+    // התנתקות: ניקוי הזיכרון המקומי (SharedPreferences) והעברת המשתמש למסך הפתיחה תוך חסימת אפשרות חזרה
     private void signOut() {
         SharedPreferencesUtil.signOutUser(this);
         Intent intent = new Intent(this, LandingActivity.class);
